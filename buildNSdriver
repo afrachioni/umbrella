@@ -1,0 +1,10 @@
+#!/bin/bash
+source /opt/modules/default/etc/modules.sh
+module unload PrgEnv-intel
+module unload PrgEnv-gnu
+module unload PrgEnv-pgi
+module unload PrgEnv-cray
+module load PrgEnv-gnu
+module load fftw
+CC -I ~/options_parser -I ~/LAMMPS_ADIOS/lammps-14Aug11/src -I ~/LAMMPS_ADIOS/lammps-14Aug11/lib/meam `/nics/c/home/afrachi1/adios-1.4.1pre1/adios_config -c` -c ns_driver.cpp parser.cpp
+CC -L ~/LAMMPS_ADIOS/lammps-14Aug11/src -L ~/LAMMPS_ADIOS/lammps-14Aug11/lib/meam ns_driver.o parser.o -llmp_kraken -lmeam `/nics/c/home/afrachi1/adios-1.4.1pre1/adios_config -l` -o ns_driver
