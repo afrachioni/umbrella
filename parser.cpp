@@ -5,11 +5,13 @@
 
 #include "parser.h"
 
-enum options_index { TARGET, START, COUNT, DURATION, TEMPERATURE, SPRING, CUTOFF, HELP };
+enum options_index { TARGET_MIN, TARGET_MAX, NUM_WINDOWS, START, COUNT, DURATION, TEMPERATURE, SPRING, CUTOFF, HELP };
 int parser::verbose = 0;
 const option::Descriptor usage [] =
 {
-	{ TARGET, 0, "", "target", parser::NumberCheck, "target Q6 for this window" },
+	{ TARGET_MIN, 0, "", "target_min", parser::NumberCheck, "minimum value of order parameter"},
+	{ TARGET_MAX, 0, "", "target_max", parser::NumberCheck, "maximum value of order parameter"},
+	{ NUM_WINDOWS, 0, "", "num_windows", parser::IntegerCheck, "number of sampling windows" },
 	{ START, 0, "", "start", parser::FileCheck, "restart file at which to begin sampling" },
 	{ COUNT, 0, "", "count", parser::IntegerCheck, "number of umbrella steps" },
 	{ DURATION, 0, "", "duration", parser::IntegerCheck, "duration of one umbrella step / fs" },
@@ -38,7 +40,7 @@ parser::parser (int narg, char **arg)
 	}
 
 	int missing = 0;
-	for (int i = TARGET; i < HELP; i++) {
+	for (int i = TARGET_MIN; i < HELP; i++) {
 		option::Option opt = options[i];
 		if (!opt) {
 			if (verbose) fprintf (stderr, "--%s is a required option!\n", usage[i].longopt);
@@ -50,9 +52,13 @@ parser::parser (int narg, char **arg)
 
 
 	if (verbose) fprintf (stderr, "Program options seem sane. Proceeding with configuration:\n");
-	const char *target_arg = options[TARGET].last()->arg;
-	target = atof (target_arg);
-	if (verbose) fprintf (stderr, "\tTarget:                    %f\n", target);
+	const char *target_min_arg = options[TARGET_MIN].last()->arg;
+	target_min = atof (target_min_arg);
+	if (verbose) fprintf (stderr, "\tTarget min:                %f\n", target_min);
+
+	const char *target_max_arg = options[TARGET_MAX].last()->arg;
+	target_max = atof (target_max_arg);
+	if (verbose) fprintf (stderr, "\tTarget max:                %f\n", target_max);
 
 	start = options[START].last()->arg;
 	if (verbose) fprintf (stderr, "\tRestart filename:          %s\n", start);

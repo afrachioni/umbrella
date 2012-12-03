@@ -10,7 +10,9 @@ class parser
 		parser (int narg, char **arg);
 		static int verbose;
 		int parse_error;
-		double target;
+		double target_min;
+		double target_max;
+		int num_windows;
 		const char *start;
 		int count;
 		int duration;

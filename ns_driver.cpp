@@ -135,8 +135,8 @@ int main(int narg, char **arg)
 			lammps_split = get_time() - lammps_start_time;
 			Q6 = *((double *) lammps_extract_compute(lmp,(char*)"myBoop", 0, 0));
 			if (me == 0) {
-				d_Q_old = Q6_old - p->target;
-				d_Q = Q6 - p->target;
+				d_Q_old = Q6_old - p->target_min;
+				d_Q = Q6 - p->target_min;
 				bias_potential_old = d_Q_old * d_Q_old;
 				bias_potential_new = d_Q * d_Q;
 				boltz_factor = exp(factor*(bias_potential_old-bias_potential_new));
