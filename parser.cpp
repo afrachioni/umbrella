@@ -54,34 +54,39 @@ parser::parser (int narg, char **arg)
 	if (verbose) fprintf (stderr, "Program options seem sane. Proceeding with configuration:\n");
 	const char *target_min_arg = options[TARGET_MIN].last()->arg;
 	target_min = atof (target_min_arg);
-	if (verbose) fprintf (stderr, "\tTarget min:                %f\n", target_min);
+	if (verbose) fprintf (stderr, "\tTarget min:                     %f\n", target_min);
 
 	const char *target_max_arg = options[TARGET_MAX].last()->arg;
 	target_max = atof (target_max_arg);
-	if (verbose) fprintf (stderr, "\tTarget max:                %f\n", target_max);
+	if (verbose) fprintf (stderr, "\tTarget max:                     %f\n", target_max);
+
+	const char *num_windows_arg = options[NUM_WINDOWS].last()->arg;
+	num_windows = atoi (num_windows_arg);
+	if (verbose) fprintf (stderr, "\tNumber of sampling windows:     %d\n", num_windows);
+
 
 	start = options[START].last()->arg;
-	if (verbose) fprintf (stderr, "\tRestart filename:          %s\n", start);
+	if (verbose) fprintf (stderr, "\tRestart filename:               %s\n", start);
 
 	const char *count_arg = options[COUNT].last()->arg;
 	count = atoi (count_arg);
-	if (verbose) fprintf (stderr, "\tNumber of umbrella steps:  %d\n", count);
+	if (verbose) fprintf (stderr, "\tNumber of umbrella steps:       %d\n", count);
 
 	const char *duration_arg = options[DURATION].last()->arg;
 	duration = atoi (duration_arg);
-	if (verbose) fprintf (stderr, "\tUmbrella step duration:    %d\n", duration);
+	if (verbose) fprintf (stderr, "\tUmbrella step duration:         %d\n", duration);
 
 	const char *temperature_arg = options[TEMPERATURE].last()->arg;
 	temperature = atof (temperature_arg);
-	if (verbose) fprintf (stderr, "\tTemperature:               %f\n", temperature);
+	if (verbose) fprintf (stderr, "\tTemperature:                    %f\n", temperature);
 
 	const char *spring_arg = options[SPRING].last()->arg;
 	spring = atof (spring_arg);
-	if (verbose) fprintf (stderr, "\tSpring constant:           %f\n", spring);
+	if (verbose) fprintf (stderr, "\tSpring constant:                %f\n", spring);
 
 	const char *cutoff_arg = options[CUTOFF].last()->arg;
 	cutoff = atof (cutoff_arg);
-	if (verbose) fprintf (stderr, "\tQ6 neighbor cutoff:        %f\n", cutoff);
+	if (verbose) fprintf (stderr, "\tQ6 neighbor cutoff:             %f\n", cutoff);
 }
 option::ArgStatus parser::MyCheck (const option::Option& option, bool msg)
 {
