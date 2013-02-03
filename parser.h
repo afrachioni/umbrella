@@ -3,6 +3,7 @@
 
 #include "optionparser.h"
 #include "stdio.h"
+#define WHAM_BOLTZMANN 0.0083144621 // kJ/mol-K 
 
 class parser
 {
@@ -10,20 +11,17 @@ class parser
 		parser (int narg, char **arg);
 		static int verbose;
 		int parse_error;
-		double target_min;
-		double target_max;
-		int num_windows;
-		const char *start;
+		FILE *init;
 		int count;
 		int duration;
 		double temperature;
 		double spring;
+		int l;
 		double cutoff;
 
 		static option::ArgStatus MyCheck (const option::Option& option, bool msg);
-		static option::ArgStatus FileCheck (const option::Option& option, bool msg);
 		static option::ArgStatus NumberCheck (const option::Option& option, bool msg);
 		static option::ArgStatus IntegerCheck (const option::Option& option, bool msg);
+		static option::ArgStatus NonEmpty (const option::Option& option, bool msg);
 };
-//int parser::verbose;
 #endif
