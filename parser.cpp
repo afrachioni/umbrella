@@ -5,7 +5,7 @@
 
 #include "parser.h"
 
-enum options_index { INIT, COUNT, DURATION, TEMPERATURE, SPRING, L, CUTOFF, HELP };
+enum options_index { INIT, COUNT, DURATION, TEMPERATURE, L, CUTOFF, HELP };
 int parser::verbose = 0;
 const option::Descriptor usage [] =
 {
@@ -13,7 +13,6 @@ const option::Descriptor usage [] =
 	{ COUNT, 0, "", "count", parser::IntegerCheck, "number of umbrella steps" },
 	{ DURATION, 0, "", "duration", parser::IntegerCheck, "duration of one umbrella step / fs" },
 	{ TEMPERATURE, 0, "", "temperature", parser::NumberCheck, "temperature / K" },
-	{ SPRING, 0, "", "spring", parser::NumberCheck, "spring constant / boltzmann constant" },
 	{ L, 0, "", "l", parser::IntegerCheck, "l for order parameter Q" },
 	{ CUTOFF, 0, "", "cutoff", parser::NumberCheck, "neighbor cutoff for Q6" },
 	{ HELP, 0, "", "help", option::Arg::None, "help usage" },
@@ -32,7 +31,7 @@ parser::parser (int narg, char **arg)
 
 	if (options[HELP] || narg == 0) {
 		if (verbose)
-			option::printUsage(std::cerr, usage);
+			option::printUsage(std::cout, usage);
 		parse_error ++;
 		return;
 	}
@@ -49,31 +48,27 @@ parser::parser (int narg, char **arg)
 		{ ++parse_error; return; }
 
 
-	if (verbose) fprintf (stderr, "Program options seem sane. Proceeding with configuration:\n");
+	if (verbose) fprintf (stdout, "Program options seem sane. Proceeding with configuration:\n");
 
 	const char *count_arg = options[COUNT].last()->arg;
 	count = atoi (count_arg);
-	if (verbose) fprintf (stderr, "\tNumber of umbrella steps:              %d\n", count);
+	if (verbose) fprintf (stdout, "\tNumber of umbrella steps:              %d\n", count);
 
 	const char *duration_arg = options[DURATION].last()->arg;
 	duration = atoi (duration_arg);
-	if (verbose) fprintf (stderr, "\tUmbrella step duration:                %d\n", duration);
+	if (verbose) fprintf (stdout, "\tUmbrella step duration:                %d\n", duration);
 
 	const char *temperature_arg = options[TEMPERATURE].last()->arg;
 	temperature = atof (temperature_arg);
-	if (verbose) fprintf (stderr, "\tTemperature:                           %f\n", temperature);
+	if (verbose) fprintf (stdout, "\tTemperature:                           %f\n", temperature);
 
-	const char *spring_arg = options[SPRING].last()->arg;
-	spring = atof (spring_arg);
-	if (verbose) fprintf (stderr, "\tSpring constant:                       %f\n", spring);
-	
 	const char *l_arg = options[L].last()->arg;
 	l = atoi (l_arg);
-	if (verbose) fprintf (stderr, "\tl:                                     %d\n", l);
+	if (verbose) fprintf (stdout, "\tl:                                     %d\n", l);
 
 	const char *cutoff_arg = options[CUTOFF].last()->arg;
 	cutoff = atof (cutoff_arg);
-	if (verbose) fprintf (stderr, "\tQ6 neighbor cutoff:                    %f\n", cutoff);
+	if (verbose) fprintf (stdout, "\tQ6 neighbor cutoff:                    %f\n", cutoff);
 
 	const char *init_arg = options[INIT].last()->arg;
 	init = fopen (init_arg, "r");
@@ -81,7 +76,7 @@ parser::parser (int narg, char **arg)
 		//TODO this line prints multiple times for some reason
 		fprintf (stderr, "Unable to read file: %s\n", init_arg); ++parse_error; return;
 	}
-	if (verbose) fprintf (stderr, "\tInitial window configuration file:     %s\n", init_arg);
+	if (verbose) fprintf (stdout, "\tInitial window configuration file:     %s\n", init_arg);
 }
 option::ArgStatus parser::MyCheck (const option::Option& option, bool msg)
 {
