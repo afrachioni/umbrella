@@ -15,7 +15,6 @@ class parser
 		int count;
 		int duration;
 		double temperature;
-		double spring;
 		int l;
 		double cutoff;
 

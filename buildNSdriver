@@ -6,5 +6,5 @@ module unload PrgEnv-pgi
 module unload PrgEnv-cray
 module load PrgEnv-gnu
 module load fftw
-CC -g -I ~/options_parser -I ~/myLammps/src -I ~/myLammps/lib/meam `/nics/c/home/afrachi1/adios-1.4.1pre1/adios_config -c` -c ns_driver.cpp parser.cpp
+CC -g -I ~/options_parser -I ~/myLammps/src -I ~/myLammps/lib/meam `/nics/c/home/afrachi1/adios-1.4.1pre1/adios_config -c` -c ns_driver.cpp parser.cpp 
 CC -g -L ~/myLammps/src -L ~/myLammps/lib/meam ns_driver.o parser.o -llammps_frach -lmeam `/nics/c/home/afrachi1/adios-1.4.1pre1/adios_config -l` -o ns_driver
