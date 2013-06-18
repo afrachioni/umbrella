@@ -162,6 +162,11 @@ int main(int narg, char **arg)
 
 		MPI_Group world_group, roots_group;
 		MPI_Comm_group (MPI_COMM_WORLD, &world_group);
+		fprintf (stdout, "rank: %2d, num_active_windows: %d\n", me, num_active_windows);
+		fprintf (stdout, "rank: %2d, local_roots[0]: %d\n", me, local_roots[0]);
+		fprintf (stdout, "rank: %2d, local_roots[1]: %d\n", me, local_roots[1]);
+		fprintf (stdout, "rank: %2d, local_roots[2]: %d\n", me, local_roots[2]);
+		fprintf (stdout, "rank: %2d, local_roots[3]: %d\n", me, local_roots[3]);
 		MPI_Group_incl (world_group, num_active_windows, local_roots, &roots_group);
 		MPI_Comm roots_comm;
 		MPI_Comm_create (MPI_COMM_WORLD, roots_group, &roots_comm);
@@ -223,9 +228,10 @@ int main(int narg, char **arg)
 		
 		//MPI_Scatter (springs, 1, MPI_FLOAT,
 				//&local_spring, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-		float *local_spring = new float (springs[window_index]);
+		//float *local_spring = new float (springs[window_index]);
+		float spring_init = springs[window_index];
 		if (local_rank == 0)
-			fprintf (stderr, "window_index: %d\t*local_spring: %f\n", window_index, *local_spring);
+			fprintf (stderr, "window_index: %d\tspring_init: %f\n", window_index, spring_init);
 		///////////////////////////////////
 
 		char line[100];
@@ -286,10 +292,11 @@ int main(int narg, char **arg)
 			fprintf (local_log, "# Target Q6: %f\n", targets[window_index]);//TODO change "Q6" to something, merge these prints with those below
 			fprintf (local_log, "# Initial Q6: %f\n", Q6);
 			fprintf (local_log, "# Number of atoms: %d\n", natoms);
-			fprintf (local_log, "# Spring/Boltzmann: %f\n", *local_spring);//springs[window_index]);
+			fprintf (local_log, "# Spring/Boltzmann: %f\n", spring_init);//springs[window_index]);
 			fprintf (local_log, "#\n");
-			fprintf (local_log, "#%-8s%-15s%-15s%-8s%-15s%-15s%-8s\n", \
-					"Step", "Last", "Current", "Accept", "LAMMPS_time", "Wall", "Duration");
+			fprintf (local_log, "#%-8s%-15s%-15s%-8s%-15s%-15s%-8s%-15s\n", \
+					"Step", "Last", "Current", "Accept", "LAMMPS_time", \
+					"Wall", "Duration", "Spring");
 		}
 
 		debugmsg ("Writing WHAM command...\n");
@@ -325,29 +332,72 @@ int main(int narg, char **arg)
 		double log_boltz_factor;
 		const int64_t loop_start_time = get_time();
 
-		int *local_duration = new int (p->duration);
-		int current_duration;
+		int duration_init = p->duration;
+		int current_duration = duration_init;
+
+		pthread_mutex_t mpi_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+	const int count = 4;
+	int lengths[count] = {1, 1, 1, 1};
+	MPI_Aint offsets[count] = {0, sizeof(int), 2*sizeof(int), 3*sizeof(int)};
+	MPI_Datatype types[count] = {MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT};
+	MPI_Datatype message_type;
+	MPI_Type_struct (count, lengths, offsets, types, &message_type);
+	MPI_Type_commit (&message_type);
+
+		if (me == 0) {
+			struct parameter_pointers management_data;
+			management_data.rank = me;
+			management_data.local_rank = local_rank;
+			management_data.window_index = window_index;
+			management_data.num_active_windows = num_active_windows; 
+			management_data.local_roots = local_roots;
+			management_data.roots_comm = roots_comm;
+			management_data.local_comm = local_comm;
+			management_data.mpi_mutex_ptr = &mpi_mutex;
+			management_data.message_type = message_type;
+
+			pthread_t manager;
+			if (pthread_create( &manager, NULL, &manage, &management_data))
+				printmsg ("Could not create management thread somewhere!");
+		}
 
 
-		struct parameter_pointers management_data;
-		management_data.duration = local_duration;
-		management_data.spring = local_spring;
-		management_data.rank = me;
-		management_data.local_rank = local_rank;
-		management_data.window_index = window_index;
-		management_data.num_active_windows = num_active_windows; 
-		management_data.local_roots = local_roots;
-		management_data.roots_comm = roots_comm;
-		management_data.local_comm = local_comm;
 
-		pthread_t manager;
-		if (pthread_create( &manager, NULL, &manage, &management_data))
-			printmsg ("Could not create management thread somewhere!");
-
+		float current_spring = spring_init;
+		MPI_Request req;
+		int test_msg;
+		struct management_message msg;
+		int recv_complete = 0;
+		if (local_rank == 0) {
+			pthread_mutex_lock (&mpi_mutex);
+			MPI_Irecv (&msg, 1, message_type, 0, TAG, roots_comm, &req);
+			pthread_mutex_unlock (&mpi_mutex);
+		}
 		printmsg ("Samples away!\n\n");
 		//Q6_old is last accepted Q6
 		for (int i = 0; i < p->count; i++) {
-			current_duration = *local_duration;//TODO locks here?
+			pthread_mutex_lock (&mpi_mutex);
+			if (local_rank == 0) {
+				MPI_Test (&req, &recv_complete, MPI_STATUS_IGNORE);
+				if (recv_complete) {
+					fprintf (stderr, "Window %d has recieved a message!\n", window_index);
+					fprintf (stderr, "\tspring_msg: %d\n", msg.spring_message);
+					fprintf (stderr, "\tduration_msg: %d\n", msg.duration_message);
+					fprintf (stderr, "\tnew_duration: %d\n", msg.new_duration);
+					fprintf (stderr, "\tnew_spring: %f\n", msg.new_spring);
+					if (msg.spring_message)
+						current_spring = msg.new_spring;
+					if (msg.duration_message)
+						current_duration = msg.new_duration;
+					recv_complete = 0;
+					MPI_Irecv (&msg, 1, message_type, 0, TAG, roots_comm, &req);
+				}
+			}
+			//bcast to window
+			MPI_Bcast (&current_duration, 1, MPI_INT, 0, local_comm);
+			MPI_Bcast (&current_spring, 1, MPI_FLOAT, 0, local_comm);
+
 			if (!umbrella_accept) {//Umbrella reject
 				lammps_scatter_atoms(lmp,(char*)"x",1,3,positions_buffer);
 				if (local_rank == 0) seed = rand() % 1000 + 1; //TODO why 1000?
@@ -369,17 +419,19 @@ int main(int narg, char **arg)
 			if (local_rank == 0) {
 				d_Q = Q6 - targets[window_index];
 				bias_potential_new = d_Q * d_Q;
-				log_boltz_factor = (-0.5 * *local_spring / p->temperature) * \
+				log_boltz_factor = (-0.5 * spring_init / p->temperature) * \
 					(bias_potential_new-bias_potential_old);
 				umbrella_accept = log((double) rand() / RAND_MAX) \
 								  < log_boltz_factor;
 			}
 			MPI_Bcast (&umbrella_accept, 1, MPI_INT, 0, local_comm);
+			pthread_mutex_unlock (&mpi_mutex);
 			step_time = get_time() - last_step_end_time;
 			if (local_rank == 0){
-				fprintf (local_log, "%-9d%-15f%-15f%-8d%-15lld%-15lld%-8d\n", \
+				fprintf (local_log, "%-9d%-15f%-15f%-8d%-15lld%-15lld%-8d%-15f\n", \
 						i, Q6_old, Q6, umbrella_accept, lammps_split, \
-						get_time() - loop_start_time, current_duration);
+						get_time() - loop_start_time, current_duration, \
+						current_spring);
 			}
 			last_step_end_time = get_time();
 		}
