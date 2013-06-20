@@ -337,31 +337,26 @@ int main(int narg, char **arg)
 
 		pthread_mutex_t mpi_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-	const int count = 4;
-	int lengths[count] = {1, 1, 1, 1};
-	MPI_Aint offsets[count] = {0, sizeof(int), 2*sizeof(int), 3*sizeof(int)};
-	MPI_Datatype types[count] = {MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT};
-	MPI_Datatype message_type;
-	MPI_Type_struct (count, lengths, offsets, types, &message_type);
-	MPI_Type_commit (&message_type);
+		const int count = 4;
+		int lengths[count] = {1, 1, 1, 1};
+		MPI_Aint offsets[count] = {0, sizeof(int), 2*sizeof(int), 3*sizeof(int)};
+		MPI_Datatype types[count] = {MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT};
+		MPI_Datatype message_type;
+		MPI_Type_struct (count, lengths, offsets, types, &message_type);
+		MPI_Type_commit (&message_type);
 
 		if (me == 0) {
 			struct parameter_pointers management_data;
-			management_data.rank = me;
-			management_data.local_rank = local_rank;
 			management_data.window_index = window_index;
 			management_data.num_active_windows = num_active_windows; 
-			management_data.local_roots = local_roots;
 			management_data.roots_comm = roots_comm;
-			management_data.local_comm = local_comm;
 			management_data.mpi_mutex_ptr = &mpi_mutex;
 			management_data.message_type = message_type;
 
 			pthread_t manager;
 			if (pthread_create( &manager, NULL, &manage, &management_data))
-				printmsg ("Could not create management thread somewhere!");
+				printmsg ("Could not create management thread on root!");
 		}
-
 
 
 		float current_spring = spring_init;
@@ -420,9 +415,9 @@ int main(int narg, char **arg)
 				d_Q = Q6 - targets[window_index];
 				bias_potential_new = d_Q * d_Q;
 				log_boltz_factor = (-0.5 * spring_init / p->temperature) * \
-					(bias_potential_new-bias_potential_old);
+						   (bias_potential_new-bias_potential_old);
 				umbrella_accept = log((double) rand() / RAND_MAX) \
-								  < log_boltz_factor;
+						  < log_boltz_factor;
 			}
 			MPI_Bcast (&umbrella_accept, 1, MPI_INT, 0, local_comm);
 			pthread_mutex_unlock (&mpi_mutex);
