@@ -42,7 +42,7 @@ void *manage (void *params) {
 	MPI_Comm_size (my_pointers.roots_comm, &roots_size);
 	fprintf(stdout, "There are %d processes in roots_comm!\n", roots_size);
 
-	FILE *pipe = stdin;
+	FILE *pipe = fopen ("feed", "r");//stdin;
 
 	char line[500];//TODO somehow get MAX_FNAME_LENGTH from ns_driver.cpp
 	char first[500];
