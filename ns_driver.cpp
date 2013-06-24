@@ -67,6 +67,8 @@ int main(int narg, char **arg)
 		int me,nprocs;
 		MPI_Comm_rank(MPI_COMM_WORLD,&me);
 		MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
+		setbuf (stdout, NULL);
+		setbuf (stderr, NULL);
 
 		printmsg ("                       "
 				"-------------------------------------------------\n");
