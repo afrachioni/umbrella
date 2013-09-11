@@ -21,7 +21,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ------------------------------------------------------------------------- */
 
-#define VERSION "13.06.14.20"
+#define VERSION "13.07.08.1"
 #define DEBUG 1
 #define KRAKEN
 #define MAX_FNAME_LENGTH 500
@@ -158,18 +158,19 @@ int main(int narg, char **arg)
 			local_roots_send[window_index] = me;
 			MPI_Allreduce (local_roots_send, local_roots, num_active_windows, \
 					MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-		if (me == 0)
-			for (int i = 0; i < num_active_windows; ++i)
-				fprintf(stdout, "Root of window %2d is proc %2d.\n", i, local_roots[i]);
+		//if (me == 0)
+			//for (int i = 0; i < num_active_windows; ++i)
+				//fprintf(stdout, "Root of window %2d is proc %2d.\n", i, local_roots[i]);
 
 		MPI_Group world_group, roots_group;
 		MPI_Comm_group (MPI_COMM_WORLD, &world_group);
-		fprintf (stdout, "rank: %2d, num_active_windows: %d\n", me, num_active_windows);
-		fprintf (stdout, "rank: %2d, local_roots[0]: %d\n", me, local_roots[0]);
-		fprintf (stdout, "rank: %2d, local_roots[1]: %d\n", me, local_roots[1]);
-		fprintf (stdout, "rank: %2d, local_roots[2]: %d\n", me, local_roots[2]);
-		fprintf (stdout, "rank: %2d, local_roots[3]: %d\n", me, local_roots[3]);
-		MPI_Group_incl (world_group, num_active_windows, local_roots, &roots_group);
+		//fprintf (stdout, "rank: %2d, num_active_windows: %d\n", me, num_active_windows);
+		//fprintf (stdout, "rank: %2d, local_roots[0]: %d\n", me, local_roots[0]);
+		//fprintf (stdout, "rank: %2d, local_roots[1]: %d\n", me, local_roots[1]);
+		//fprintf (stdout, "rank: %2d, local_roots[2]: %d\n", me, local_roots[2]);
+		//fprintf (stdout, "rank: %2d, local_roots[3]: %d\n", me, local_roots[3]);
+		MPI_Group_incl (world_group, num_active_windows, local_roots, \
+				&roots_group);
 		MPI_Comm roots_comm;
 		MPI_Comm_create (MPI_COMM_WORLD, roots_group, &roots_comm);
 
@@ -232,8 +233,9 @@ int main(int narg, char **arg)
 				//&local_spring, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
 		//float *local_spring = new float (springs[window_index]);
 		float spring_init = springs[window_index];
-		if (local_rank == 0)
-			fprintf (stderr, "window_index: %d\tspring_init: %f\n", window_index, spring_init);
+
+		//if (local_rank == 0)
+			//fprintf (stderr, "window_index: %d\tspring_init: %f\n", window_index, spring_init);
 		///////////////////////////////////
 
 		char line[100];
@@ -243,8 +245,10 @@ int main(int narg, char **arg)
 		debugmsg ("Creating LAMMPSes...\n");
 		sprintf (line, "logs/log_%d.screen", window_index);
 		//Setup LAMMPS instance with initial conditions and settings
-		char *args[] = {(char*)"foo", (char*)"-screen", \
-			line, (char*)"-log", (char*)"none"};
+		//char *args[] = {(char*)"foo", (char*)"-screen", \
+		line, (char*)"-log", (char*)"none"};
+		char *args[] = {(char*)"foo", (char*)"-screen", (char*)"none", \
+			(char*)"-log", (char*)"none"};
 		LAMMPS *lmp = new LAMMPS(5,args,local_comm);
 		//LAMMPS *lmp = new LAMMPS(0,NULL,local_comm);//for all stdout
 #if DEBUG	
@@ -360,6 +364,23 @@ int main(int narg, char **arg)
 				printmsg ("Could not create management thread on root!");
 		}
 
+/*
+		const int update_count = 4;
+		int update_lengths[update_count] = {1, 1, 1, 1};
+		MPI_Aint update_offsets[update_count] = {0, sizeof(int), 2*sizeof(int), 2*sizeof(int) + sizeof(double)};
+		MPI_Datatype update_types[update_count] = {MPI_INT, MPI_INT, MPI_DOUBLE, MPI_DOUBLE};
+		MPI_Datatype update_message_type;
+		MPI_Type_struct (update_count, update_lengths, update_offsets, update_types, &update_message_type);
+		MPI_Type_commit (&update_message_type);
+*/
+
+		//FILE *collective_log = fopen ("logs/collective_log.txt", "w");
+
+		//mkfifo ("logs/feed_pipe", S_IWUSR | S_IRUSR);
+		//int fd = open ("logs/feed_pipe", O_WRONLY | O_NONBLOCK);
+		//FILE *collective_log = fdopen(fd, "w");
+		
+
 
 		float current_spring = spring_init;
 		MPI_Request req;
@@ -429,11 +450,14 @@ int main(int narg, char **arg)
 						i, Q6_old, Q6, umbrella_accept, lammps_split, \
 						get_time() - loop_start_time, current_duration, \
 						current_spring);
+				//fprintf (collective_log, "%-18d%-15f%-15f%-3d%-15d%-15f\n", window_index, Q6_old, Q6, umbrella_accept, current_duration, current_spring);
+
 			}
 			last_step_end_time = get_time();
 		}
 		delete [] positions_buffer;
 		delete lmp;
+		//fclose (collective_log);
 		if (local_rank == 0)
 			fclose (local_log);
 		MPI_Finalize();
