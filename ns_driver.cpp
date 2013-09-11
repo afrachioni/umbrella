@@ -23,7 +23,6 @@
 
 #define VERSION "13.07.08.1"
 #define DEBUG 1
-#define KRAKEN
 #define MAX_FNAME_LENGTH 500
 #define DUMP_EVERY_STEPS 100
 
@@ -417,14 +416,16 @@ int main(int narg, char **arg)
 			MPI_Bcast (&current_spring, 1, MPI_FLOAT, 0, local_comm);
 
 			if (!umbrella_accept) {//Umbrella reject
-				lammps_scatter_atoms(lmp,(char*)"x",1,3,positions_buffer);
+				//lammps_put_coords(lmp,(char*)"x",1,3,positions_buffer);
+				lammps_put_coords(lmp, positions_buffer);
 				if (local_rank == 0) seed = rand() % 1000 + 1; //TODO why 1000?
 				MPI_Bcast (&seed, 1, MPI_INT, 0, local_comm);
 				sprintf(line, "velocity all create %f %d", p->temperature, seed);
 				lmp->input->one (line);
 			} else { //Umbrella accept
 				accept_count++;
-				lammps_gather_atoms(lmp,(char*)"x",1,3,positions_buffer);
+				//lammps_get_coords(lmp,(char*)"x",1,3,positions_buffer);
+				lammps_get_coords(lmp, positions_buffer);
 				Q6_old = Q6;
 				d_Q_old = Q6_old - targets[window_index];
 				bias_potential_old = d_Q_old * d_Q_old;
