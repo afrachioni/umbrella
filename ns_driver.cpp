@@ -21,7 +21,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ------------------------------------------------------------------------- */
 
-#define VERSION "13.07.08.1"
+#define VERSION "13.09.16.1"
 #define DEBUG 1
 #define MAX_FNAME_LENGTH 500
 #define DUMP_EVERY_STEPS 100
@@ -268,7 +268,8 @@ int main(int narg, char **arg)
 		sprintf (line, "compute myBoop all boop %d %f", p->l, p->cutoff);
 		lmp->input->one(line);
 		lmp->input->one("pair_style meam");
-		lmp->input->one("pair_coeff * * library.meam Sn NULL Sn");//TODO hardcoded potential
+		//lmp->input->one("pair_coeff * * library.meam Sn NULL Sn");//TODO hardcoded potential
+		lmp->input->one("pair_coeff * * library.meam Sn Ag NULL Sn Ag");
 		lmp->input->one("thermo 5");
 		debugmsg ("About to run 0...\n");
 		lmp->input->one("run 0");
@@ -318,7 +319,7 @@ int main(int narg, char **arg)
 		printmsg ("\nIt might be useful to analyze these data by running WHAM "
 				"something like this:\n");
 		sprintf (line, "wham %f %f %d 0.1 %f 0 wham_metadata.txt wham_free.txt", \
-				target_lbound, target_rbound, num_active_windows, p->temperature);
+				target_lbound, target_rbound, 10 * num_active_windows, p->temperature);
 		printmsg ("%s\n", line);
 		printmsg ("which can also be accomplished by simply "
 				"calling \'. wham_cmd\'.\n\n");

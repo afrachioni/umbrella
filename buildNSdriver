@@ -3,6 +3,7 @@
 if [ `hostname | cut -c 1-6` == "kraken" ]; then
 	#Build on Kraken
 	echo "Building on Kraken"
+	echo "	Switching modules..."
 	source /opt/modules/default/etc/modules.sh
 	module unload PrgEnv-intel
 	module unload PrgEnv-gnu
@@ -10,13 +11,15 @@ if [ `hostname | cut -c 1-6` == "kraken" ]; then
 	module unload PrgEnv-cray
 	module load PrgEnv-gnu
 	module load fftw
-	CC -g -I ~/options_parser -I ~/myLammps/src -I ~/myLammps/lib/meam `/nics/c/home/afrachi1/adios-1.4.1pre1/adios_config -c` -DKRAKEN -c ns_driver.cpp parser.cpp 
-	CC -g -L ~/myLammps/src -L ~/myLammps/lib/meam ns_driver.o parser.o -llammps_frach -lmeam `/nics/c/home/afrachi1/adios-1.4.1pre1/adios_config -l` -o ns_driver
+	echo "	Compiling..."
+	CC -g -I ~/options_parser -I ~/myLAMMPS/src -I ~/myLAMMPS/lib/meam `/nics/c/home/afrachi1/adios-1.4.1pre1/adios_config -c` -DKRAKEN -c ns_driver.cpp parser.cpp 
+	echo "	Linking..."
+	CC -g -L ~/myLAMMPS/src -L ~/myLAMMPS/lib/meam ns_driver.o parser.o -llmp_kraken -lmeam `/nics/c/home/afrachi1/adios-1.4.1pre1/adios_config -l` -o ns_driver
 elif [ `hostname | cut -c 1-6` == "macpro" ]; then
 	#Build on Mac
 	echo "Building on Professor White's Mac Pro..."
 	mpicxx -g -I ~/options_parser -I ~/afrachioni_frachlammps/src -I ~/afrachioni_frachlammps/lib/meam `adios_config -c` -c ns_driver.cpp parser.cpp
-	mpicxx -g -L ~/afrachioni_frachlammps/src -L ~/afrachioni_frachlammps/lib/meam ns_driver.o parser.o -llmp_frach -lmeam -lgfortran -lfftw `adios_config -l` -o ns_driver
+	mpicxx -g -L ~/afrachioni_frachlammps/src -L ~/afrachioni_frachlammps/lib/meam ns_driver.o parser.o -llmp_kraken -lmeam -lgfortran -lfftw `adios_config -l` -o ns_driver
 
 else
 echo "This machine is appears to be neither White's mac nor Kraken."
