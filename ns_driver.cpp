@@ -266,10 +266,13 @@ int main(int narg, char **arg)
 		debugmsg ("Finished with read_data...\n");
 		lmp->input->one("reset_timestep 0");
 		sprintf (line, "compute myBoop all boop %d %f", p->l, p->cutoff);
+		debugmsg ("About to call: %s\n", line);
 		lmp->input->one(line);
+		debugmsg ("Finished with boop\n");
 		lmp->input->one("pair_style meam");
-		//lmp->input->one("pair_coeff * * library.meam Sn NULL Sn");//TODO hardcoded potential
-		lmp->input->one("pair_coeff * * library.meam Sn Ag NULL Sn Ag");
+		debugmsg ("About to call pair_coeff\n");
+		lmp->input->one("pair_coeff * * library.meam Sn NULL Sn");//TODO hardcoded potential
+		//lmp->input->one("pair_coeff * * library.meam Sn Ag NULL Sn Ag");
 		lmp->input->one("thermo 5");
 		debugmsg ("About to run 0...\n");
 		lmp->input->one("run 0");
@@ -392,6 +395,7 @@ int main(int narg, char **arg)
 			MPI_Irecv (&msg, 1, message_type, 0, TAG, roots_comm, &req);
 			pthread_mutex_unlock (&mpi_mutex);
 		}
+		MPI_Barrier (MPI_COMM_WORLD);
 		printmsg ("Samples away!\n\n");
 		//Q6_old is last accepted Q6
 		for (int i = 0; i < p->count; i++) {
