@@ -21,7 +21,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ------------------------------------------------------------------------- */
 
-#define VERSION "13.09.16.1"
+#define VERSION "13.10.7.0"
 #define DEBUG 1
 #define MAX_FNAME_LENGTH 500
 #define DUMP_EVERY_STEPS 100
@@ -89,8 +89,10 @@ int main(int narg, char **arg)
 		//parse command line arguments
 		p->verbose = me == 0;//turn off for DEBUG?
 		p = new parser (narg, arg);
-		if (p->parse_error)
-			return 1;
+		if (p->parse_error) {
+			printmsg ("Parse errors present, exiting...\n");
+			MPI_Finalize ();
+		}
 
 		//read init file once to determine number of windows
 		//FIXME only root process should do this
