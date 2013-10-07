@@ -20,7 +20,21 @@ elif [ `hostname | cut -c 1-6` == "macpro" ]; then
 	echo "Building on Professor White's Mac Pro..."
 	mpicxx -g -I ~/options_parser -I ~/afrachioni_frachlammps/src -I ~/afrachioni_frachlammps/lib/meam `adios_config -c` -c ns_driver.cpp parser.cpp
 	mpicxx -g -L ~/afrachioni_frachlammps/src -L ~/afrachioni_frachlammps/lib/meam ns_driver.o parser.o -llmp_kraken -lmeam -lgfortran -lfftw `adios_config -l` -o ns_driver
-
+elif [ `hostname | cut -c 7-9` == "scs" ]; then
+	#Build on LBL Supercluster
+	echo "Building on the Lawrence Berkeley Supercluster..."
+	echo " Switching modules..."
+	source /usr/Modules/init/bash
+	module unload intel
+	module unload gcc
+	module unload pgi
+	module load gcc
+	module load fftw
+	module load boost
+	echo " Compiling..."
+	mpic++ -g -I ~/myLAMMPS/src -I ~/myLAMMPS/lib/meam -c ns_driver.cpp parser.cpp
+	echo " Linking..."
+	mpic++ -g -L ~/myLAMMPS/src -L ~/myLAMMPS/lib/meam ns_driver.o parser.o -llammps_vulcan -lmeam -lgfortran -o driver_vulcan
 else
-echo "This machine is appears to be neither White's mac nor Kraken."
+echo "This machine is appears to be neither White's mac, Kraken, nor the LBL supercluster."
 fi

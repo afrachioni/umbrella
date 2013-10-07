@@ -422,7 +422,8 @@ int main(int narg, char **arg)
 
 			if (!umbrella_accept) {//Umbrella reject
 				//lammps_put_coords(lmp,(char*)"x",1,3,positions_buffer);
-				lammps_put_coords(lmp, positions_buffer);
+				//lammps_put_coords(lmp, positions_buffer);
+				lammps_scatter_atoms(lmp,(char*)"x",1,3,positions_buffer);
 				if (local_rank == 0) seed = rand() % 1000 + 1; //TODO why 1000?
 				MPI_Bcast (&seed, 1, MPI_INT, 0, local_comm);
 				sprintf(line, "velocity all create %f %d", p->temperature, seed);
@@ -430,7 +431,8 @@ int main(int narg, char **arg)
 			} else { //Umbrella accept
 				accept_count++;
 				//lammps_get_coords(lmp,(char*)"x",1,3,positions_buffer);
-				lammps_get_coords(lmp, positions_buffer);
+				//lammps_get_coords(lmp, positions_buffer);
+				lammps_gather_atoms(lmp,(char*)"x",1,3,positions_buffer);
 				Q6_old = Q6;
 				d_Q_old = Q6_old - targets[window_index];
 				bias_potential_old = d_Q_old * d_Q_old;
