@@ -279,7 +279,8 @@ int main(int narg, char **arg)
 		debugmsg ("About to run 0...\n");
 		lmp->input->one("run 0");
 		debugmsg ("About to define fix...\n");
-		sprintf (line, "fix 1 all npt temp %f %f 0.1 iso 1.0 1.0 0.1", p->temperature, p->temperature);
+		//sprintf (line, "fix 1 all npt temp %f %f 0.1 iso 1.0 1.0 0.1", p->temperature, p->temperature);
+		sprintf (line, "fix 1 all nve");
 		lmp->input->one(line);
 		debugmsg ("About to create dump directory...\n");
 		//mkdir ("dump", 0755);
