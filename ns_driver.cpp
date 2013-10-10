@@ -259,7 +259,7 @@ int main(int narg, char **arg)
 		//It is necessary to create an atom map for usage of lammps_scatter_atoms.
 		//Use hash map, assuming large number of atoms per processor
 		lmp->input->one("atom_modify map hash");
-		lmp->input->one("units metal");
+		lmp->input->one("units real");
 		MPI_Barrier (MPI_COMM_WORLD);
 		debugmsg ("About to read_data...\n");
 		sprintf (line, "read_data %s", file_paths[window_index]);
@@ -282,15 +282,16 @@ int main(int narg, char **arg)
 		//sprintf (line, "fix 1 all npt temp %f %f 0.1 iso 1.0 1.0 0.1", p->temperature, p->temperature);
 		sprintf (line, "fix 1 all nve");
 		lmp->input->one(line);
-		debugmsg ("About to create dump directory...\n");
-		//mkdir ("dump", 0755);
+		debugmsg ("About to create dump and logs directories...\n");
+		mkdir ("dump", 0755); mkdir ("logs", 0755);
 		debugmsg ("About to define dump...\n");
 		sprintf (line, "dump 1 all atom %d dump/dump_%d_*.txt", \
 				dump_freq, window_index);
 		lmp->input->one(line);
 		debugmsg ("About to extract Q6...\n");
 		double Q6 = *((double *) lammps_extract_compute(lmp, (char*)"myBoop", 0, 0));
-		//int natoms = lammps_get_natoms (lmp);//XXX library uses 32 bit int for some reason
+		double V = *((double *) lammps_extract_variable(lmp, (char*)"vol", (char*)"all"));
+		double U = *((double *) lammps_extract_variable(lmp, (char*)"pe", (char*)"all"));
 		int natoms = static_cast<int> (lmp->atom->natoms);
 
 		debugmsg ("Writing header to window logs...\n");
@@ -332,15 +333,23 @@ int main(int narg, char **arg)
 		FILE *wham_cmd_file = fopen ("wham_cmd.txt", "w");
 		fprintf (wham_cmd_file, line);
 		fclose (wham_cmd_file);
-		double *positions_buffer;
-		positions_buffer = new double[3 * natoms];
+
+
+		//Umbrella definitions
+		double *positions_buffer = new double[3 * natoms];
 		int umbrella_accept = 1;
+		int md; // 1: MD move, 0: VMC move
 		int seed;
 		int accept_count = 0;
+		int vmc_accept_count = 0;
 		int64_t last_step_end_time, step_time, lammps_start_time, lammps_split;
 		last_step_end_time = get_time();
 		double Q6_old = Q6;
 		double d_Q, d_Q_old, bias_potential_new, bias_potential_old;
+
+		double V_old, U_old, d_V, d_U, dx;
+		const double P = 1; //atm XXX this controls target pressure, should get passed in
+		const double pv_factor = 1.458397387e-5;// kcal / (atm A^3 mol) yes its wierd
 		double log_boltz_factor;
 		const int64_t loop_start_time = get_time();
 
@@ -370,22 +379,19 @@ int main(int narg, char **arg)
 				printmsg ("Could not create management thread on root!");
 		}
 
-/*
-		const int update_count = 4;
-		int update_lengths[update_count] = {1, 1, 1, 1};
-		MPI_Aint update_offsets[update_count] = {0, sizeof(int), 2*sizeof(int), 2*sizeof(int) + sizeof(double)};
-		MPI_Datatype update_types[update_count] = {MPI_INT, MPI_INT, MPI_DOUBLE, MPI_DOUBLE};
-		MPI_Datatype update_message_type;
-		MPI_Type_struct (update_count, update_lengths, update_offsets, update_types, &update_message_type);
-		MPI_Type_commit (&update_message_type);
-*/
-
-		//FILE *collective_log = fopen ("logs/collective_log.txt", "w");
+		/*  XXX What's this?
+			const int update_count = 4;
+			int update_lengths[update_count] = {1, 1, 1, 1};
+			MPI_Aint update_offsets[update_count] = {0, sizeof(int), 2*sizeof(int), 2*sizeof(int) + sizeof(double)};
+			MPI_Datatype update_types[update_count] = {MPI_INT, MPI_INT, MPI_DOUBLE, MPI_DOUBLE};
+			MPI_Datatype update_message_type;
+			MPI_Type_struct (update_count, update_lengths, update_offsets, update_types, &update_message_type);
+			MPI_Type_commit (&update_message_type);
+		 */
 
 		//mkfifo ("logs/feed_pipe", S_IWUSR | S_IRUSR);
 		//int fd = open ("logs/feed_pipe", O_WRONLY | O_NONBLOCK);
-		//FILE *collective_log = fdopen(fd, "w");
-		
+
 
 
 		float current_spring = spring_init;
@@ -423,52 +429,83 @@ int main(int narg, char **arg)
 			MPI_Bcast (&current_duration, 1, MPI_INT, 0, local_comm);
 			MPI_Bcast (&current_spring, 1, MPI_FLOAT, 0, local_comm);
 
+
+			md = i % 6 < 5; // MD:VMC = 5:1
+			////////////////////////////////////////////////
 			if (!umbrella_accept) {//Umbrella reject
-				//lammps_put_coords(lmp,(char*)"x",1,3,positions_buffer);
-				//lammps_put_coords(lmp, positions_buffer);
 				lammps_scatter_atoms(lmp,(char*)"x",1,3,positions_buffer);
-				if (local_rank == 0) seed = rand() % 1000 + 1; //TODO why 1000?
-				MPI_Bcast (&seed, 1, MPI_INT, 0, local_comm);
-				sprintf(line, "velocity all create %f %d", p->temperature, seed);
-				lmp->input->one (line);
+				if (md) {
+					if (local_rank == 0) seed = rand() % 1000 + 1; //TODO why 1000?
+					MPI_Bcast (&seed, 1, MPI_INT, 0, local_comm);
+					sprintf(line, "velocity all create %f %d", p->temperature, seed);
+					lmp->input->one (line);
+				}
 			} else { //Umbrella accept
-				accept_count++;
-				//lammps_get_coords(lmp,(char*)"x",1,3,positions_buffer);
-				//lammps_get_coords(lmp, positions_buffer);
 				lammps_gather_atoms(lmp,(char*)"x",1,3,positions_buffer);
-				Q6_old = Q6;
-				d_Q_old = Q6_old - targets[window_index];
-				bias_potential_old = d_Q_old * d_Q_old;
+				if (md) {
+					++accept_count;
+					Q6_old = Q6;
+					d_Q_old = Q6_old - targets[window_index];
+					bias_potential_old = d_Q_old * d_Q_old;
+				} else {
+					++vmc_accept_count;
+					U_old = U;
+					V_old = V;
+				}
 			}
-			sprintf (line, "run %d", current_duration);
-			lammps_start_time = get_time();
-			lmp->input->one (line);
-			lammps_split = get_time() - lammps_start_time;
-			Q6 = *((double *) lammps_extract_compute(lmp,(char*)"myBoop", 0, 0));
+			if (md) {
+				sprintf (line, "run %d", current_duration);
+				lammps_start_time = get_time();
+				lmp->input->one (line);
+				lammps_split = get_time() - lammps_start_time;
+				Q6 = *((double *) lammps_extract_compute(lmp,(char*)"myBoop", 0, 0));
+			} else {
+				if (local_rank == 0)
+					dx = ((double) rand() / RAND_MAX - 0.5) * 0.01;
+				MPI_Bcast (&dx, 1, MPI_INT, 0, local_comm);
+				sprintf (line, "change_box all x scale %f y scale %f z scale %f", dx, dx, dx);
+				lmp->input->one (line);
+				lmp->input->one ("change_box all remap");
+				U = *((double *) lammps_extract_variable(lmp, (char*)"pe", (char*)"all"));
+				V = *((double *) lammps_extract_variable(lmp, (char*)"vol", (char*)"all"));
+			}
+
 			if (local_rank == 0) {
-				d_Q = Q6 - targets[window_index];
-				bias_potential_new = d_Q * d_Q;
-				log_boltz_factor = (-0.5 * spring_init / p->temperature) * \
-						   (bias_potential_new-bias_potential_old);
+				if (md) {
+					d_Q = Q6 - targets[window_index];
+					bias_potential_new = d_Q * d_Q;
+					log_boltz_factor = (-0.5 * spring_init / p->temperature) * \
+									   (bias_potential_new-bias_potential_old);
+				} else {
+					d_U = U - U_old;
+					d_V = V - V_old;
+					log_boltz_factor = -1 / (WHAM_BOLTZMANN * p->temperature) * \
+									   (d_U + P * d_V * pv_factor - natoms * WHAM_BOLTZMANN * \
+										p->temperature * log ((V + d_V) / V));
+					//log_boltz_factor = -1/kT (d_U + P * d_V - NkT log ((V + d_V) / V))
+				}
 				umbrella_accept = log((double) rand() / RAND_MAX) \
-						  < log_boltz_factor;
+								  < log_boltz_factor;
 			}
 			MPI_Bcast (&umbrella_accept, 1, MPI_INT, 0, local_comm);
 			pthread_mutex_unlock (&mpi_mutex);
 			step_time = get_time() - last_step_end_time;
 			if (local_rank == 0){
-				fprintf (local_log, "%-9d%-15f%-15f%-8d%-15lld%-15lld%-8d%-15f\n", \
-						i, Q6_old, Q6, umbrella_accept, lammps_split, \
-						get_time() - loop_start_time, current_duration, \
-						current_spring);
-				//fprintf (collective_log, "%-18d%-15f%-15f%-3d%-15d%-15f\n", window_index, Q6_old, Q6, umbrella_accept, current_duration, current_spring);
-
+				if (md) {
+					fprintf (local_log, "%-9d%-15f%-15f%-8d%-15lld%-15lld%-8d%-15f\n", \
+							i, Q6_old, Q6, umbrella_accept, lammps_split, \
+							get_time() - loop_start_time, current_duration, \
+							current_spring);
+				} else {
+					fprintf (local_log, "#V%-7d%-15f%-15f%-8d\n", \
+							i, V_old, V, umbrella_accept);
+				}
 			}
 			last_step_end_time = get_time();
+
 		}
 		delete [] positions_buffer;
 		delete lmp;
-		//fclose (collective_log);
 		if (local_rank == 0)
 			fclose (local_log);
 		MPI_Finalize();
