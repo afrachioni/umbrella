@@ -288,10 +288,18 @@ int main(int narg, char **arg)
 		sprintf (line, "dump 1 all atom %d dump/dump_%d_*.txt", \
 				dump_freq, window_index);
 		lmp->input->one(line);
+
+		debugmsg ("Defining LAMMPS volume variable...\n");
+		lmp->input->one("variable V equal vol"); //TODO determine why these are necessary
+		lmp->input->one("variable U equal pe");
 		debugmsg ("About to extract Q6...\n");
 		double Q6 = *((double *) lammps_extract_compute(lmp, (char*)"myBoop", 0, 0));
-		double V = *((double *) lammps_extract_variable(lmp, (char*)"vol", (char*)"all"));
-		double U = *((double *) lammps_extract_variable(lmp, (char*)"pe", (char*)"all"));
+		double V = *((double *) lammps_extract_variable(lmp, (char*)"V", (char*)"all"));
+		double U = *((double *) lammps_extract_variable(lmp, (char*)"U", (char*)"all"));
+		//double V;
+		//double U;
+		debugmsg ("Initial volume: %f\n", V);
+		debugmsg ("Initial potential energy: %f\n", U);
 		int natoms = static_cast<int> (lmp->atom->natoms);
 
 		debugmsg ("Writing header to window logs...\n");
