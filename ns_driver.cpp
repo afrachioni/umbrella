@@ -355,7 +355,7 @@ int main(int narg, char **arg)
 		double Q6_old = Q6;
 		double d_Q, d_Q_old, bias_potential_new, bias_potential_old;
 
-		double V_old, U_old, d_V, d_U, dx;
+		double V_old, U_old, d_V, d_U, dx, rec;
 		const double P = 1; //atm XXX this controls target pressure, should get passed in
 		//const double pv_factor = 1.458397387e-5;// kcal / (atm A^3 mol) yes its wierd
 		const double pv_factor = 6.0221413e-5;//kJ / (bar A^3 mol)
@@ -442,17 +442,23 @@ int main(int narg, char **arg)
 
 			md = i % 6 < 5; // MD:VMC = 5:1
 			////////////////////////////////////////////////
+			// Effective start of sampling loop           //
+			////////////////////////////////////////////////
 			if (!umbrella_accept) {//Umbrella reject
-				lammps_scatter_atoms(lmp,(char*)"x",1,3,positions_buffer);
-				if (md) {
+				if (md) { //Return to last accepted state
+					lammps_scatter_atoms(lmp,(char*)"x",1,3,positions_buffer);
 					if (local_rank == 0) seed = rand() % 1000 + 1; //TODO why 1000?
 					MPI_Bcast (&seed, 1, MPI_INT, 0, local_comm);
 					sprintf(line, "velocity all create %f %d", p->temperature, seed);
 					lmp->input->one (line);
+				} else { // Undo box modulation
+					rec = 1 / dx;
+					sprintf (line, "change_box all " \
+							"x scale %f y scale %f z scale %f", rec, rec, rec);
 				}
 			} else { //Umbrella accept
-				lammps_gather_atoms(lmp,(char*)"x",1,3,positions_buffer);
 				if (md) {
+					lammps_gather_atoms(lmp,(char*)"x",1,3,positions_buffer);
 					++accept_count;
 					Q6_old = Q6;
 					d_Q_old = Q6_old - targets[window_index];
@@ -463,6 +469,7 @@ int main(int narg, char **arg)
 					V_old = V;
 				}
 			}
+			// Take a sample
 			if (md) {
 				sprintf (line, "run %d", current_duration);
 				lammps_start_time = get_time();
@@ -480,6 +487,7 @@ int main(int narg, char **arg)
 				V = *((double *) lammps_extract_variable(lmp, (char*)"vol", (char*)"all"));
 			}
 
+			// Compute acceptance
 			if (local_rank == 0) {
 				if (md) {
 					d_Q = Q6 - targets[window_index];
@@ -512,7 +520,9 @@ int main(int narg, char **arg)
 				}
 			}
 			last_step_end_time = get_time();
-
+			////////////////////////////////////////////////
+			// End of sampling loop                       //
+			////////////////////////////////////////////////
 		}
 		delete [] positions_buffer;
 		delete lmp;
