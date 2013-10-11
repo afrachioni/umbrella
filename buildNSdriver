@@ -20,7 +20,7 @@ elif [ `hostname | cut -c 1-6` == "macpro" ]; then
 	echo "Building on Professor White's Mac Pro..."
 	mpicxx -g -I ~/options_parser -I ~/afrachioni_frachlammps/src -I ~/afrachioni_frachlammps/lib/meam `adios_config -c` -c ns_driver.cpp parser.cpp
 	mpicxx -g -L ~/afrachioni_frachlammps/src -L ~/afrachioni_frachlammps/lib/meam ns_driver.o parser.o -llmp_kraken -lmeam -lgfortran -lfftw `adios_config -l` -o ns_driver
-elif [ `hostname | cut -c 7-9` == "scs" ]; then
+elif [ `hostname | cut -c 7-9` == "scs" ] || [ `hostname | cut -c 7-12` == "vulcan" ]; then
 	#Build on LBL Supercluster
 	echo "Building on the Lawrence Berkeley Supercluster..."
 	echo " Switching modules..."
