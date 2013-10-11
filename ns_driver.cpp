@@ -296,8 +296,6 @@ int main(int narg, char **arg)
 		double Q6 = *((double *) lammps_extract_compute(lmp, (char*)"myBoop", 0, 0));
 		double V = *((double *) lammps_extract_variable(lmp, (char*)"V", (char*)"all"));
 		double U = *((double *) lammps_extract_variable(lmp, (char*)"U", (char*)"all"));
-		//double V;
-		//double U;
 		debugmsg ("Initial volume: %f\n", V);
 		debugmsg ("Initial potential energy: %f\n", U);
 		int natoms = static_cast<int> (lmp->atom->natoms);
@@ -345,7 +343,7 @@ int main(int narg, char **arg)
 
 		//Umbrella definitions
 		double *positions_buffer = new double[3 * natoms];
-		int umbrella_accept = 1;
+		int accept = 1;
 		int md; // 1: MD move, 0: VMC move
 		int seed;
 		int accept_count = 0;
@@ -365,6 +363,13 @@ int main(int narg, char **arg)
 
 		int duration_init = p->duration;
 		int current_duration = duration_init;
+
+		lammps_gather_atoms(lmp,(char*)"x",1,3,positions_buffer);
+		Q6_old = Q6;
+		d_Q_old = Q6_old - targets[window_index];
+		bias_potential_old = d_Q_old * d_Q_old;
+		U_old = U;
+		V_old = V;
 
 		pthread_mutex_t mpi_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -444,32 +449,7 @@ int main(int narg, char **arg)
 			////////////////////////////////////////////////
 			// Effective start of sampling loop           //
 			////////////////////////////////////////////////
-			if (!umbrella_accept) {//Umbrella reject
-				if (md) { //Return to last accepted state
-					lammps_scatter_atoms(lmp,(char*)"x",1,3,positions_buffer);
-					if (local_rank == 0) seed = rand() % 1000 + 1; //TODO why 1000?
-					MPI_Bcast (&seed, 1, MPI_INT, 0, local_comm);
-					sprintf(line, "velocity all create %f %d", p->temperature, seed);
-					lmp->input->one (line);
-				} else { // Undo box modulation
-					rec = 1 / dx;
-					sprintf (line, "change_box all " \
-							"x scale %f y scale %f z scale %f", rec, rec, rec);
-				}
-			} else { //Umbrella accept
-				if (md) {
-					lammps_gather_atoms(lmp,(char*)"x",1,3,positions_buffer);
-					++accept_count;
-					Q6_old = Q6;
-					d_Q_old = Q6_old - targets[window_index];
-					bias_potential_old = d_Q_old * d_Q_old;
-				} else {
-					++vmc_accept_count;
-					U_old = U;
-					V_old = V;
-				}
-			}
-			// Take a sample
+			//Take a sample
 			if (md) {
 				sprintf (line, "run %d", current_duration);
 				lammps_start_time = get_time();
@@ -477,15 +457,20 @@ int main(int narg, char **arg)
 				lammps_split = get_time() - lammps_start_time;
 				Q6 = *((double *) lammps_extract_compute(lmp,(char*)"myBoop", 0, 0));
 			} else {
+				fprintf (local_log, "# Entering VMC step block\n");
 				if (local_rank == 0)
-					dx = ((double) rand() / RAND_MAX - 0.5) * 0.01;
+					dx = ((double) rand() / RAND_MAX - 0.5) * 0.01 + 1;
 				MPI_Bcast (&dx, 1, MPI_INT, 0, local_comm);
 				sprintf (line, "change_box all x scale %f y scale %f z scale %f", dx, dx, dx);
+				fprintf (local_log, "# About to issue change_box to LAMMPS\n");
 				lmp->input->one (line);
 				lmp->input->one ("change_box all remap");
-				U = *((double *) lammps_extract_variable(lmp, (char*)"pe", (char*)"all"));
-				V = *((double *) lammps_extract_variable(lmp, (char*)"vol", (char*)"all"));
+				fprintf (local_log, "# About to extract U and V\n");
+				U = *((double *) lammps_extract_variable(lmp, (char*)"U", (char*)"all"));
+				V = *((double *) lammps_extract_variable(lmp, (char*)"V", (char*)"all"));
 			}
+			if (local_rank == 0 && !md)
+				fprintf (local_log, "# VMC step taken\n");
 
 			// Compute acceptance
 			if (local_rank == 0) {
@@ -502,21 +487,54 @@ int main(int narg, char **arg)
 										p->temperature * log ((V + d_V) / V));
 					//log_boltz_factor = -1/kT (d_U + P * d_V - NkT log ((V + d_V) / V))
 				}
-				umbrella_accept = log((double) rand() / RAND_MAX) \
+				accept = log((double) rand() / RAND_MAX) \
 								  < log_boltz_factor;
 			}
-			MPI_Bcast (&umbrella_accept, 1, MPI_INT, 0, local_comm);
+			MPI_Bcast (&accept, 1, MPI_INT, 0, local_comm);
+
+			if (local_rank == 0 && !md)
+				fprintf (local_log, "# Done with VMC compute math.  Accepted: %d\n", accept);
+			// Unsample if rejected, store state if accepted
+			if (!accept) {// Umbrella reject
+				if (md) { // Return to last accepted state
+					lammps_scatter_atoms(lmp,(char*)"x",1,3,positions_buffer);
+					if (local_rank == 0) seed = rand() % 1000 + 1; //TODO why 1000?
+					MPI_Bcast (&seed, 1, MPI_INT, 0, local_comm);
+					sprintf(line, "velocity all create %f %d", p->temperature, seed);
+					lmp->input->one (line);
+				} else { // Undo box modulation
+					rec = 1 / dx;
+					sprintf (line, "change_box all " \
+							"x scale %f y scale %f z scale %f", rec, rec, rec);
+					lmp->input->one (line);
+					lmp->input->one ("change_box all remap");
+				}
+			} else { //Umbrella accept
+				if (md) {
+					lammps_gather_atoms(lmp,(char*)"x",1,3,positions_buffer);
+					++accept_count;
+					Q6_old = Q6;
+					d_Q_old = Q6_old - targets[window_index];
+					bias_potential_old = d_Q_old * d_Q_old;
+				} else {
+					++vmc_accept_count;
+					U_old = U;
+					V_old = V;
+				}
+			}
+			if (local_rank == 0 && !md)
+				fprintf (local_log, "# Done with VMC follow-up\n", accept);
 			pthread_mutex_unlock (&mpi_mutex);
 			step_time = get_time() - last_step_end_time;
 			if (local_rank == 0){
 				if (md) {
 					fprintf (local_log, "%-9d%-15f%-15f%-8d%-15lld%-15lld%-8d%-15f\n", \
-							i, Q6_old, Q6, umbrella_accept, lammps_split, \
+							i, Q6_old, Q6, accept, lammps_split, \
 							get_time() - loop_start_time, current_duration, \
 							current_spring);
 				} else {
 					fprintf (local_log, "#V%-7d%-15f%-15f%-8d\n", \
-							i, V_old, V, umbrella_accept);
+							i, V_old, V, accept);
 				}
 			}
 			last_step_end_time = get_time();
