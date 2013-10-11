@@ -259,7 +259,7 @@ int main(int narg, char **arg)
 		//It is necessary to create an atom map for usage of lammps_scatter_atoms.
 		//Use hash map, assuming large number of atoms per processor
 		lmp->input->one("atom_modify map hash");
-		lmp->input->one("units real");
+		lmp->input->one("units metal");
 		MPI_Barrier (MPI_COMM_WORLD);
 		debugmsg ("About to read_data...\n");
 		sprintf (line, "read_data %s", file_paths[window_index]);
@@ -357,7 +357,9 @@ int main(int narg, char **arg)
 
 		double V_old, U_old, d_V, d_U, dx;
 		const double P = 1; //atm XXX this controls target pressure, should get passed in
-		const double pv_factor = 1.458397387e-5;// kcal / (atm A^3 mol) yes its wierd
+		//const double pv_factor = 1.458397387e-5;// kcal / (atm A^3 mol) yes its wierd
+		const double pv_factor = 6.0221413e-5;//kJ / (bar A^3 mol)
+		const double du_factor = 9.648533632e1;//kJ / (eV mol)
 		double log_boltz_factor;
 		const int64_t loop_start_time = get_time();
 
@@ -488,7 +490,7 @@ int main(int narg, char **arg)
 					d_U = U - U_old;
 					d_V = V - V_old;
 					log_boltz_factor = -1 / (WHAM_BOLTZMANN * p->temperature) * \
-									   (d_U + P * d_V * pv_factor - natoms * WHAM_BOLTZMANN * \
+									   (d_U * du_factor + P * d_V * pv_factor - natoms * WHAM_BOLTZMANN * \
 										p->temperature * log ((V + d_V) / V));
 					//log_boltz_factor = -1/kT (d_U + P * d_V - NkT log ((V + d_V) / V))
 				}

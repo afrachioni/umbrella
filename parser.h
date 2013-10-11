@@ -4,8 +4,8 @@
 #include "optionparser.h"
 #include "stdio.h"
 
-#define WHAM_BOLTZMANN 0.001982923700 // Boltzmann's constant in kcal/mol K
-//#define WHAM_BOLTZMANN 0.0083144621 // kJ/mol-K 
+//#define WHAM_BOLTZMANN 0.001982923700 // Boltzmann's constant in kcal/mol K
+#define WHAM_BOLTZMANN 0.0083144621 // kJ/mol-K 
 
 class parser
 {
