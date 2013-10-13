@@ -267,8 +267,10 @@ int main(int narg, char **arg)
 		MPI_Barrier (MPI_COMM_WORLD);
 		debugmsg ("Finished with read_data...\n");
 		lmp->input->one("reset_timestep 0");
-		sprintf (line, "compute myBoop all boop %d %f", p->l, p->cutoff);
+		sprintf (line, "compute q6 all boop %d %f", p->l, p->cutoff);
 		debugmsg ("About to call: %s\n", line);
+		lmp->input->one(line);
+		sprintf (line, "compute q6 all boop/atom %d %f", p->l, p->cutoff);
 		lmp->input->one(line);
 		debugmsg ("Finished with boop\n");
 		lmp->input->one("pair_style meam");
@@ -285,15 +287,17 @@ int main(int narg, char **arg)
 		debugmsg ("About to create dump and logs directories...\n");
 		mkdir ("dump", 0755); mkdir ("logs", 0755);
 		debugmsg ("About to define dump...\n");
-		sprintf (line, "dump 1 all atom %d dump/dump_%d_*.txt", \
+		sprintf (line, "dump 1 all custom %d dump/dump_%d_*.txt id x y z c_q6", \
 				dump_freq, window_index);
+		//sprintf (line, "dump 1 all atom %d dump/dump_%d_*.txt", \
+				//dump_freq, window_index);
 		lmp->input->one(line);
 
 		debugmsg ("Defining LAMMPS volume variable...\n");
 		lmp->input->one("variable V equal vol"); //TODO determine why these are necessary
 		lmp->input->one("variable U equal pe");
 		debugmsg ("About to extract Q6...\n");
-		double Q6 = *((double *) lammps_extract_compute(lmp, (char*)"myBoop", 0, 0));
+		double Q6 = *((double *) lammps_extract_compute(lmp, (char*)"q6", 0, 0));
 		double V = *((double *) lammps_extract_variable(lmp, (char*)"V", (char*)"all"));
 		double U = *((double *) lammps_extract_variable(lmp, (char*)"U", (char*)"all"));
 		debugmsg ("Initial volume: %f\n", V);
@@ -310,10 +314,12 @@ int main(int narg, char **arg)
 			fprintf (local_log, "# Using initial configuration: %s\n", file_paths[window_index]);
 			fprintf (local_log, "# Target Q6: %f\n", targets[window_index]);//TODO change "Q6" to something, merge these prints with those below
 			fprintf (local_log, "# Initial Q6: %f\n", Q6);
+			fprintf (local_log, "# Initial potential energy / eV: %f\n", U);
+			fprintf (local_log, "# Initial volume / A^3: %f\n", V);
 			fprintf (local_log, "# Number of atoms: %d\n", natoms);
 			fprintf (local_log, "# Spring/Boltzmann: %f\n", spring_init);//springs[window_index]);
 			fprintf (local_log, "#\n");
-			fprintf (local_log, "#%-8s%-15s%-15s%-8s%-15s%-15s%-8s%-15s\n", \
+			fprintf (local_log, "#%-11s%-15s%-15s%-8s%-15s%-15s%-8s%-15s\n", \
 					"Step", "Last", "Current", "Accept", "LAMMPS_time", \
 					"Wall", "Duration", "Spring");
 		}
@@ -354,7 +360,7 @@ int main(int narg, char **arg)
 		double d_Q, d_Q_old, bias_potential_new, bias_potential_old;
 
 		double V_old, U_old, d_V, d_U, dx, rec;
-		const double P = 1; //atm XXX this controls target pressure, should get passed in
+		const double P = 1.01325; //bar XXX this controls target pressure, should get passed in
 		//const double pv_factor = 1.458397387e-5;// kcal / (atm A^3 mol) yes its wierd
 		const double pv_factor = 6.0221413e-5;//kJ / (bar A^3 mol)
 		const double du_factor = 9.648533632e1;//kJ / (eV mol)
@@ -455,22 +461,17 @@ int main(int narg, char **arg)
 				lammps_start_time = get_time();
 				lmp->input->one (line);
 				lammps_split = get_time() - lammps_start_time;
-				Q6 = *((double *) lammps_extract_compute(lmp,(char*)"myBoop", 0, 0));
+				Q6 = *((double *) lammps_extract_compute(lmp,(char*)"q6", 0, 0));
 			} else {
-				fprintf (local_log, "# Entering VMC step block\n");
 				if (local_rank == 0)
 					dx = ((double) rand() / RAND_MAX - 0.5) * 0.01 + 1;
 				MPI_Bcast (&dx, 1, MPI_INT, 0, local_comm);
 				sprintf (line, "change_box all x scale %f y scale %f z scale %f", dx, dx, dx);
-				fprintf (local_log, "# About to issue change_box to LAMMPS\n");
 				lmp->input->one (line);
 				lmp->input->one ("change_box all remap");
-				fprintf (local_log, "# About to extract U and V\n");
 				U = *((double *) lammps_extract_variable(lmp, (char*)"U", (char*)"all"));
 				V = *((double *) lammps_extract_variable(lmp, (char*)"V", (char*)"all"));
 			}
-			if (local_rank == 0 && !md)
-				fprintf (local_log, "# VMC step taken\n");
 
 			// Compute acceptance
 			if (local_rank == 0) {
@@ -485,15 +486,28 @@ int main(int narg, char **arg)
 					log_boltz_factor = -1 / (WHAM_BOLTZMANN * p->temperature) * \
 									   (d_U * du_factor + P * d_V * pv_factor - natoms * WHAM_BOLTZMANN * \
 										p->temperature * log ((V + d_V) / V));
-					//log_boltz_factor = -1/kT (d_U + P * d_V - NkT log ((V + d_V) / V))
+					// = -1/kT (dU + P * dV - NkT log ((V + dV) / V))
 				}
 				accept = log((double) rand() / RAND_MAX) \
 								  < log_boltz_factor;
 			}
 			MPI_Bcast (&accept, 1, MPI_INT, 0, local_comm);
 
-			if (local_rank == 0 && !md)
-				fprintf (local_log, "# Done with VMC compute math.  Accepted: %d\n", accept);
+			// Write things down
+			if (local_rank == 0){
+				if (md) {
+					fprintf (local_log, "%-9d%-15f%-15f%-8d%-15lld%-15lld%-8d%-15f\n", \
+							i, Q6_old, Q6, accept, lammps_split, \
+							get_time() - loop_start_time, current_duration, \
+							current_spring);
+				} else {
+					fprintf (local_log, "#V %-10d%-15f%-15f%-8d%-15f%-15f\n", \
+							i, V_old, V, accept, U_old, U);
+				}
+			}
+
+			last_step_end_time = get_time();//TODO these got rearranged
+
 			// Unsample if rejected, store state if accepted
 			if (!accept) {// Umbrella reject
 				if (md) { // Return to last accepted state
@@ -522,22 +536,8 @@ int main(int narg, char **arg)
 					V_old = V;
 				}
 			}
-			if (local_rank == 0 && !md)
-				fprintf (local_log, "# Done with VMC follow-up\n", accept);
-			pthread_mutex_unlock (&mpi_mutex);
 			step_time = get_time() - last_step_end_time;
-			if (local_rank == 0){
-				if (md) {
-					fprintf (local_log, "%-9d%-15f%-15f%-8d%-15lld%-15lld%-8d%-15f\n", \
-							i, Q6_old, Q6, accept, lammps_split, \
-							get_time() - loop_start_time, current_duration, \
-							current_spring);
-				} else {
-					fprintf (local_log, "#V%-7d%-15f%-15f%-8d\n", \
-							i, V_old, V, accept);
-				}
-			}
-			last_step_end_time = get_time();
+			pthread_mutex_unlock (&mpi_mutex);
 			////////////////////////////////////////////////
 			// End of sampling loop                       //
 			////////////////////////////////////////////////
