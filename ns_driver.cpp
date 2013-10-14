@@ -496,13 +496,13 @@ int main(int narg, char **arg)
 			// Write things down
 			if (local_rank == 0){
 				if (md) {
-					fprintf (local_log, "%-9d%-15f%-15f%-8d%-15lld%-15lld%-8d%-15f\n", \
-							i, Q6_old, Q6, accept, lammps_split, \
+					fprintf (local_log, "%-9d%-15f%-15f%-4d%-4d%-15lld%-15lld%-8d%-15f\n", \
+							i, Q6_old, Q6, accept, !md, lammps_split, \
 							get_time() - loop_start_time, current_duration, \
 							current_spring);
 				} else {
-					fprintf (local_log, "#V %-10d%-15f%-15f%-8d%-15f%-15f\n", \
-							i, V_old, V, accept, U_old, U);
+					fprintf (local_log, "%-9d%-15f%-15f%-4d%-4d%-15f%-15f%-15f%15f\n", \
+							i, Q6_old, Q6, accept, !md, V_old, V, U_old, U);
 				}
 			}
 
