@@ -267,10 +267,11 @@ int main(int narg, char **arg)
 		MPI_Barrier (MPI_COMM_WORLD);
 		debugmsg ("Finished with read_data...\n");
 		lmp->input->one("reset_timestep 0");
-		sprintf (line, "compute q6 all boop %d %f", p->l, p->cutoff);
+		sprintf (line, "compute Q6 all boop %d %f", p->l, p->cutoff);
 		debugmsg ("About to call: %s\n", line);
 		lmp->input->one(line);
 		sprintf (line, "compute q6 all boop/atom %d %f", p->l, p->cutoff);
+		debugmsg ("About to call: %s\n", line);
 		lmp->input->one(line);
 		debugmsg ("Finished with boop\n");
 		lmp->input->one("pair_style meam");
@@ -297,7 +298,7 @@ int main(int narg, char **arg)
 		lmp->input->one("variable V equal vol"); //TODO determine why these are necessary
 		lmp->input->one("variable U equal pe");
 		debugmsg ("About to extract Q6...\n");
-		double Q6 = *((double *) lammps_extract_compute(lmp, (char*)"q6", 0, 0));
+		double Q6 = *((double *) lammps_extract_compute(lmp, (char*)"Q6", 0, 0));
 		double V = *((double *) lammps_extract_variable(lmp, (char*)"V", (char*)"all"));
 		double U = *((double *) lammps_extract_variable(lmp, (char*)"U", (char*)"all"));
 		debugmsg ("Initial volume: %f\n", V);
@@ -461,7 +462,7 @@ int main(int narg, char **arg)
 				lammps_start_time = get_time();
 				lmp->input->one (line);
 				lammps_split = get_time() - lammps_start_time;
-				Q6 = *((double *) lammps_extract_compute(lmp,(char*)"q6", 0, 0));
+				Q6 = *((double *) lammps_extract_compute(lmp,(char*)"Q6", 0, 0));
 			} else {
 				if (local_rank == 0)
 					dx = ((double) rand() / RAND_MAX - 0.5) * 0.01 + 1;
