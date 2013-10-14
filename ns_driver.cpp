@@ -452,18 +452,13 @@ int main(int narg, char **arg)
 			MPI_Bcast (&current_spring, 1, MPI_FLOAT, 0, local_comm);
 
 
-			md = i % 6 < 5; // MD:VMC = 5:1
+			//md = i % 6 < 5; // MD:VMC = 5:1
+			md = rand() < RAND_MAX / 6;
 			////////////////////////////////////////////////
 			// Effective start of sampling loop           //
 			////////////////////////////////////////////////
 			//Take a sample
-			if (md) {
-				sprintf (line, "run %d", current_duration);
-				lammps_start_time = get_time();
-				lmp->input->one (line);
-				lammps_split = get_time() - lammps_start_time;
-				Q6 = *((double *) lammps_extract_compute(lmp,(char*)"Q6", 0, 0));
-			} else {
+			if (!md) {
 				if (local_rank == 0)
 					dx = ((double) rand() / RAND_MAX - 0.5) * 0.01 + 1;
 				MPI_Bcast (&dx, 1, MPI_INT, 0, local_comm);
@@ -473,24 +468,28 @@ int main(int narg, char **arg)
 				U = *((double *) lammps_extract_variable(lmp, (char*)"U", (char*)"all"));
 				V = *((double *) lammps_extract_variable(lmp, (char*)"V", (char*)"all"));
 			}
+			sprintf (line, "run %d", md ? current_duration : 0);// TODO this can get moved outside the loop, perhaps to management
+			lammps_start_time = get_time();
+			lmp->input->one (line);
+			lammps_split = get_time() - lammps_start_time;
+			Q6 = *((double *) lammps_extract_compute(lmp,(char*)"Q6", 0, 0));
 
 			// Compute acceptance
 			if (local_rank == 0) {
-				if (md) {
+				//if (md) {
 					d_Q = Q6 - targets[window_index];
 					bias_potential_new = d_Q * d_Q;
 					log_boltz_factor = (-0.5 * spring_init / p->temperature) * \
 									   (bias_potential_new-bias_potential_old);
-				} else {
-					d_U = U - U_old;
-					d_V = V - V_old;
-					log_boltz_factor = -1 / (WHAM_BOLTZMANN * p->temperature) * \
+				//} else {
+					//d_U = U - U_old;
+					//d_V = V - V_old;
+					//log_boltz_factor = -1 / (WHAM_BOLTZMANN * p->temperature) * \
 									   (d_U * du_factor + P * d_V * pv_factor - natoms * WHAM_BOLTZMANN * \
 										p->temperature * log ((V + d_V) / V));
 					// = -1/kT (dU + P * dV - NkT log ((V + dV) / V))
-				}
-				accept = log((double) rand() / RAND_MAX) \
-								  < log_boltz_factor;
+				//}
+				accept = log((double) rand() / RAND_MAX) < log_boltz_factor;
 			}
 			MPI_Bcast (&accept, 1, MPI_INT, 0, local_comm);
 
