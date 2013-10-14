@@ -453,7 +453,7 @@ int main(int narg, char **arg)
 
 
 			//md = i % 6 < 5; // MD:VMC = 5:1
-			md = rand() < RAND_MAX / 6;
+			md = rand() > RAND_MAX / 6;
 			////////////////////////////////////////////////
 			// Effective start of sampling loop           //
 			////////////////////////////////////////////////
