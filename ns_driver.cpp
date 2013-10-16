@@ -457,6 +457,7 @@ int main(int narg, char **arg)
 			////////////////////////////////////////////////
 			// Effective start of sampling loop           //
 			////////////////////////////////////////////////
+
 			//Take a sample
 			if (!md) {
 				if (local_rank == 0)
