@@ -482,14 +482,6 @@ int main(int narg, char **arg)
 					bias_potential_new = d_Q * d_Q;
 					log_boltz_factor = (-0.5 * spring_init / p->temperature) * \
 									   (bias_potential_new-bias_potential_old);
-				//} else {
-					//d_U = U - U_old;
-					//d_V = V - V_old;
-					//log_boltz_factor = -1 / (WHAM_BOLTZMANN * p->temperature) * \
-									   (d_U * du_factor + P * d_V * pv_factor - natoms * WHAM_BOLTZMANN * \
-										p->temperature * log ((V + d_V) / V));
-					// = -1/kT (dU + P * dV - NkT log ((V + dV) / V))
-				//}
 				accept = log((double) rand() / RAND_MAX) < log_boltz_factor;
 			}
 			MPI_Bcast (&accept, 1, MPI_INT, 0, local_comm);
