@@ -450,6 +450,7 @@ int main(int narg, char **arg)
 			//bcast to window
 			MPI_Bcast (&current_duration, 1, MPI_INT, 0, local_comm);
 			MPI_Bcast (&current_spring, 1, MPI_FLOAT, 0, local_comm);
+			
 
 
 			//md = i % 6 < 5; // MD:VMC = 5:1
@@ -457,31 +458,30 @@ int main(int narg, char **arg)
 			////////////////////////////////////////////////
 			// Effective start of sampling loop           //
 			////////////////////////////////////////////////
+			MPI_Bcast (&md, 1, MPI_INT, 0, local_comm);
 
 			//Take a sample
+			lammps_start_time = get_time();
 			if (!md) {
-				if (local_rank == 0)
-					dx = ((double) rand() / RAND_MAX - 0.5) * 0.01 + 1;
-				MPI_Bcast (&dx, 1, MPI_INT, 0, local_comm);
+				dx = ((double) rand() / RAND_MAX - 0.5) * 0.01 + 1;
+				MPI_Bcast (&dx, 1, MPI_DOUBLE, 0, local_comm);
 				sprintf (line, "change_box all x scale %f y scale %f z scale %f", dx, dx, dx);
 				lmp->input->one (line);
 				lmp->input->one ("change_box all remap");
 				U = *((double *) lammps_extract_variable(lmp, (char*)"U", (char*)"all"));
 				V = *((double *) lammps_extract_variable(lmp, (char*)"V", (char*)"all"));
 			}
-			sprintf (line, "run %d", md ? current_duration : 0);// TODO this can get moved outside the loop, perhaps to management
-			lammps_start_time = get_time();
+			sprintf (line, "run %d", md ? current_duration : 0);
 			lmp->input->one (line);
 			lammps_split = get_time() - lammps_start_time;
 			Q6 = *((double *) lammps_extract_compute(lmp,(char*)"Q6", 0, 0));
 
 			// Compute acceptance
 			if (local_rank == 0) {
-				//if (md) {
-					d_Q = Q6 - targets[window_index];
-					bias_potential_new = d_Q * d_Q;
-					log_boltz_factor = (-0.5 * spring_init / p->temperature) * \
-									   (bias_potential_new-bias_potential_old);
+				d_Q = Q6 - targets[window_index];
+				bias_potential_new = d_Q * d_Q;
+				log_boltz_factor = (-0.5 * spring_init / p->temperature) * \
+								   (bias_potential_new-bias_potential_old);
 				accept = log((double) rand() / RAND_MAX) < log_boltz_factor;
 			}
 			MPI_Bcast (&accept, 1, MPI_INT, 0, local_comm);
@@ -517,17 +517,14 @@ int main(int narg, char **arg)
 					lmp->input->one ("change_box all remap");
 				}
 			} else { //Umbrella accept
+				Q6_old = Q6;
+				d_Q_old = Q6_old - targets[window_index];
+				bias_potential_old = d_Q_old * d_Q_old;
 				if (md) {
 					lammps_gather_atoms(lmp,(char*)"x",1,3,positions_buffer);
 					++accept_count;
-					Q6_old = Q6;
-					d_Q_old = Q6_old - targets[window_index];
-					bias_potential_old = d_Q_old * d_Q_old;
-				} else {
+				} else
 					++vmc_accept_count;
-					U_old = U;
-					V_old = V;
-				}
 			}
 			step_time = get_time() - last_step_end_time;
 			pthread_mutex_unlock (&mpi_mutex);
