@@ -525,10 +525,11 @@ int main(int narg, char **arg)
 				if (md) {
 					lammps_gather_atoms(lmp,(char*)"x",1,3,positions_buffer);
 					++accept_count;
-				} else
+				} else {
 					++vmc_accept_count;
 					U_old = U;
 					V_old = V;
+				}
 			}
 			step_time = get_time() - last_step_end_time;
 			pthread_mutex_unlock (&mpi_mutex);
