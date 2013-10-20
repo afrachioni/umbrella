@@ -279,6 +279,8 @@ int main(int narg, char **arg)
 		lmp->input->one("pair_coeff * * library.meam Sn NULL Sn");//TODO hardcoded potential
 		//lmp->input->one("pair_coeff * * library.meam Sn Ag NULL Sn Ag");
 		lmp->input->one("thermo 5");
+		debugmsg ("Defining thermo_style...\n");
+		lmp->input->one("thermo_style custom step temp vol pe press c_Q6");
 		debugmsg ("About to run 0...\n");
 		lmp->input->one("run 0");
 		debugmsg ("About to define fix...\n");
