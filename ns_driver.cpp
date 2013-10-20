@@ -428,7 +428,7 @@ int main(int narg, char **arg)
 		}
 		MPI_Barrier (MPI_COMM_WORLD);
 		printmsg ("Samples away!\n\n");
-		//Q6_old is last accepted Q6
+		//Q6_old is most recently accepted Q6
 		for (int i = 0; i < p->count; i++) {
 			pthread_mutex_lock (&mpi_mutex);
 			if (local_rank == 0) {
@@ -525,6 +525,8 @@ int main(int narg, char **arg)
 					++accept_count;
 				} else
 					++vmc_accept_count;
+					U_old = U;
+					V_old = V;
 			}
 			step_time = get_time() - last_step_end_time;
 			pthread_mutex_unlock (&mpi_mutex);
