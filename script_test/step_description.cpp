@@ -18,3 +18,6 @@ std::vector<std::string>* StepDescription::get_if_reject_block() {
 	return &if_reject_block;
 }
 
+std::vector<std::string>* StepDescription::get_step_init_block() {
+	return &step_init_block;
+}

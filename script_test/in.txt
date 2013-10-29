@@ -9,6 +9,14 @@ Hello
 #AF steptype another_step
 
 
+#AF stepinit my_step
+ina
+inb
+inc
+
+
+ind
+
 #AF takestep my_step
 there
 exist
@@ -24,3 +32,4 @@ cmc
 cna
 cnb
 cnc
+

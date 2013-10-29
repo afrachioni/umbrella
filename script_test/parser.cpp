@@ -68,6 +68,12 @@ int main (int nargs, char **args) {
 					break;
 				}
 				current_block = steps_map[third_token].get_if_reject_block();
+			} else if (strcmp (second_token, "stepinit") == 0) {
+				if (steps_map.find(third_token) == steps_map.end()) {
+					fprintf (stderr, "Parse error: stepinit before %s defined\n", third_token);
+					break;
+				}
+				current_block = steps_map[third_token].get_step_init_block();
 			} else {
 				fprintf (stdout, "Directive not recognized: %s\n", line);
 			}
@@ -94,6 +100,11 @@ int main (int nargs, char **args) {
 
 		v = it->second.get_if_accept_block();
 		fprintf (stdout, "\tIf accept:\n");
+		for (int j = 0; j < v->size(); ++j)
+			fprintf (stdout, "\t\t%s", v->at(j).c_str());
+
+		v = it->second.get_step_init_block();
+		fprintf (stdout, "\tStep init:\n");
 		for (int j = 0; j < v->size(); ++j)
 			fprintf (stdout, "\t\t%s", v->at(j).c_str());
 	}
