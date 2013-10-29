@@ -14,20 +14,13 @@ there
 exist
 several
 
-#There
+#AF ifaccept my_step
+cma
+cmb
+cmc
 
-#Hello
+#AF ifreject my_step
 
-There
-
-#AF ooga booga
-
-#AF aoeu htns
-#AF and then
-
-
-#AFe
-
-
-
-
+cna
+cnb
+cnc

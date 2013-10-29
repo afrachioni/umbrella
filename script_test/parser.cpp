@@ -49,31 +49,52 @@ int main (int nargs, char **args) {
 				steps_map[third_token];
 
 			} else if (strcmp (second_token, "takestep") == 0) {
-
 				fprintf (stdout, "Takestep: %s\n", third_token);
 				if (steps_map.find(third_token) == steps_map.end()) {
-					fprintf (stderr, "Parse error: takstep before %s defined\n", third_token);
+					fprintf (stderr, "Parse error: takestep before %s defined\n", third_token);
 					break;
 				}
-				fprintf (stdout, "Setting current block to take step for %s\n", third_token);
+				//fprintf (stdout, "Setting current block to take step for %s\n", third_token);
 				current_block = steps_map[third_token].get_take_step_block();
+			} else if (strcmp (second_token, "ifaccept") == 0) {
+				if (steps_map.find(third_token) == steps_map.end()) {
+					fprintf (stderr, "Parse error: ifaccept before %s defined\n", third_token);
+					break;
+				}
+				current_block = steps_map[third_token].get_if_accept_block();
+			} else if (strcmp (second_token, "ifreject") == 0) {
+				if (steps_map.find(third_token) == steps_map.end()) {
+					fprintf (stderr, "Parse error: ifreject before %s defined\n", third_token);
+					break;
+				}
+				current_block = steps_map[third_token].get_if_reject_block();
 			} else {
 				fprintf (stdout, "Directive not recognized: %s\n", line);
 			}
 		}
-		if (line[0] == '#' || line[0] == '\n') continue; //perhaps pass these to LAMMPS so they show up on the logs
-
+		if (line[0] == '#' || line[0] == '\n') continue; //perhaps pass to LAMMPS so they show up on the logs
 		if (current_block != NULL) {
 			current_block->push_back (line);
 			fprintf (stdout, "pushed back: %s", line);
 		}
 	}
 
+	std::vector<std::string> *v;
 	for (std::map<std::string, StepDescription>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
-		fprintf ( stdout, "Map key: %s\n", it->first.c_str());
-		std::vector<std::string> *v = it->second.get_take_step_block();
-		fprintf (stdout, "num take_step lines: %d\n", v->size());
+		fprintf ( stdout, "Step type: %s\n", it->first.c_str());
+		v = it->second.get_take_step_block();
+		fprintf (stdout, "\tTake step:\n");
 		for (int j = 0; j < v->size(); ++j)
-			fprintf (stdout, "\tTake step values: %s", (*v)[j].c_str());//v->at(j));
+			fprintf (stdout, "\t\t%s", (*v)[j].c_str());//v->at(j));
+
+		v = it->second.get_if_reject_block();
+		fprintf (stdout, "\tIf reject:\n");
+		for (int j = 0; j < v->size(); ++j)
+			fprintf (stdout, "\t\t%s", v->at(j).c_str());
+
+		v = it->second.get_if_accept_block();
+		fprintf (stdout, "\tIf accept:\n");
+		for (int j = 0; j < v->size(); ++j)
+			fprintf (stdout, "\t\t%s", v->at(j).c_str());
 	}
 }
