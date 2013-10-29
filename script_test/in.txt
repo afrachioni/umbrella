@@ -5,6 +5,14 @@ Again
 
 
 Hello
+#AF steptype my_step
+#AF steptype another_step
+
+
+#AF takestep my_step
+there
+exist
+several
 
 #There
 
@@ -14,7 +22,9 @@ There
 
 #AF ooga booga
 
-#AF
+#AF aoeu htns
+#AF and then
+
 
 #AFe
 
