@@ -8,6 +8,7 @@ Hello
 #AF steptype my_step
 #AF steptype another_step
 
+#AF spring_var my_step my_springvar
 
 #AF stepinit my_step
 ina

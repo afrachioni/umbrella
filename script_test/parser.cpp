@@ -5,7 +5,8 @@
 #include <map>
 #include <string>
 
-#include "step_description.h"
+#include "umbrella_step.h"
+#include "parser.h"
 
 
 int main (int nargs, char **args) {
@@ -15,13 +16,19 @@ int main (int nargs, char **args) {
 		return 1;
 	}
 
+	Parser *p = new Parser(in);
+	p->parse();
+	p->print();
+	delete p;
+}
 
-//steptype box_change
-//takestep box_change
-//ifaccept box_change
-//ifreject box_change
+Parser::Parser(FILE *in) {
+	this->in = in;
+};
 
-	std::map<std::string, StepDescription> steps_map;
+Parser::~Parser() {};
+
+void Parser::parse() {
 	rewind (in);
 	int i = 0;
 	int n;
@@ -33,11 +40,10 @@ int main (int nargs, char **args) {
 	char fourth_token[20];
 
 	std::vector<std::string>* current_block = NULL;
-	while (1) {
+	while (1) { // no exceptions yet for too few tokens or things not specified
 		++lnum;
 		fgets (line, 500, in);
 		if (feof (in)) break;
-		//fprintf (stdout, line);
 		n = sscanf (line, "%s %s %s %s", first_token, second_token, third_token, fourth_token);
 		if (strcmp (first_token, "#AF") == 0 && n > 0) {
 			fprintf (stdout, "Special directive: %s", line);
@@ -48,13 +54,26 @@ int main (int nargs, char **args) {
 				fprintf (stdout, "Type: %s\n", third_token);
 				steps_map[third_token];
 
+			} else if (strcmp (second_token, "spring_var") == 0) {
+				if (steps_map.find (third_token) == steps_map.end()) {
+					fprintf (stderr, "Parse error: spring_var before %s defined\n", third_token);
+					break;
+				}
+				steps_map[third_token].set_spring_var(fourth_token);
+			
+			} else if (strcmp (second_token, "target_var") == 0) {
+				if (steps_map.find (third_token) == steps_map.end()) {
+					fprintf (stderr, "Parse error: target_var before %s defined\n", third_token);
+					break;
+				}
+				steps_map[third_token].set_target_var(fourth_token);
+
 			} else if (strcmp (second_token, "takestep") == 0) {
 				fprintf (stdout, "Takestep: %s\n", third_token);
 				if (steps_map.find(third_token) == steps_map.end()) {
 					fprintf (stderr, "Parse error: takestep before %s defined\n", third_token);
 					break;
 				}
-				//fprintf (stdout, "Setting current block to take step for %s\n", third_token);
 				current_block = steps_map[third_token].get_take_step_block();
 			} else if (strcmp (second_token, "ifaccept") == 0) {
 				if (steps_map.find(third_token) == steps_map.end()) {
@@ -85,9 +104,16 @@ int main (int nargs, char **args) {
 		}
 	}
 
+
+}
+void Parser::print() {
+	fprintf (stdout, "\n\n\nDefined steps:\n");
+
 	std::vector<std::string> *v;
-	for (std::map<std::string, StepDescription>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
+	for (std::map<std::string, UmbrellaStep>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
 		fprintf ( stdout, "Step type: %s\n", it->first.c_str());
+		fprintf ( stdout, "Spring variable name: %s\n", it->second.get_spring_var());
+		fprintf ( stdout, "Target variable name: %s\n", it->second.get_target_var());
 		v = it->second.get_take_step_block();
 		fprintf (stdout, "\tTake step:\n");
 		for (int j = 0; j < v->size(); ++j)
