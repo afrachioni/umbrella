@@ -2,13 +2,13 @@ The quick brown fox
 Jumped over the lazy dog
 Once
 Again
-
+#AF parameter Q6 qtarget qspring
+after directive
 
 Hello
 #AF steptype my_step
 #AF steptype another_step
 
-#AF spring_var my_step my_springvar
 
 #AF stepinit my_step
 ina
@@ -33,4 +33,7 @@ cmc
 cna
 cnb
 cnc
+
+#AF parameter density density_target density_spring
+#AF parameter B density_target density_spring
 
