@@ -85,7 +85,7 @@ void Parser::parse() {
 			strcpy (& file_data [i * max_line_length], line_ptrs[i].c_str());
 	MPI_Bcast ( file_data, max_line_length * num_lines, MPI_CHAR, 0, MPI_COMM_WORLD);
 
-	std::vector<std::string>* current_block = NULL;
+	std::vector<std::string>* current_block = &init_block;
 	// no exceptions yet for too few tokens or things not specified
 	// Loop over lines in file buffer, populate appropriate structures
 	for (int i = 0; i < num_lines; ++i) {
@@ -93,7 +93,6 @@ void Parser::parse() {
 			length = strlen (line);
 			n = sscanf (line, "%s %s %s %s", first_token, second_token, third_token, fourth_token);
 		if (strcmp (first_token, "#AF") == 0 && n > 0) {
-			//fprintf (stderr, "Special directive: %s\n", line);
 			if (n == 1) {
 				fprintf (stderr, "Parse error: empty directive at line %d.\n", i);
 				break;
@@ -133,16 +132,17 @@ void Parser::parse() {
 				fprintf (stderr, "Directive not recognized: %s\n", line);
 			}
 		}
-		if (line[0] == '#' || line[0] == '\0') continue; //perhaps pass to LAMMPS so they show up on the logs
-		if (current_block != NULL) {
-			current_block->push_back (line);
-		}
+		if (line[0] == '#' || line[0] == '\0') continue; //perhaps pass to LAMMPS so they show up on logs
+		current_block->push_back (line);
 	}
 	delete [] file_data;
 }
 
 void Parser::print() {
-	fprintf (stdout, "\n\n\nDefined steps:\n");
+	fprintf (stdout, "\nInitialization:\n");
+	for (int i = 0; i < init_block.size(); ++i)
+		fprintf (stdout, "\t%s\n", init_block[i].c_str());
+	fprintf (stdout, "Defined steps:\n");
 	std::vector<std::string> *v;
 	for (std::map<std::string, UmbrellaStep>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
 		fprintf ( stdout, "\tStep type: %s\n", it->first.c_str());
@@ -168,5 +168,5 @@ void Parser::print() {
 	}
 	fprintf (stdout, "Defined parameters:\n");
 	for (int j = 0; j < params.size(); ++j)
-		fprintf (stdout, "\t%s\n", j, params[j].param_vname);
+		fprintf (stdout, "\t%s\n", params[j].param_vname);
 }
