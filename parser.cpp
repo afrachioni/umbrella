@@ -1,140 +1,172 @@
-#include <stdlib.h>
-#include <iostream>
-#include "stdio.h"
-#include "optionparser.h"
+#include <stdio.h>
+#include <string.h>
+#include <vector>
+#include <map>
+#include <string>
 
+#include "umbrella_step.h"
+#include "umbrella_parameter.h"
 #include "parser.h"
 
-enum options_index { INIT, COUNT, DURATION, TEMPERATURE, L, CUTOFF, HELP };
-int parser::verbose = 0;
-const option::Descriptor usage [] =
-{
-	{ INIT, 0, "", "init", parser::NonEmpty, "file containing paths to initial restart files and window centers" },
-	{ COUNT, 0, "", "count", parser::IntegerCheck, "number of umbrella steps" },
-	{ DURATION, 0, "", "duration", parser::IntegerCheck, "duration of one umbrella step / fs" },
-	{ TEMPERATURE, 0, "", "temperature", parser::NumberCheck, "temperature / K" },
-	{ L, 0, "", "l", parser::IntegerCheck, "l for order parameter Q" },
-	{ CUTOFF, 0, "", "cutoff", parser::NumberCheck, "neighbor cutoff for Q6" },
-	{ HELP, 0, "", "help", option::Arg::None, "help usage" },
-	{ 0, 0, 0, 0, 0, 0 }
+#define MAX_LINE_LENGTH 1000
+
+
+int main (int nargs, char **args) {
+	MPI_Init(&nargs,&args);
+	Parser *p = new Parser("in.txt", NULL);
+	p->parse();
+	int me;
+	MPI_Comm_rank(MPI_COMM_WORLD, &me);
+	if (me == 0)
+		p->print();
+	delete p;
+	MPI_Finalize();
+}
+
+Parser::Parser(const char *fname, LAMMPS_NS::LAMMPS *) {
+	strcpy (this->fname, fname);
+	this->lmp = lmp;
 };
-parser::parser (int narg, char **arg)
-{
-	parse_error = 0;
-	narg-=(narg>0); arg+=(narg>0); // skip program name arg[0] if present
-	option::Stats  stats(usage, narg, arg);
-	option::Option options[stats.options_max], buffer[stats.buffer_max];
-	option::Parser parse(usage, narg, arg, options, buffer);
 
-	if (parse.error())
-		{parse_error ++; return;}
+Parser::~Parser() {
+	// XXX can't figure out why this throws a segmentation fault./
+	//std::vector<std::string> *s;
+	//for (std::map<std::string, UmbrellaStep>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
+		//fprintf (stderr, "Deleting UmbrellaStep: %s\n", it->first.c_str());
+		//delete &(it->second);
+	//}
+		//delete &steps_map;
+};
 
-	if (options[HELP] || narg == 0) {
-		if (verbose)
-			option::printUsage(std::cout, usage);
-		parse_error ++;
-		return;
-	}
+void Parser::parse() {
+	FILE *in_p = fopen (fname, "r");
+	int n;
+	int length;
+	char line_buf[MAX_LINE_LENGTH];
+	char *line;
+	char first_token[20];
+	char second_token[20];
+	char third_token[20];
+	char fourth_token[20];
+	char fifth_token[20];
+	UmbrellaParameter *p;
 
-	int missing = 0;
-	for (int i = 0; i < HELP; i++) {
-		option::Option opt = options[i];
-		if (!opt) {
-			if (verbose) fprintf (stderr, "--%s is a required option!\n", usage[i].longopt);
-			missing++;
+	int me;
+	MPI_Comm_rank(MPI_COMM_WORLD, &me);
+	char *file_data;
+	int max_line_length = 0;
+	int num_lines;
+
+	// Root reads file, everybody parses (because passing structs is annoying)
+	std::vector<std::string> line_ptrs;
+	if (me == 0) {
+		// Read file into vector<string>, keeping track of longest line
+		int line_length;
+		while (1) {
+			fgets (line_buf, MAX_LINE_LENGTH, in_p);
+			if (feof (in_p)) break;
+			line_length = strlen (line_buf);
+			line_buf[line_length - 1] = '\0';
+			std::string m(line_buf);
+			line_ptrs.push_back (m);
+			if (line_length > max_line_length)
+				max_line_length = line_length;
 		}
+		fclose (in_p);
+		num_lines = line_ptrs.size();
 	}
-	if (missing)
-		{ ++parse_error; return; }
+	// Broadcast to all my friends
+	MPI_Bcast ( &max_line_length, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast ( &num_lines, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	// Copy to contiguous buffer for shipment over the network
+	file_data = new char [max_line_length * num_lines];
+	if (me == 0)
+		for (int i = 0; i < line_ptrs.size(); ++i)
+			strcpy (& file_data [i * max_line_length], line_ptrs[i].c_str());
+	MPI_Bcast ( file_data, max_line_length * num_lines, MPI_CHAR, 0, MPI_COMM_WORLD);
 
+	std::vector<std::string>* current_block = &init_block;
+	// no exceptions yet for too few tokens or things not specified
+	// Loop over lines in file buffer, populate appropriate structures
+	for (int i = 0; i < num_lines; ++i) {
+			line = file_data + i * max_line_length;
+			length = strlen (line);
+			n = sscanf (line, "%s %s %s %s", first_token, second_token, third_token, fourth_token);
+		if (strcmp (first_token, "#AF") == 0 && n > 0) {
+			if (n == 1) {
+				fprintf (stderr, "Parse error: empty directive at line %d.\n", i);
+				break;
+			} else if (strcmp (second_token, "steptype") == 0) {
+				UmbrellaStep *s = new UmbrellaStep (lmp); // TODO when does this die?
+				steps_map[third_token] = *s;
 
-	if (verbose) fprintf (stdout, "Program options seem sane. Proceeding with configuration:\n");
+			} else if (strcmp (second_token, "parameter") == 0) {
+				p = new UmbrellaParameter (third_token, fourth_token, fifth_token, lmp);
+				params.push_back (*p);
 
-	const char *count_arg = options[COUNT].last()->arg;
-	count = atoi (count_arg);
-	if (verbose) fprintf (stdout, "\tNumber of umbrella steps:              %d\n", count);
-
-	const char *duration_arg = options[DURATION].last()->arg;
-	duration = atoi (duration_arg);
-	if (verbose) fprintf (stdout, "\tUmbrella step duration:                %d\n", duration);
-
-	const char *temperature_arg = options[TEMPERATURE].last()->arg;
-	temperature = atof (temperature_arg);
-	if (verbose) fprintf (stdout, "\tTemperature:                           %f\n", temperature);
-
-	const char *l_arg = options[L].last()->arg;
-	l = atoi (l_arg);
-	if (verbose) fprintf (stdout, "\tl:                                     %d\n", l);
-
-	const char *cutoff_arg = options[CUTOFF].last()->arg;
-	cutoff = atof (cutoff_arg);
-	if (verbose) fprintf (stdout, "\tQ6 neighbor cutoff:                    %f\n", cutoff);
-
-	const char *init_arg = options[INIT].last()->arg;
-	init = fopen (init_arg, "r");
-	if (init == NULL) {
-		//TODO this line prints multiple times for some reason
-		fprintf (stderr, "Unable to read file: %s\n", init_arg); ++parse_error; return;
+			} else if (strcmp (second_token, "takestep") == 0) {
+				if (steps_map.find(third_token) == steps_map.end()) {
+					fprintf (stderr, "Parse error: takestep before %s defined\n", third_token);
+					break;
+				}
+				current_block = steps_map[third_token].get_take_step_block();
+			} else if (strcmp (second_token, "ifaccept") == 0) {
+				if (steps_map.find(third_token) == steps_map.end()) {
+					fprintf (stderr, "Parse error: ifaccept before %s defined\n", third_token);
+					break;
+				}
+				current_block = steps_map[third_token].get_if_accept_block();
+			} else if (strcmp (second_token, "ifreject") == 0) {
+				if (steps_map.find(third_token) == steps_map.end()) {
+					fprintf (stderr, "Parse error: ifreject before %s defined\n", third_token);
+					break;
+				}
+				current_block = steps_map[third_token].get_if_reject_block();
+			} else if (strcmp (second_token, "stepinit") == 0) {
+				if (steps_map.find(third_token) == steps_map.end()) {
+					fprintf (stderr, "Parse error: stepinit before %s defined\n", third_token);
+					break;
+				}
+				current_block = steps_map[third_token].get_step_init_block();
+			} else {
+				fprintf (stderr, "Directive not recognized: %s\n", line);
+			}
+		}
+		if (line[0] == '#' || line[0] == '\0') continue; //perhaps pass to LAMMPS so they show up on logs
+		current_block->push_back (line);
 	}
-	if (verbose) fprintf (stdout, "\tInitial window configuration file:     %s\n", init_arg);
+	delete [] file_data;
 }
-option::ArgStatus parser::MyCheck (const option::Option& option, bool msg)
-{
-	if (verbose) fprintf (stderr, "option->arg: %s\n", option.arg);
-	return option::ARG_ILLEGAL;
 
-}
-option::ArgStatus parser::NumberCheck (const option::Option& option, bool msg)
-{
-	const char *arg = option.arg;
-	if (arg == 0 || arg[0] == '\0') {
-		if (msg) fprintf (stderr, "Option '%s' requires an argument!\n", option.name);
-		return option::ARG_ILLEGAL;
-	}
-	int periods = 0;
-	int err = 0;
-	char c = 'e';
-	for (int i = 0; arg[i] != '\0'; i++) {
-		if (arg[i] == '.')
-			periods++;
-		else if (periods > 1 || arg[i] < '0' || arg[i] > '9')
-			err++;
-	}
-	if (err) {
-		if (msg && verbose)
-			fprintf (stderr, "Argument to '%s' doesn't look like a number: %s\n", option.name, arg);
-		return option::ARG_ILLEGAL;
-	} else
-		return option::ARG_OK;
-}
-option::ArgStatus parser::IntegerCheck (const option::Option& option, bool msg)
-{
-	const char *arg = option.arg;
-	if (arg == 0 || arg[0] == '\0') {
-		if (msg && verbose) fprintf (stderr, "Option '%s' requires an argument!\n", option.name);
-		return option::ARG_ILLEGAL;
-	}
-	int periods = 0;
-	int err = 0;
-	char c = 'e';
-	for (int i = 0; arg[i] != '\0'; i++) {
-		if (arg[i] == '.')
-			periods++;
-		else if (periods > 0 || arg[i] < '0' || arg[i] > '9')
-			err++;
-	}
-	if (err) {
-		if (msg && verbose)
-			fprintf (stderr, "Argument to '%s' doesn't look like an integer: %s\n", option.name, arg);
-		return option::ARG_ILLEGAL;
-	} else
-		return option::ARG_OK;
-}
-option::ArgStatus parser::NonEmpty(const option::Option& option, bool msg)
-{
-	if (option.arg != 0 && option.arg[0] != 0)
-		return option::ARG_OK;
+void Parser::print() {
+	fprintf (stdout, "\nInitialization:\n");
+	for (int i = 0; i < init_block.size(); ++i)
+		fprintf (stdout, "\t%s\n", init_block[i].c_str());
+	fprintf (stdout, "Defined steps:\n");
+	std::vector<std::string> *v;
+	for (std::map<std::string, UmbrellaStep>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
+		fprintf ( stdout, "\tStep type: %s\n", it->first.c_str());
+		v = it->second.get_take_step_block();
+		fprintf (stdout, "\t\tTake step:\n");
+		for (int j = 0; j < v->size(); ++j)
+			fprintf (stdout, "\t\t\t%s\n", (*v)[j].c_str());//v->at(j));
 
-	if (msg) fprintf (stderr, "Option '%s' requires a non-empty argument\n", option.name);
-	return option::ARG_ILLEGAL;
+		v = it->second.get_if_reject_block();
+		fprintf (stdout, "\t\tIf reject:\n");
+		for (int j = 0; j < v->size(); ++j)
+			fprintf (stdout, "\t\t\t%s\n", v->at(j).c_str());
+
+		v = it->second.get_if_accept_block();
+		fprintf (stdout, "\t\tIf accept:\n");
+		for (int j = 0; j < v->size(); ++j)
+			fprintf (stdout, "\t\t\t%s\n", v->at(j).c_str());
+
+		v = it->second.get_step_init_block();
+		fprintf (stdout, "\t\tStep init:\n");
+		for (int j = 0; j < v->size(); ++j)
+			fprintf (stdout, "\t\t\t%s\n", v->at(j).c_str());
+	}
+	fprintf (stdout, "Defined parameters:\n");
+	for (int j = 0; j < params.size(); ++j)
+		fprintf (stdout, "\t%s\n", params[j].param_vname);
 }

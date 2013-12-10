@@ -1,28 +1,17 @@
-#ifndef PARSER_H
-#define PARSER_H
+#include <map>
+#include <mpi.h>
+#include <lammps.h>
 
-#include "optionparser.h"
-#include "stdio.h"
-
-//#define WHAM_BOLTZMANN 0.001982923700 // Boltzmann's constant in kcal/mol K
-#define WHAM_BOLTZMANN 0.0083144621 // kJ/mol-K 
-
-class parser
-{
+class Parser {
 	public:
-		parser (int narg, char **arg);
-		static int verbose;
-		int parse_error;
-		FILE *init;
-		int count;
-		int duration;
-		double temperature;
-		int l;
-		double cutoff;
-
-		static option::ArgStatus MyCheck (const option::Option& option, bool msg);
-		static option::ArgStatus NumberCheck (const option::Option& option, bool msg);
-		static option::ArgStatus IntegerCheck (const option::Option& option, bool msg);
-		static option::ArgStatus NonEmpty (const option::Option& option, bool msg);
+		Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp);
+		~Parser();
+		void parse();
+		void print();
+	private:
+		char *fname;
+		LAMMPS_NS::LAMMPS *lmp;
+		std::vector<std::string> init_block;
+		std::map<std::string, UmbrellaStep> steps_map;
+		std::vector<UmbrellaParameter> params;
 };
-#endif
