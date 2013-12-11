@@ -4,13 +4,13 @@
 #include <map>
 #include <string>
 
-#include "umbrella_step.h"
-#include "umbrella_parameter.h"
 #include "parser.h"
+
 
 #define MAX_LINE_LENGTH 1000
 
 
+/*
 int main (int nargs, char **args) {
 	MPI_Init(&nargs,&args);
 	Parser *p = new Parser("in.txt", NULL);
@@ -22,10 +22,17 @@ int main (int nargs, char **args) {
 	delete p;
 	MPI_Finalize();
 }
+*/
 
-Parser::Parser(const char *fname, LAMMPS_NS::LAMMPS *) {
+Parser::Parser(const char *fname, void *lmp) {
+	//fprintf (stderr, "Top of parser constructor\n");
+	//int me;
+	//MPI_Comm_rank(MPI_COMM_WORLD, &me);
+	//if (me == 0) fprintf (stderr, "Parser constructor: line %d\n", __LINE__);
+	//if (me == 0) fprintf (stderr, "fname: %s\n", fname);
 	strcpy (this->fname, fname);
-	this->lmp = lmp;
+	//if (me == 0) fprintf (stderr, "Parser constructor: line %d\n", __LINE__);
+	this->lmp = (LAMMPS_NS::LAMMPS*) lmp;
 };
 
 Parser::~Parser() {
@@ -136,6 +143,18 @@ void Parser::parse() {
 		current_block->push_back (line);
 	}
 	delete [] file_data;
+}
+
+void Parser::execute_init() {
+	int me;
+	MPI_Comm_rank(MPI_COMM_WORLD, &me);
+	fprintf (stderr, "%d has entered execute_init\n", me);
+
+	for (int i = 0; i < init_block.size(); ++i) {
+		fprintf (stderr, "%d is about to execute: %s\n", me, init_block[i].c_str());
+		//lmp->input->one ("# Comment");
+		lmp->input->one (init_block[i].c_str());
+	}
 }
 
 void Parser::print() {

@@ -12,14 +12,14 @@ if [ `hostname | cut -c 1-6` == "kraken" ]; then
 	module load PrgEnv-gnu
 	module load fftw
 	echo "	Compiling..."
-	CC -g -I ~/options_cl_parser -I ~/myLAMMPS/src -I ~/myLAMMPS/lib/meam `/nics/c/home/afrachi1/adios-1.4.1pre1/adios_config -c` -DKRAKEN -c ns_driver.cpp cl_parser.cpp 
+	CC -g -I ~/options_cl_parser -I ~/myLAMMPS/src -I ~/myLAMMPS/lib/meam `/nics/c/home/afrachi1/adios-1.4.1pre1/adios_config -c` -DKRAKEN -c ns_driver.cpp cl_parser.cpp parser.cpp umbrella_step.cpp umbrella_parameter.cpp
 	echo "	Linking..."
-	CC -g -L ~/myLAMMPS/src -L ~/myLAMMPS/lib/meam ns_driver.o cl_parser.o -llmp_kraken -lmeam `/nics/c/home/afrachi1/adios-1.4.1pre1/adios_config -l` -o ns_driver
+	CC -g -L ~/myLAMMPS/src -L ~/myLAMMPS/lib/meam ns_driver.o cl_parser.o parser.o umbrella_step.o umbrella_parameter.o -llmp_kraken -lmeam `/nics/c/home/afrachi1/adios-1.4.1pre1/adios_config -l` -o ns_driver
 elif [ `hostname | cut -c 1-6` == "macpro" ]; then
 	#Build on Mac
 	echo "Building on Professor White's Mac Pro..."
-	mpicxx -g -I ~/options_cl_parser -I ~/afrachioni_frachlammps/src -I ~/afrachioni_frachlammps/lib/meam `adios_config -c` -c ns_driver.cpp cl_parser.cpp
-	mpicxx -g -L ~/afrachioni_frachlammps/src -L ~/afrachioni_frachlammps/lib/meam ns_driver.o cl_parser.o -llmp_kraken -lmeam -lgfortran -lfftw `adios_config -l` -o ns_driver
+	mpicxx -g -I ~/options_cl_parser -I ~/afrachioni_frachlammps/src -I ~/afrachioni_frachlammps/lib/meam `adios_config -c` -c ns_driver.cpp cl_parser.cpp parser.cpp umbrella_step.cpp umbrella_parameter.cpp
+	mpicxx -g -L ~/afrachioni_frachlammps/src -L ~/afrachioni_frachlammps/lib/meam ns_driver.o cl_parser.o parser.o umbrella_step.o umbrella_parameter.o -llmp_kraken -lmeam -lgfortran -lfftw `adios_config -l` -o ns_driver
 elif [ `hostname | cut -c 7-9` == "scs" ] || [ `hostname | cut -c 7-12` == "vulcan" ]; then
 	#Build on LBL Supercluster
 	echo "Building on the Lawrence Berkeley Supercluster..."
@@ -32,9 +32,9 @@ elif [ `hostname | cut -c 7-9` == "scs" ] || [ `hostname | cut -c 7-12` == "vulc
 	module load fftw
 	module load boost
 	echo " Compiling..."
-	mpic++ -g -I ~/myLAMMPS/src -I ~/myLAMMPS/lib/meam -c ns_driver.cpp cl_parser.cpp
+	mpic++ -g -I ~/myLAMMPS/src -I ~/myLAMMPS/lib/meam -c ns_driver.cpp cl_parser.cpp parser.cpp umbrella_step.cpp umbrella_parameter.cpp #-v -da -Q
 	echo " Linking..."
-	mpic++ -g -L ~/myLAMMPS/src -L ~/myLAMMPS/lib/meam ns_driver.o cl_parser.o -llammps_vulcan -lmeam -lgfortran -o driver_vulcan
+	mpic++ -g -L ~/myLAMMPS/src -L ~/myLAMMPS/lib/meam ns_driver.o cl_parser.o parser.o umbrella_step.o umbrella_parameter.o -llammps_vulcan -lmeam -lgfortran -o driver_vulcan
 else
 echo "This machine is appears to be neither White's mac, Kraken, nor the LBL supercluster."
 fi

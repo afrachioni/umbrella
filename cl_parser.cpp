@@ -74,7 +74,7 @@ CLParser::CLParser (int narg, char **arg)
 	init = fopen (init_arg, "r");
 	if (init == NULL) {
 		//TODO this line prints multiple times for some reason
-		fprintf (stderr, "Unable to read file: %s\n", init_arg); ++parse_error; return;
+		fprintf (stderr, "Unable to read file: %s\n", init_arg); //XXX sloppily overriding argument requirement ++parse_error; return;
 	}
 	if (verbose) fprintf (stdout, "\tInitial window configuration file:     %s\n", init_arg);
 }

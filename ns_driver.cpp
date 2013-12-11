@@ -29,8 +29,11 @@
 //Command line options parser
 #include "cl_parser.h"
 
+// Script parser
+#include "parser.h"
 
-//LAMMPS include files
+
+// LAMMPS include files
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,14 +44,14 @@
 #include <library.h>
 #include "management.cpp"
 
-//system include files
+// system include files
 #include <math.h>
 #include <pthread.h>
 #include <sys/time.h>
 #include <sys/stat.h> //mkdir needs this
 #include <sys/types.h> //and this too
 
-//print node ID on Kraken
+// print node ID on Kraken
 #ifdef KRAKEN
 #include <pmi.h>
 #endif
@@ -64,6 +67,7 @@ int main(int narg, char **arg)
 		MPI_Init(&narg,&arg);
 		CLParser *p;
 		p = new CLParser (narg, arg);
+
 		int me,nprocs;
 		MPI_Comm_rank(MPI_COMM_WORLD,&me);
 		MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
@@ -97,7 +101,7 @@ int main(int narg, char **arg)
 
 		//read init file once to determine number of windows
 		//FIXME only root process should do this
-		int num_windows = 1; // DEBUG
+		int num_windows = 2; // DEBUG
 		/* XXX Keep this code for files on which <<>> is operated
 		int num_lines = 0;
 		char c = 'p';
@@ -149,6 +153,7 @@ int main(int narg, char **arg)
 			num_active_windows = num_windows;
 
 		// Split COMM_WORLD into communicators for each window
+		debugmsg ("At line %d\n", __LINE__);
 		MPI_Comm local_comm;
 		MPI_Comm_split(MPI_COMM_WORLD, me % num_active_windows, me, &local_comm);
 		int local_rank;
@@ -164,6 +169,7 @@ int main(int narg, char **arg)
 					MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
 		// Create roots_comm, a communicator for window roots
+		debugmsg ("At line %d\n", __LINE__);
 		MPI_Group world_group, roots_group;
 		MPI_Comm_group (MPI_COMM_WORLD, &world_group);
 		MPI_Group_incl (world_group, num_active_windows, local_roots, \
@@ -184,38 +190,25 @@ int main(int narg, char **arg)
 			(char*)"-log", (char*)"none"};
 		LAMMPS *lmp = new LAMMPS(5,args,local_comm);
 		//LAMMPS *lmp = new LAMMPS(0,NULL,local_comm);//for all stdout
+
+
+		debugmsg ("At line %d\n", __LINE__);
+
+		Parser *parser = new Parser ("in.txt", lmp);
+		debugmsg ("At line %d\n", __LINE__);
+		parser->parse();
 #if DEBUG	
+		debugmsg ("At line %d\n", __LINE__);
 		sprintf (line, "log logs/log_%d.lammps", window_index);
 		lmp->input->one(line);
 #endif
+		parser->execute_init();
 
-		lmp->input->one("units metal");
-		lmp->input->one("atom_style atomic");
-		lmp->input->one("lattice diamond 6.483");
-		lmp->input->one("region box block 0 5 0 5 0 5");
-		lmp->input->one("create_box 1 box");
-		lmp->input->one("create_atoms 1 box");
-		lmp->input->one("pair_style meam");
-		lmp->input->one("pair_coeff * * library.meam Sn NULL Sn");
-		lmp->input->one("mass 1 118.71 # Sn");
-		lmp->input->one("compute allBoop all boop 6 3.4");
-		lmp->input->one("run 0");
-
-		debugmsg ("Defining LAMMPS volume variable...\n");
-		lmp->input->one("variable V equal vol"); //TODO determine why these are necessary
-		lmp->input->one("variable U equal pe");
-		debugmsg ("About to extract Q6...\n");
-		//double Q6 = *((double *) lammps_extract_compute(lmp, (char*)"Q6", 0, 0));
-		double V = *((double *) lammps_extract_variable(lmp, (char*)"V", (char*)"all"));
-		double U = *((double *) lammps_extract_variable(lmp, (char*)"U", (char*)"all"));
-		debugmsg ("Initial volume: %f\n", V);
-		debugmsg ("Initial potential energy: %f\n", U);
 		int natoms = static_cast<int> (lmp->atom->natoms);
 		debugmsg ("Number of atoms: %d\n", natoms);
 
 
 		//Umbrella definitions
-		double *positions_buffer = new double[3 * natoms];
 		int accept = 1;
 		int md; // 1: MD move, 0: VMC move
 		int seed;
@@ -227,22 +220,8 @@ int main(int narg, char **arg)
 		//double Q6_old = Q6;
 		double d_Q, d_Q_old, bias_potential_new, bias_potential_old;
 
-		debugmsg ("At line %d\n", __LINE__);
-		double V_old, U_old, d_V, d_U, dx, rec;
-		const double P = 1.01325; //bar XXX this controls target pressure, should get passed in
-		//const double pv_factor = 1.458397387e-5;// kcal / (atm A^3 mol) yes its wierd
-		const double pv_factor = 6.0221413e-5;//kJ / (bar A^3 mol)
-		const double du_factor = 9.648533632e1;//kJ / (eV mol)
-		double log_boltz_factor;
 		const int64_t loop_start_time = get_time();
 
-		debugmsg ("About to gather atoms\n");
-		lammps_gather_atoms(lmp,(char*)"x",1,3,positions_buffer);
-		//Q6_old = Q6;
-		//d_Q_old = Q6_old - targets[window_index];
-		//bias_potential_old = d_Q_old * d_Q_old;
-		//U_old = U;
-		//V_old = V;
 
 		pthread_mutex_t mpi_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -282,7 +261,6 @@ int main(int narg, char **arg)
 
 
 
-		float current_spring ;//= spring_init;
 		MPI_Request req;
 		int test_msg;
 		struct management_message msg;
@@ -296,7 +274,6 @@ int main(int narg, char **arg)
 		printmsg ("Samples away!\n\n");
 		//Q6_old is most recently accepted Q6
 		for (int i = 0; i < p->count; i++) {
-		debugmsg ("At line %d\n", __LINE__);
 			pthread_mutex_lock (&mpi_mutex);
 			if (local_rank == 0) {
 				MPI_Test (&req, &recv_complete, MPI_STATUS_IGNORE);
@@ -321,9 +298,7 @@ int main(int narg, char **arg)
 			////////////////////////////////////////////////
 			// Effective start of sampling loop           //
 			////////////////////////////////////////////////
-			MPI_Bcast (&md, 1, MPI_INT, 0, local_comm);
 
-			fprintf (stderr, "sample!\n");
 
 			step_time = get_time() - last_step_end_time;
 			pthread_mutex_unlock (&mpi_mutex);
@@ -331,7 +306,6 @@ int main(int narg, char **arg)
 			// End of sampling loop                       //
 			////////////////////////////////////////////////
 		}
-		delete [] positions_buffer;
 		delete lmp;
 		MPI_Finalize();
 }
