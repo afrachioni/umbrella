@@ -198,16 +198,20 @@ int main(int narg, char **arg)
 		sprintf (line, "log logs/log_%d.lammps", window_index);
 		lmp->input->one(line);
 #endif
-		parser->execute_init();
-
-		int natoms = static_cast<int> (lmp->atom->natoms);
+		int natoms = static_cast<int> (lmp->atom->natoms); // Just for fun
 		debugmsg ("Number of atoms: %d\n", natoms);
 
 
-		// Store bounds in step objects?
+		// Execute global window init
+		parser->execute_init();
+
+		// Execute per-step initialization blocks
 		for (int i = 0; i < parser->nsteps; ++i)
-			fprintf (stderr, "P[%d]: %f\n", (parser->steps)[i]->probability);
+			if ((parser->steps)[i]->probability)
+				(parser->steps)[i]->execute_init();
+
 		//Umbrella definitions
+		double log_boltzmann;
 		int accept = 1;
 		int seed;
 		int accept_count = 0;
@@ -218,6 +222,8 @@ int main(int narg, char **arg)
 		double d_Q, d_Q_old, bias_potential_new, bias_potential_old;
 
 		const int64_t loop_start_time = get_time();
+
+		float step_rand;
 
 
 		pthread_mutex_t mpi_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -293,6 +299,26 @@ int main(int narg, char **arg)
 			////////////////////////////////////////////////
 			// Effective start of sampling loop           //
 			////////////////////////////////////////////////
+
+
+			step_rand = (float) rand() / RAND_MAX; // XXX Bcast internally
+			fprintf (stderr, "step_rand: %f\n", step_rand);
+			UmbrellaStep *executed_step;
+			for (int i = 0; i < parser->nsteps; ++i) {
+				executed_step = (parser->steps)[i];
+				if (executed_step->rand_min <= step_rand && step_rand < executed_step->rand_max) {
+					executed_step->execute_step();
+					break;
+				}
+			}
+
+
+			log_boltzmann = 0;
+			for (int j = 0; j < parser->params.size(); ++j) {
+				fprintf (stdout, "\tParam: %s\n", (parser->params)[j].param_vname);
+				log_boltzmann += (parser->params)[j].compute_boltzmann_factor();
+			}
+			fprintf (stdout, "Log (Boltzmann factor): %f\n", log_boltzmann);
 
 
 			step_time = get_time() - last_step_end_time;

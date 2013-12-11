@@ -93,9 +93,10 @@ void Parser::parse() {
 	// no exceptions yet for too few tokens or things not specified
 	// Loop over lines in file buffer, populate appropriate structures
 	for (int i = 0; i < num_lines; ++i) {
-			line = file_data + i * max_line_length;
-			length = strlen (line);
-			n = sscanf (line, "%s %s %s %s", first_token, second_token, third_token, fourth_token);
+		line = file_data + i * max_line_length;
+		length = strlen (line);
+		n = sscanf (line, "%s %s %s %s %s", first_token, second_token, \
+				third_token, fourth_token, fifth_token);
 		if (strcmp (first_token, "#AF") == 0 && n > 0) {
 			if (n == 1) {
 				fprintf (stderr, "Parse error: empty directive at line %d.\n", i);
@@ -111,6 +112,8 @@ void Parser::parse() {
 				steps_map[third_token] = *s;
 
 			} else if (strcmp (second_token, "parameter") == 0) {
+				fprintf (stderr, "Parsing spring name: %s %s\n", fourth_token, fifth_token);
+				fprintf (stderr, "Line: %s\n", line);
 				p = new UmbrellaParameter (third_token, fourth_token, fifth_token, lmp);
 				params.push_back (*p);
 
@@ -150,25 +153,23 @@ void Parser::parse() {
 
 	nsteps = steps_map.size();
 	steps = new UmbrellaStep *[nsteps];
-	float sum;
+	float sum = 0;
 	int i = 0;
 	for (std::map<std::string, UmbrellaStep>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
+		it->second.rand_min = sum;
 		sum += it->second.probability;
+		it->second.rand_max = sum;
 		steps[i] = & (it->second);
 		++i;
+
+		fprintf (stderr, "Parser: step %d has rand_min: %f\trand_max: %f\n", i - 1, it->second.rand_min, it->second.rand_max);
 	}
 	if (sum != 1)
 		fprintf (stderr, "WARNING: Sum of probabilities is not one.  The last step type (s) will make up the difference.\n");
 }
 
 void Parser::execute_init() {
-	int me;
-	MPI_Comm_rank(MPI_COMM_WORLD, &me);
-	fprintf (stderr, "%d has entered execute_init\n", me);
-
 	for (int i = 0; i < init_block.size(); ++i) {
-		fprintf (stderr, "%d is about to execute: %s\n", me, init_block[i].c_str());
-		//lmp->input->one ("# Comment");
 		lmp->input->one (init_block[i].c_str());
 	}
 }

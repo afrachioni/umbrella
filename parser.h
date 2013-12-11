@@ -17,11 +17,11 @@ class Parser {
 		void print();
 		int nsteps;
 		UmbrellaStep **steps;
+		std::vector<UmbrellaParameter> params;
 
 	private:
 		char fname [100];
 		LAMMPS_NS::LAMMPS *lmp;
 		std::vector<std::string> init_block;
 		std::map<std::string, UmbrellaStep> steps_map;
-		std::vector<UmbrellaParameter> params;
 };
