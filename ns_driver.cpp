@@ -191,14 +191,10 @@ int main(int narg, char **arg)
 		LAMMPS *lmp = new LAMMPS(5,args,local_comm);
 		//LAMMPS *lmp = new LAMMPS(0,NULL,local_comm);//for all stdout
 
-
-		debugmsg ("At line %d\n", __LINE__);
-
 		Parser *parser = new Parser ("in.txt", lmp);
-		debugmsg ("At line %d\n", __LINE__);
 		parser->parse();
 #if DEBUG	
-		debugmsg ("At line %d\n", __LINE__);
+		// This should happen at runtime, the user might care
 		sprintf (line, "log logs/log_%d.lammps", window_index);
 		lmp->input->one(line);
 #endif
@@ -208,12 +204,13 @@ int main(int narg, char **arg)
 		debugmsg ("Number of atoms: %d\n", natoms);
 
 
+		// Store bounds in step objects?
+		for (int i = 0; i < parser->nsteps; ++i)
+			fprintf (stderr, "P[%d]: %f\n", (parser->steps)[i]->probability);
 		//Umbrella definitions
 		int accept = 1;
-		int md; // 1: MD move, 0: VMC move
 		int seed;
 		int accept_count = 0;
-		debugmsg ("At line %d\n", __LINE__);
 		int vmc_accept_count = 0;
 		int64_t last_step_end_time, step_time, lammps_start_time, lammps_split;
 		last_step_end_time = get_time();
@@ -246,7 +243,6 @@ int main(int narg, char **arg)
 				printmsg ("Could not create management thread on root!");
 		}
 
-		/*  XXX What's this?
 			const int update_count = 4;
 			int update_lengths[update_count] = {1, 1, 1, 1};
 			MPI_Aint update_offsets[update_count] = {0, sizeof(int), 2*sizeof(int), 2*sizeof(int) + sizeof(double)};
@@ -254,7 +250,6 @@ int main(int narg, char **arg)
 			MPI_Datatype update_message_type;
 			MPI_Type_struct (update_count, update_lengths, update_offsets, update_types, &update_message_type);
 			MPI_Type_commit (&update_message_type);
-		 */
 
 		//mkfifo ("logs/feed_pipe", S_IWUSR | S_IRUSR);
 		//int fd = open ("logs/feed_pipe", O_WRONLY | O_NONBLOCK);

@@ -10,11 +10,14 @@
 class Parser {
 	public:
 		//Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp);
-		Parser(const char *fname, void *lmp);
+		Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp);
 		~Parser();
 		void parse();
 		void execute_init();
 		void print();
+		int nsteps;
+		UmbrellaStep **steps;
+
 	private:
 		char fname [100];
 		LAMMPS_NS::LAMMPS *lmp;

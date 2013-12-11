@@ -3,6 +3,8 @@
 #include <vector>
 #include <map>
 #include <string>
+//#include <stdlib.h> //strtod
+#include <cstdlib>
 
 #include "parser.h"
 
@@ -24,15 +26,10 @@ int main (int nargs, char **args) {
 }
 */
 
-Parser::Parser(const char *fname, void *lmp) {
-	//fprintf (stderr, "Top of parser constructor\n");
-	//int me;
-	//MPI_Comm_rank(MPI_COMM_WORLD, &me);
-	//if (me == 0) fprintf (stderr, "Parser constructor: line %d\n", __LINE__);
-	//if (me == 0) fprintf (stderr, "fname: %s\n", fname);
+Parser::Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp) {
 	strcpy (this->fname, fname);
-	//if (me == 0) fprintf (stderr, "Parser constructor: line %d\n", __LINE__);
-	this->lmp = (LAMMPS_NS::LAMMPS*) lmp;
+	this->lmp = lmp;
+	//this->lmp = (LAMMPS_NS::LAMMPS*) lmp;
 };
 
 Parser::~Parser() {
@@ -104,7 +101,13 @@ void Parser::parse() {
 				fprintf (stderr, "Parse error: empty directive at line %d.\n", i);
 				break;
 			} else if (strcmp (second_token, "steptype") == 0) {
-				UmbrellaStep *s = new UmbrellaStep (lmp); // TODO when does this die?
+				char *e;
+				float d = (float) std::strtod(fourth_token, &e);
+				if (*e != 0) {
+					fprintf (stderr, "Number not a number!  (line %d)\n", i);
+					break;
+				}
+				UmbrellaStep *s = new UmbrellaStep (lmp, d); // TODO when does this die?
 				steps_map[third_token] = *s;
 
 			} else if (strcmp (second_token, "parameter") == 0) {
@@ -143,6 +146,19 @@ void Parser::parse() {
 		current_block->push_back (line);
 	}
 	delete [] file_data;
+
+
+	nsteps = steps_map.size();
+	steps = new UmbrellaStep *[nsteps];
+	float sum;
+	int i = 0;
+	for (std::map<std::string, UmbrellaStep>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
+		sum += it->second.probability;
+		steps[i] = & (it->second);
+		++i;
+	}
+	if (sum != 1)
+		fprintf (stderr, "WARNING: Sum of probabilities is not one.  The last step type (s) will make up the difference.\n");
 }
 
 void Parser::execute_init() {
