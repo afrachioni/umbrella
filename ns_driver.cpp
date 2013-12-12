@@ -200,12 +200,13 @@ int main(int narg, char **arg)
 		sprintf (line, "log logs/log_%d.lammps", window_index);
 		lmp->input->one(line);
 #endif
-		int natoms = static_cast<int> (lmp->atom->natoms); // Just for fun
-		debugmsg ("Number of atoms: %d\n", natoms);
 
 
 		// Execute global window init
 		parser->execute_init();
+
+		int natoms = static_cast<int> (lmp->atom->natoms); // Just for fun
+		debugmsg ("Number of atoms: %d\n", natoms);
 
 		// Execute per-step initialization blocks
 		for (int i = 0; i < parser->nsteps; ++i)

@@ -139,6 +139,10 @@ void Parser::parse() {
 					break;
 				}
 				current_block = steps_map[third_token].get_step_init_block();
+			} else if (strcmp (second_token, "get_positions") == 0) {
+				strcpy (line, "GET_ATOMS");
+			} else if (strcmp (second_token, "put_positions") == 0) {
+				strcpy (line, "PUT_ATOMS");
 			} else {
 				fprintf (stderr, "Directive not recognized: %s\n", line);
 			}
@@ -171,9 +175,7 @@ void Parser::parse() {
 }
 
 void Parser::execute_init() {
-	for (int i = 0; i < init_block.size(); ++i) {
-		lmp->input->one (init_block[i].c_str());
-	}
+	UmbrellaStep::execute_block(lmp, init_block);
 }
 
 void Parser::print() {
