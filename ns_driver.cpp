@@ -33,6 +33,10 @@
 #include "parser.h"
 
 
+// Sampling logger
+#include "logger.h"
+
+
 // LAMMPS include files
 #include <stdio.h>
 #include <stdlib.h>
@@ -223,7 +227,9 @@ int main(int narg, char **arg)
 
 		const int64_t loop_start_time = get_time();
 
-		float step_rand;
+		float step_rand, accept_rand;
+		Logger *logger = new Logger((char*)"logs/log_a.txt", parser->nparams, parser->param_ptrs);
+		logger->init();
 
 
 		pthread_mutex_t mpi_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -304,8 +310,9 @@ int main(int narg, char **arg)
 			step_rand = (float) rand() / RAND_MAX; // XXX Bcast internally
 			fprintf (stderr, "step_rand: %f\n", step_rand);
 			UmbrellaStep *executed_step;
-			for (int i = 0; i < parser->nsteps; ++i) {
-				executed_step = (parser->steps)[i];
+			int steptype;
+			for (steptype = 0; steptype < parser->nsteps; ++steptype) {
+				executed_step = (parser->steps)[steptype];
 				if (executed_step->rand_min <= step_rand && step_rand < executed_step->rand_max) {
 					executed_step->execute_step();
 					break;
@@ -314,11 +321,16 @@ int main(int narg, char **arg)
 
 
 			log_boltzmann = 0;
-			for (int j = 0; j < parser->params.size(); ++j) {
-				fprintf (stdout, "\tParam: %s\n", (parser->params)[j].param_vname);
-				log_boltzmann += (parser->params)[j].compute_boltzmann_factor();
+			for (int j = 0; j < parser->nparams; ++j) {
+				fprintf (stdout, "\tParam: %s\n", (parser->param_ptrs)[j]->param_vname);
+				log_boltzmann += (parser->param_ptrs)[j]->compute_boltzmann_factor();
 			}
 			fprintf (stdout, "Log (Boltzmann factor): %f\n", log_boltzmann);
+
+			accept_rand = (float) rand() / RAND_MAX; // XXX Bcast internally
+			accept = log (accept_rand) < log_boltzmann;
+
+			logger->step_taken (steptype, accept);
 
 
 			step_time = get_time() - last_step_end_time;

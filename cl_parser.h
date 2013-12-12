@@ -1,5 +1,5 @@
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef CL_PARSER_H
+#define CL_PARSER_H
 
 #include "optionparser.h"
 #include "stdio.h"
