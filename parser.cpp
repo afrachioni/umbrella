@@ -108,7 +108,7 @@ void Parser::parse() {
 					fprintf (stderr, "Number not a number!  (line %d)\n", i);
 					break;
 				}
-				UmbrellaStep *s = new UmbrellaStep (lmp, d); // TODO when does this die?
+				UmbrellaStep *s = new UmbrellaStep (lmp, d, third_token); // TODO when does this die?
 				steps_map[third_token] = *s;
 
 			} else if (strcmp (second_token, "parameter") == 0) {

@@ -228,7 +228,9 @@ int main(int narg, char **arg)
 		const int64_t loop_start_time = get_time();
 
 		float step_rand, accept_rand;
-		Logger *logger = new Logger((char*)"logs/log_a.txt", parser->nparams, parser->param_ptrs);
+		Logger *logger = new Logger((char*)"logs/log_a.txt", \
+				parser->nparams, parser->param_ptrs, \
+				parser->nsteps, parser->steps);
 		logger->init();
 
 
@@ -330,7 +332,7 @@ int main(int narg, char **arg)
 			accept_rand = (float) rand() / RAND_MAX; // XXX Bcast internally
 			accept = log (accept_rand) < log_boltzmann;
 
-			logger->step_taken (steptype, accept);
+			logger->step_taken (i, steptype, accept);
 
 
 			step_time = get_time() - last_step_end_time;
