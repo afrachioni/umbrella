@@ -129,7 +129,12 @@ int main(int narg, char **arg)
 		*/
 		//bcast num_windows to everybody.
 		//now why was that so hard?
-		printmsg ("\n");
+
+
+		//---------------------------------------------------------------------
+		// MPI window stuff starts here
+		//
+		//
 
 		if (nprocs < num_windows) {
 			printmsg ("WARNING: More windows have been defined (%d) than "
@@ -179,6 +184,11 @@ int main(int narg, char **arg)
 		MPI_Comm roots_comm;
 		MPI_Comm_create (MPI_COMM_WORLD, roots_group, &roots_comm);
 
+		//
+		//
+		// End MPI window stuff
+		//---------------------------------------------------------------------
+
 
 
 
@@ -222,8 +232,9 @@ int main(int narg, char **arg)
 		int steptype;
 		float step_rand, accept_rand;
 
-		Logger *logger = new Logger((char*)"logs/log_a.txt", \
-				parser->nparams, parser->param_ptrs, \
+		sprintf (line, "logs/log_%d.txt", window_index);
+		Logger *logger = new Logger(line, parser->nparams, (int)window_index, \
+				local_rank, parser->param_ptrs, \
 				parser->nsteps, parser->steps);
 		logger->init();
 

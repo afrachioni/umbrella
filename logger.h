@@ -10,8 +10,8 @@
 
 class Logger {
 	public:
-		Logger (char *fname, int nparams, UmbrellaParameter **params,\
-				int nsteps, UmbrellaStep **steps);
+		Logger (char *fname, int nparams, int window_index, int local_rank, \
+				UmbrellaParameter **params, int nsteps, UmbrellaStep **steps);
 		~Logger ();
 
 		void init();
@@ -19,6 +19,8 @@ class Logger {
 
 	private:
 		int nparams;
+		int window_index;
+		int local_rank;
 		UmbrellaParameter **params;
 		int nsteps;
 		UmbrellaStep **steps;

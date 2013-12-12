@@ -103,7 +103,7 @@ void Parser::parse() {
 				break;
 			} else if (strcmp (second_token, "steptype") == 0) {
 				char *e;
-				float d = (float) std::strtod(fourth_token, &e);
+				float d = (float) std::strtof(fourth_token, &e);
 				if (*e != 0) {
 					fprintf (stderr, "Number not a number!  (line %d)\n", i);
 					break;
