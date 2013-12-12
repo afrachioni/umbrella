@@ -112,8 +112,6 @@ void Parser::parse() {
 				steps_map[third_token] = *s;
 
 			} else if (strcmp (second_token, "parameter") == 0) {
-				fprintf (stderr, "Parsing spring name: %s %s\n", fourth_token, fifth_token);
-				fprintf (stderr, "Line: %s\n", line);
 				p = new UmbrellaParameter (third_token, fourth_token, fifth_token, lmp);
 				params.push_back (*p);
 
@@ -162,7 +160,6 @@ void Parser::parse() {
 		steps[i] = & (it->second);
 		++i;
 
-		fprintf (stderr, "Parser: step %d has rand_min: %f\trand_max: %f\n", i - 1, it->second.rand_min, it->second.rand_max);
 	}
 	if (sum != 1)
 		fprintf (stderr, "WARNING: Sum of probabilities is not one.  The last step type (s) will make up the difference.\n");

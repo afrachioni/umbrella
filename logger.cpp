@@ -15,7 +15,7 @@ void Logger::init() {
 	fp = fopen (fname, "w"); // TODO catch exception
 	fprintf (fp, "# Anthony's Magnificent Sampler\n");
 	fprintf (fp, "#\n");
-	fprintf (fp, "# Step names:\n");
+	fprintf (fp, "# Step types:\n");
 	for (int i = 0; i < nsteps; ++i)
 		fprintf (fp, "#\t%-2d: %s\n", i, steps[i]->name);
 	fprintf (fp, "#\n");
@@ -31,7 +31,6 @@ void Logger::init() {
 void Logger::step_taken (int step_index, int step_type, int accept) {
 	fprintf (fp, "%-6d", step_index);
 	for (int i = 0; i < nparams; ++i) {
-		fprintf (stdout, "Logging param: %s\t%f\n", params[i]->param_vname, params[i]->current_value);
 		fprintf (fp, "%-15f", params[i]->current_value);
 	}
 	fprintf (fp, "%-5d", step_type);

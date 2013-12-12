@@ -21,7 +21,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ------------------------------------------------------------------------- */
 
-#define VERSION "13.10.7.0"
+#define VERSION "13.12.11.0"
 #define DEBUG 1
 #define MAX_FNAME_LENGTH 500
 #define DUMP_EVERY_STEPS 100
@@ -69,8 +69,6 @@ int64_t get_time();
 int main(int narg, char **arg)
 {
 		MPI_Init(&narg,&arg);
-		CLParser *p;
-		p = new CLParser (narg, arg);
 
 		int me,nprocs;
 		MPI_Comm_rank(MPI_COMM_WORLD,&me);
@@ -87,6 +85,8 @@ int main(int narg, char **arg)
 		printmsg ("                       "
 				"|            afrachi1@binghamton.edu            |\n");
 		printmsg ("                       "
+				"|       Compiled on "__DATE__", "__TIME__"       |\n");
+		printmsg ("                       "
 				"-------------------------------------------------\n");
 
 		//get node ID if on Kraken
@@ -96,12 +96,12 @@ int main(int narg, char **arg)
 #endif
 
 		//parse command line arguments
+		CLParser *p = new CLParser (narg, arg); // XXX No CL options in script version
 		p->verbose = me == 0;//turn off for DEBUG?
-		//p = new CLParser (narg, arg); XXX No CL options in script version
-		//if (p->parse_error) {
-			//printmsg ("Parse errors present, exiting...\n");
-			//MPI_Finalize ();
-		//}
+		if (p->parse_error) {
+			printmsg ("Parse errors present, exiting...\n");
+			MPI_Finalize ();
+		}
 
 		//read init file once to determine number of windows
 		//FIXME only root process should do this
@@ -157,7 +157,6 @@ int main(int narg, char **arg)
 			num_active_windows = num_windows;
 
 		// Split COMM_WORLD into communicators for each window
-		debugmsg ("At line %d\n", __LINE__);
 		MPI_Comm local_comm;
 		MPI_Comm_split(MPI_COMM_WORLD, me % num_active_windows, me, &local_comm);
 		int local_rank;
@@ -173,7 +172,6 @@ int main(int narg, char **arg)
 					MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
 		// Create roots_comm, a communicator for window roots
-		debugmsg ("At line %d\n", __LINE__);
 		MPI_Group world_group, roots_group;
 		MPI_Comm_group (MPI_COMM_WORLD, &world_group);
 		MPI_Group_incl (world_group, num_active_windows, local_roots, \
@@ -216,24 +214,21 @@ int main(int narg, char **arg)
 
 		//Umbrella definitions
 		double log_boltzmann;
-		int accept = 1;
-		int seed;
+		int accept;
 		int accept_count = 0;
 		int vmc_accept_count = 0;
-		int64_t last_step_end_time, step_time, lammps_start_time, lammps_split;
-		last_step_end_time = get_time();
-		//double Q6_old = Q6;
-		double d_Q, d_Q_old, bias_potential_new, bias_potential_old;
-
-		const int64_t loop_start_time = get_time();
-
+		UmbrellaStep *chosen_step;
+		int steptype;
 		float step_rand, accept_rand;
+
 		Logger *logger = new Logger((char*)"logs/log_a.txt", \
 				parser->nparams, parser->param_ptrs, \
 				parser->nsteps, parser->steps);
 		logger->init();
 
 
+		// -----------------------------------------------------------
+		//  All this should get moved to a separate class
 		pthread_mutex_t mpi_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 		const int count = 4;
@@ -280,9 +275,16 @@ int main(int narg, char **arg)
 			pthread_mutex_unlock (&mpi_mutex);
 		}
 		MPI_Barrier (MPI_COMM_WORLD);
+		//
+		//------------------------------------------------------------
+
+
+
 		printmsg ("Samples away!\n\n");
 		//Q6_old is most recently accepted Q6
 		for (int i = 0; i < p->count; i++) {
+			//--------------------------------------------------------
+			//
 			pthread_mutex_lock (&mpi_mutex);
 			if (local_rank == 0) {
 				MPI_Test (&req, &recv_complete, MPI_STATUS_IGNORE);
@@ -303,43 +305,50 @@ int main(int narg, char **arg)
 			//bcast to window
 			//MPI_Bcast (&current_duration, 1, MPI_INT, 0, local_comm);
 			//MPI_Bcast (&current_spring, 1, MPI_FLOAT, 0, local_comm);
+			//
+			//--------------------------------------------------------
 			
 			////////////////////////////////////////////////
 			// Effective start of sampling loop           //
 			////////////////////////////////////////////////
 
 
-			step_rand = (float) rand() / RAND_MAX; // XXX Bcast internally
-			fprintf (stderr, "step_rand: %f\n", step_rand);
-			UmbrellaStep *executed_step;
-			int steptype;
+			// Choose a step to execute
+			step_rand = (float) rand() / RAND_MAX;
+			MPI_Bcast (&step_rand, 1, MPI_INT, 0, local_comm);
 			for (steptype = 0; steptype < parser->nsteps; ++steptype) {
-				executed_step = (parser->steps)[steptype];
-				if (executed_step->rand_min <= step_rand && step_rand < executed_step->rand_max) {
-					executed_step->execute_step();
+				chosen_step = (parser->steps)[steptype];
+				if (chosen_step->rand_min <= step_rand && step_rand < chosen_step->rand_max)
 					break;
-				}
 			}
 
+			// Execute step
+			chosen_step->execute_step();
 
+			// Add up Boltzmann factors
 			log_boltzmann = 0;
-			for (int j = 0; j < parser->nparams; ++j) {
-				fprintf (stdout, "\tParam: %s\n", (parser->param_ptrs)[j]->param_vname);
+			for (int j = 0; j < parser->nparams; ++j)
 				log_boltzmann += (parser->param_ptrs)[j]->compute_boltzmann_factor();
-			}
-			fprintf (stdout, "Log (Boltzmann factor): %f\n", log_boltzmann);
 
-			accept_rand = (float) rand() / RAND_MAX; // XXX Bcast internally
+			// Compute acceptance
+			accept_rand = (float) rand() / RAND_MAX;
+			MPI_Bcast (&accept_rand, 1, MPI_INT, 0, local_comm);
 			accept = log (accept_rand) < log_boltzmann;
 
+			// Act accordingly
+			if (accept)
+				chosen_step->execute_accept();
+			else
+				chosen_step->execute_reject();
+
+			// Write things down
 			logger->step_taken (i, steptype, accept);
 
 
-			step_time = get_time() - last_step_end_time;
-			pthread_mutex_unlock (&mpi_mutex);
 			////////////////////////////////////////////////
 			// End of sampling loop                       //
 			////////////////////////////////////////////////
+			pthread_mutex_unlock (&mpi_mutex);
 		}
 		delete lmp;
 		MPI_Finalize();
