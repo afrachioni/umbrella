@@ -13,7 +13,8 @@
 class Parser {
 	public:
 		//Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp);
-		Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp);
+		Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp, MPI_Comm local_comm, \
+				int local_rank, MPI_Comm roots_comm, int num_windows);
 		~Parser();
 		void parse();
 		void execute_init();
@@ -25,6 +26,12 @@ class Parser {
 		UmbrellaParameter **param_ptrs;
 
 	private:
+		MPI_Comm local_comm;
+		int local_rank;
+		MPI_Comm roots_comm;
+		int num_windows;
+
+		int process_brackets(char *line);
 		std::vector<UmbrellaParameter> params;
 		char fname [100];
 		LAMMPS_NS::LAMMPS *lmp;

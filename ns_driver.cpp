@@ -203,7 +203,8 @@ int main(int narg, char **arg)
 		LAMMPS *lmp = new LAMMPS(5,args,local_comm);
 		//LAMMPS *lmp = new LAMMPS(0,NULL,local_comm);//for all stdout
 
-		Parser *parser = new Parser ("in.txt", lmp);
+		Parser *parser = new Parser ("in.txt", lmp, local_comm, local_rank, \
+				roots_comm, num_windows);
 		parser->parse();
 #if DEBUG	
 		// This should happen at runtime, the user might care

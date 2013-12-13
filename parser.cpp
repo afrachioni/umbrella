@@ -26,10 +26,15 @@ int main (int nargs, char **args) {
 }
 */
 
-Parser::Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp) {
+Parser::Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp, MPI_Comm local_comm, \
+		int local_rank, MPI_Comm roots_comm, int num_windows) {
 	strcpy (this->fname, fname);
 	this->lmp = lmp;
-	//this->lmp = (LAMMPS_NS::LAMMPS*) lmp;
+	
+	this->local_comm = local_comm;
+	this->local_rank = local_rank;
+	this->roots_comm = roots_comm;
+	this->num_windows = num_windows;
 };
 
 Parser::~Parser() {
@@ -94,9 +99,10 @@ void Parser::parse() {
 	// Loop over lines in file buffer, populate appropriate structures
 	for (int i = 0; i < num_lines; ++i) {
 		line = file_data + i * max_line_length;
-		length = strlen (line);
+		Parser::process_brackets (line);
+		length = strlen (line);//move inside?
 		n = sscanf (line, "%s %s %s %s %s", first_token, second_token, \
-				third_token, fourth_token, fifth_token);
+				third_token, fourth_token, fifth_token);//move inside?
 		if (strcmp (first_token, "#AF") == 0 && n > 0) {
 			if (n == 1) {
 				fprintf (stderr, "Parse error: empty directive at line %d.\n", i);
@@ -174,6 +180,77 @@ void Parser::parse() {
 		param_ptrs[i] = & params[i];
 }
 
+int Parser::process_brackets(char *line) {
+	char file_line[MAX_LINE_LENGTH];
+	char file_data[MAX_LINE_LENGTH * num_windows];
+	int n = strlen (line);
+	char *left = 0;
+	char *right = 0;
+	int i;
+	for (i = 0; i < n - 1; ++i)
+		if (line[i] == '<' && line[i + 1] == '<') {
+			left = &line[i + 2];
+			break;
+		}
+	if (left) {
+		for (; i < n - 1; ++i) {
+			if (line[i] == '>' && line[i + 1] == '>') {
+				right = &line[i];
+				break;
+			}
+		}
+		if (!right) {
+			fprintf (stderr, "No closing brackets detected!\n");
+			return 1;
+		}
+	} else
+		return 0;
+	if (right == left) {
+		fprintf (stderr, "Empty brackets!\n");
+		return 1;
+	}
+	char result[100];
+	strncpy (result, left, right - left);
+	result [right - left] = '\0';
+
+	FILE *fp = fopen (result, "r");
+	if (fp == NULL) {
+		fprintf (stderr, "Error opening file: %s\n", result);
+		return 1;
+	}
+
+	if (local_rank == 0) {
+		int i = 0;
+		while (!feof (fp)) {
+			fgets (file_line, MAX_LINE_LENGTH, fp);
+			if (feof (fp)) break;
+			if (file_line[0] == '#' || file_line[0] == '\n') continue; //TODO whitespace
+			for (int j = 0; j < strlen (file_line); ++j) // Snip newline
+				if (file_line [j] == '\n' || file_line [j] == '\r')
+					file_line[j] = '\0';
+			strcpy (file_data + i * MAX_LINE_LENGTH, file_line);
+			++i;
+			if (i > num_windows) {
+				fprintf (stderr, "Warning: num windows is exceeded by number of lines in file\n");
+				break;
+			}
+		}
+		if (i < num_windows) {
+			fprintf (stderr, "Not enough lines in file %s\n", result);
+			return 1;
+		}
+	}
+	MPI_Scatter (file_data, MAX_LINE_LENGTH, MPI_CHAR, \
+			file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, roots_comm);
+	MPI_Bcast (file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, local_comm);
+	char buf[MAX_LINE_LENGTH];
+	strncpy (buf, line, left - line - 2);
+	buf[left - line - 2] = '\0';
+	strcat (buf, file_line);
+	strcat (buf, right + 2);
+	strcpy (line, buf);
+}
+
 void Parser::execute_init() {
 	UmbrellaStep::execute_block(lmp, init_block);
 }
@@ -189,7 +266,7 @@ void Parser::print() {
 		v = it->second.get_take_step_block();
 		fprintf (stdout, "\t\tTake step:\n");
 		for (int j = 0; j < v->size(); ++j)
-			fprintf (stdout, "\t\t\t%s\n", (*v)[j].c_str());//v->at(j));
+			fprintf (stdout, "\t\t\t%s\n", v->at(j).c_str());
 
 		v = it->second.get_if_reject_block();
 		fprintf (stdout, "\t\tIf reject:\n");
