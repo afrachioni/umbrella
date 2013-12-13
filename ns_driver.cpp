@@ -106,29 +106,6 @@ int main(int narg, char **arg)
 		//read init file once to determine number of windows
 		//FIXME only root process should do this
 		int num_windows = 2; // DEBUG
-		/* XXX Keep this code for files on which <<>> is operated
-		int num_lines = 0;
-		char c = 'p';
-		char d;
-		//if global rank = 0
-		c = fgetc (p->init);//these three lines only care if first line is commented
-		ungetc (c, p->init);
-		if (c == '#') --num_windows;
-		while (c != EOF) {
-			c = fgetc (p->init);
-			if (c == '\n') {
-				++num_lines;
-				d = fgetc (p->init);
-				ungetc (d, p->init);
-				if (d != '#')
-					++num_windows;
-				d = 'p';
-			}
-		}
-		rewind (p->init);
-		*/
-		//bcast num_windows to everybody.
-		//now why was that so hard?
 
 
 		//---------------------------------------------------------------------
