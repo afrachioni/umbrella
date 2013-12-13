@@ -72,13 +72,11 @@ void Global::abort(char *message) {
 		fprintf (stderr, "\033[0m\n");
 		fprintf (stderr, "\nKilling %d processes...\n\n", nprocs);
 	}
+	MPI_Barrier (MPI_COMM_WORLD);
 	MPI_Abort (MPI_COMM_WORLD, 1);
 }
 
 void Global::warn(char *message) {
-	if (global_rank == 0) {
-		fprintf (stdout, "\033[33m");
-		fprintf (stdout, "WARNING: %s\n", message);
-		fprintf (stdout, "\033[0m");
-	}
+	if (global_rank == 0)
+		fprintf (stdout, "\033[33mWARNING: %s\033[0m\n", message);
 }

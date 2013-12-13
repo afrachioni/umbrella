@@ -8,6 +8,7 @@
 
 enum options_index { COUNT, WINDOWS, SCRIPT, HELP };
 int CLParser::verbose = 0;
+//char CLParser::err_str[1000];
 const option::Descriptor usage [] =
 {
 	{ COUNT, 0, "c", "count", CLParser::IntegerCheck, "number of umbrella steps" },
@@ -19,19 +20,20 @@ const option::Descriptor usage [] =
 CLParser::CLParser (int narg, char **arg)
 {
 	parse_error = 0;
-	strcpy (err_str, "");
+	//strcpy (err_str, "");
+	//char line[100];
 	narg-=(narg>0); arg+=(narg>0); // skip program name arg[0] if present
 	option::Stats  stats(usage, narg, arg);
 	option::Option options[stats.options_max], buffer[stats.buffer_max];
 	option::Parser parse(usage, narg, arg, options, buffer);
 
-	if (parse.error())
-		{parse_error ++; return;}
+	if (parse.error()) // Who calls this?
+		{++parse_error; return;}
 
 	if (options[HELP] || narg == 0) {
 		if (verbose)
 			option::printUsage(std::cout, usage);
-		parse_error ++;
+		++parse_error;
 		return;
 	}
 
@@ -39,6 +41,8 @@ CLParser::CLParser (int narg, char **arg)
 	for (int i = 0; i < HELP; i++) {
 		option::Option opt = options[i];
 		if (!opt) {
+			//sprintf ("--%s is a required option!\n", usage[i].longopt);
+			//strcat (err_str, line);
 			if (verbose) fprintf (stderr, "--%s is a required option!\n", usage[i].longopt);
 			missing++;
 		}
@@ -68,12 +72,15 @@ CLParser::CLParser (int narg, char **arg)
 	fclose (init);
 
 }
+// Necessary?
 option::ArgStatus CLParser::MyCheck (const option::Option& option, bool msg)
 {
 	if (verbose) fprintf (stderr, "option->arg: %s\n", option.arg);
 	return option::ARG_ILLEGAL;
 
 }
+
+// Unused at the moment
 option::ArgStatus CLParser::NumberCheck (const option::Option& option, bool msg)
 {
 	const char *arg = option.arg;
@@ -101,6 +108,9 @@ option::ArgStatus CLParser::IntegerCheck (const option::Option& option, bool msg
 {
 	const char *arg = option.arg;
 	if (arg == 0 || arg[0] == '\0') {
+		char line[100];
+		//sprintf (line, "Option \"%s\" requires an argument!\n");
+		//strcat (err_msg, line);
 		if (msg && verbose) fprintf (stderr, "Option '%s' requires an argument!\n", option.name);
 		return option::ARG_ILLEGAL;
 	}

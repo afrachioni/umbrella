@@ -111,7 +111,7 @@ void Parser::parse() {
 					fprintf (stderr, "Number not a number!  (line %d)\n", i);
 					break;
 				}
-				UmbrellaStep *s = new UmbrellaStep (lmp, d, third_token); // TODO when does this die?
+				UmbrellaStep *s = new UmbrellaStep (lmp, d, third_token, global); // TODO when does this die?
 				steps_map[third_token] = *s;
 
 			} else if (strcmp (second_token, "parameter") == 0) {
@@ -252,7 +252,7 @@ int Parser::process_brackets(char *line) {
 }
 
 void Parser::execute_init() {
-	UmbrellaStep::execute_block(lmp, init_block);
+	UmbrellaStep::execute_block(lmp, init_block, global);
 }
 
 void Parser::print() {

@@ -4,10 +4,12 @@
 #include <mpi.h>
 #include <lammps.h>
 
+#include "global.h"
+
 
 class UmbrellaStep {
 	public:
-		UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, float probability, char *name);
+		UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, float probability, char *name, Global *global);
 		UmbrellaStep();
 		~UmbrellaStep();
 		std::vector<std::string>* get_step_init_block();
@@ -25,10 +27,12 @@ class UmbrellaStep {
 		float rand_max;
 
 		char name[100];
-		static void execute_block(LAMMPS_NS::LAMMPS *lmp, std::vector<std::string> block);
+		static int get_atoms_called;
+		static void execute_block(LAMMPS_NS::LAMMPS *lmp, std::vector<std::string> block, Global *global);
 	private:
 		LAMMPS_NS::LAMMPS *lmp;
 		static double *positions_buffer;
+		Global *global;
 		std::vector<std::string> step_init_block;
 		std::vector<std::string> take_step_block;
 		std::vector<std::string> if_accept_block;
