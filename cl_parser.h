@@ -10,6 +10,7 @@ class CLParser
 		CLParser (int narg, char **arg);
 		static int verbose;
 		int parse_error;
+		char err_str[1000];
 		int count;
 		int windows;
 		char script[100];

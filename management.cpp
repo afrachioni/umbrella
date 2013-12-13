@@ -37,9 +37,9 @@ void *manage (void *params) {
 
 	struct parameter_pointers my_pointers;
 	my_pointers = *((struct parameter_pointers *) params);
-	fprintf (stdout, "Hello from management thread on root!\n");
-	fprintf (stdout, "Syntax: set_spring <window_index> <new_spring>\n");
-	fprintf (stdout, "        set_duration <window_index> <new_duration>\n");
+	//fprintf (stdout, "Hello from management thread on root!\n");
+	//fprintf (stdout, "Syntax: set_spring <window_index> <new_spring>\n");
+	//fprintf (stdout, "        set_duration <window_index> <new_duration>\n");
 
 	struct management_message msg;
 
@@ -71,7 +71,7 @@ void *manage (void *params) {
 	while(1) {
 		msg.duration_message = 0;
 		msg.spring_message = 0;
-		fprintf (stdout, "Root is just before call to read\n");
+		//fprintf (stdout, "Root is just before call to read\n");
 		fgets (line, 500, pipe);
 		//read (fd, line, 500);
 		fprintf (stdout, "Root is just after call to read.  Read: %s\n", line);

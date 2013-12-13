@@ -12,19 +12,22 @@ Global::Global (MPI_Comm world, int num_windows) {
 void Global::split() {
 		MPI_Comm_rank(MPI_COMM_WORLD,&global_rank);
 		MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
+		char line[200];
 		if (nprocs < num_windows) {
-			printmsg ("WARNING: More windows have been defined (%d) than "
-					"exist available processors (%d).  The first %d windows "
-					"will execute.\n", num_windows, nprocs, nprocs);
+			sprintf (line, "More windows have been defined (%d) than "
+					"exist available processors (%d).\n\t\tThe first %d windows "
+					"will execute.", num_windows, nprocs, nprocs);
+			warn (line);
 		} else if (nprocs % num_windows != 0) {
-			printmsg ("WARNING: The number of available processors (%d) is "
+			sprintf (line, "The number of available processors (%d) is "
 					"not evenly divisible by the number of defined windows "
-					"(%d).\n         Windows 0 to %d will use %d "
+					"(%d).\n\t\tWindows 0 to %d will use %d "
 					"processors, windows %d to %d will use %d "
-					"processors.\n", nprocs, num_windows, \
+					"processors.", nprocs, num_windows, \
 					nprocs % num_windows - 1, nprocs / num_windows + 1, \
 					nprocs % num_windows, num_windows - 1, \
 					nprocs / num_windows);
+			warn (line);
 		} else {
 			printmsg ("There are %d available processors and %d defined "
 					"windows; each window will use %d processors.\n", \
@@ -74,8 +77,8 @@ void Global::abort(char *message) {
 
 void Global::warn(char *message) {
 	if (global_rank == 0) {
-		fprintf (stderr, "\033[33m");
-		fprintf (stderr, "WARNING: %s\n", message);
-		fprintf (stderr, "\033[0m");
+		fprintf (stdout, "\033[33m");
+		fprintf (stdout, "WARNING: %s\n", message);
+		fprintf (stdout, "\033[0m");
 	}
 }

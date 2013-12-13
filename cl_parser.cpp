@@ -19,6 +19,7 @@ const option::Descriptor usage [] =
 CLParser::CLParser (int narg, char **arg)
 {
 	parse_error = 0;
+	strcpy (err_str, "");
 	narg-=(narg>0); arg+=(narg>0); // skip program name arg[0] if present
 	option::Stats  stats(usage, narg, arg);
 	option::Option options[stats.options_max], buffer[stats.buffer_max];
