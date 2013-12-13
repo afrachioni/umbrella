@@ -26,7 +26,7 @@
 #define MAX_FNAME_LENGTH 500
 #define DUMP_EVERY_STEPS 100
 
-//Command line options parser
+// Command line options parser
 #include "cl_parser.h"
 
 // Script parser
@@ -35,6 +35,10 @@
 
 // Sampling logger
 #include "logger.h"
+
+
+// MPI window splitter
+#include "global.h"
 
 
 // LAMMPS include files
@@ -60,8 +64,8 @@
 #include <pmi.h>
 #endif
 
-#define printmsg(...) if (me == 0) fprintf(stdout, __VA_ARGS__);
-#define debugmsg(...) if (DEBUG && me == 0) fprintf(stdout, __VA_ARGS__);
+#define printmsg(...) if (global->global_rank == 0) fprintf(stdout, __VA_ARGS__);
+#define debugmsg(...) if (DEBUG && global->global_rank == 0) fprintf(stdout, __VA_ARGS__);
 
 using namespace LAMMPS_NS;
 
@@ -69,123 +73,50 @@ int64_t get_time();
 int main(int narg, char **arg)
 {
 		MPI_Init(&narg,&arg);
-
-		int me,nprocs;
-		MPI_Comm_rank(MPI_COMM_WORLD,&me);
-		MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
-		setbuf (stdout, NULL);
-		setbuf (stderr, NULL);
-
-		printmsg ("                       "
-				"-------------------------------------------------\n");
-		printmsg ("                       "
-				"|  LAMMPS umbrella sampler, version %s  |\n", VERSION);
-		printmsg ("                       "
-				"|           Anthony Frachioni,  1-2013          |\n");
-		printmsg ("                       "
-				"|            afrachi1@binghamton.edu            |\n");
-		printmsg ("                       "
-				"|       Compiled on "__DATE__", "__TIME__"       |\n");
-		printmsg ("                       "
-				"-------------------------------------------------\n");
-
-		//get node ID if on Kraken
-		int nid  = -1;
-#ifdef KRAKEN
-		PMI_CNOS_Get_nid(me, &nid);
-#endif
-
+		int me;
+		MPI_Comm_rank (MPI_COMM_WORLD, &me);
+		if (me == 0) {
+			fprintf (stdout, "                       "
+					"-------------------------------------------------\n");
+			fprintf (stdout, "                       "
+					"|  LAMMPS umbrella sampler, version %s  |\n", VERSION);
+			fprintf (stdout, "                       "
+					"|           Anthony Frachioni,  1-2013          |\n");
+			fprintf (stdout, "                       "
+					"|            afrachi1@binghamton.edu            |\n");
+			fprintf (stdout, "                       "
+					"|       Compiled on "__DATE__", "__TIME__"       |\n");
+			fprintf (stdout, "                       "
+					"-------------------------------------------------\n");
+		}
 		//parse command line arguments
 		CLParser *p = new CLParser (narg, arg); // XXX No CL options in script version
-		p->verbose = me == 0;//turn off for DEBUG?
+		p->verbose = 1;//turn off for DEBUG?
 		if (p->parse_error) {
-			printmsg ("Parse errors present, exiting...\n");
-			MPI_Finalize ();
+			fprintf (stdout, "Parse errors present, exiting...\n");
+			MPI_Finalize ();//TODO
 		}
 
-		//read init file once to determine number of windows
-		//FIXME only root process should do this
 		int num_windows = 2; // DEBUG
-
-
-		//---------------------------------------------------------------------
-		// MPI window stuff starts here
-		//
-		//
-
-		if (nprocs < num_windows) {
-			printmsg ("WARNING: More windows have been defined (%d) than "
-					"exist available processors (%d).  The first %d windows "
-					"will execute.\n", num_windows, nprocs, nprocs);
-		} else if (nprocs % num_windows != 0) {
-			printmsg ("WARNING: The number of available processors (%d) is "
-					"not evenly divisible by the number of defined windows "
-					"(%d).\n         Windows 0 to %d will use %d "
-					"processors, windows %d to %d will use %d "
-					"processors.\n", nprocs, num_windows, \
-					nprocs % num_windows - 1, nprocs / num_windows + 1, \
-					nprocs % num_windows, num_windows - 1, \
-					nprocs / num_windows);
-		} else {
-			printmsg ("There are %d available processors and %d defined "
-					"windows; each window will use %d processors.\n", \
-					nprocs, num_windows, nprocs / num_windows);
-		}
-
-		int num_active_windows;
-		if (nprocs < num_windows)
-			num_active_windows = nprocs;
-		else
-			num_active_windows = num_windows;
-
-		// Split COMM_WORLD into communicators for each window
-		MPI_Comm local_comm;
-		MPI_Comm_split(MPI_COMM_WORLD, me % num_active_windows, me, &local_comm);
-		int local_rank;
-		MPI_Comm_rank (local_comm, &local_rank);
-		const int window_index = me % num_active_windows;
-		int local_roots_send[num_active_windows];
-		int local_roots[num_active_windows];
-		for (int i = 0; i < num_active_windows; ++i)
-			local_roots_send[i] = 0;
-		if (local_rank == 0)
-			local_roots_send[window_index] = me;
-			MPI_Allreduce (local_roots_send, local_roots, num_active_windows, \
-					MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-
-		// Create roots_comm, a communicator for window roots
-		MPI_Group world_group, roots_group;
-		MPI_Comm_group (MPI_COMM_WORLD, &world_group);
-		MPI_Group_incl (world_group, num_active_windows, local_roots, \
-				&roots_group);
-		MPI_Comm roots_comm;
-		MPI_Comm_create (MPI_COMM_WORLD, roots_group, &roots_comm);
-
-		//
-		//
-		// End MPI window stuff
-		//---------------------------------------------------------------------
-
-
-
+		Global *global = new Global (MPI_COMM_WORLD, num_windows);
+		global->split();
 
 		// Setup LAMMPS instance with initial conditions and settings
 		char line[100];
 		debugmsg ("Creating LAMMPSes...\n");
-		sprintf (line, "logs/log_%d.screen", window_index);
+		sprintf (line, "logs/log_%d.screen", global->window_index);
 		//char *args[] = {(char*)"foo", (char*)"-screen", \
 		line, (char*)"-log", (char*)"none"};
 		char *args[] = {(char*)"foo", (char*)"-screen", (char*)"none", \
 			(char*)"-log", (char*)"none"};
-		LAMMPS *lmp = new LAMMPS(5,args,local_comm);
-		//LAMMPS *lmp = new LAMMPS(0,NULL,local_comm);//for all stdout
+		LAMMPS *lmp = new LAMMPS(5,args,global->local_comm);
+		//LAMMPS *lmp = new LAMMPS(0,NULL,global->local_comm);//for all stdout
 
-		Parser *parser = new Parser ("in.txt", lmp, local_comm, local_rank, \
-				roots_comm, num_windows);
+		Parser *parser = new Parser ("in.lmp", lmp, global);
 		parser->parse();
 #if DEBUG	
 		// This should happen at runtime, the user might care
-		sprintf (line, "log logs/log_%d.lammps", window_index);
+		sprintf (line, "log logs/log_%d.lammps", global->window_index);
 		lmp->input->one(line);
 #endif
 
@@ -201,18 +132,19 @@ int main(int narg, char **arg)
 			if ((parser->steps)[i]->probability)
 				(parser->steps)[i]->execute_init();
 
+		// Populate computes
+		lmp->input->one ("run 0");
+
 		//Umbrella definitions
 		double log_boltzmann;
 		int accept;
-		int accept_count = 0;
-		int vmc_accept_count = 0;
 		UmbrellaStep *chosen_step;
 		int steptype;
 		float step_rand, accept_rand;
 
-		sprintf (line, "logs/log_%d.txt", window_index);
-		Logger *logger = new Logger(line, parser->nparams, (int)window_index, \
-				local_rank, parser->param_ptrs, \
+		sprintf (line, "logs/log_%d.txt", global->window_index);
+		Logger *logger = new Logger(line, parser->nparams, (int)global->window_index, \
+				global->local_rank, parser->param_ptrs, \
 				parser->nsteps, parser->steps);
 		logger->init();
 
@@ -229,11 +161,11 @@ int main(int narg, char **arg)
 		MPI_Type_struct (count, lengths, offsets, types, &message_type);
 		MPI_Type_commit (&message_type);
 
-		if (me == 0) {
+		if (global->global_rank == 0) {
 			struct parameter_pointers management_data;
-			management_data.window_index = window_index;
-			management_data.num_active_windows = num_active_windows; 
-			management_data.roots_comm = roots_comm;
+			management_data.window_index = global->window_index;
+			management_data.num_active_windows = global->num_windows; 
+			management_data.roots_comm = global->roots_comm;
 			management_data.mpi_mutex_ptr = &mpi_mutex;
 			management_data.message_type = message_type;
 
@@ -259,9 +191,9 @@ int main(int narg, char **arg)
 		int test_msg;
 		struct management_message msg;
 		int recv_complete = 0;
-		if (local_rank == 0) {
+		if (global->local_rank == 0) {
 			pthread_mutex_lock (&mpi_mutex);
-			MPI_Irecv (&msg, 1, message_type, 0, TAG, roots_comm, &req);
+			MPI_Irecv (&msg, 1, message_type, 0, TAG, global->roots_comm, &req);
 			pthread_mutex_unlock (&mpi_mutex);
 		}
 		MPI_Barrier (MPI_COMM_WORLD);
@@ -276,10 +208,10 @@ int main(int narg, char **arg)
 			//--------------------------------------------------------
 			//
 			pthread_mutex_lock (&mpi_mutex);
-			if (local_rank == 0) {
+			if (global->local_rank == 0) {
 				MPI_Test (&req, &recv_complete, MPI_STATUS_IGNORE);
 				if (recv_complete) {
-					fprintf (stderr, "Window %d has recieved a message!\n", window_index);
+					fprintf (stderr, "Window %d has recieved a message!\n", global->window_index);
 					fprintf (stderr, "\tspring_msg: %d\n", msg.spring_message);
 					fprintf (stderr, "\tduration_msg: %d\n", msg.duration_message);
 					fprintf (stderr, "\tnew_duration: %d\n", msg.new_duration);
@@ -289,12 +221,12 @@ int main(int narg, char **arg)
 					if (msg.duration_message)
 						;//current_duration = msg.new_duration;
 					recv_complete = 0;
-					MPI_Irecv (&msg, 1, message_type, 0, TAG, roots_comm, &req);
+					MPI_Irecv (&msg, 1, message_type, 0, TAG, global->roots_comm, &req);
 				}
 			}
 			//bcast to window
-			//MPI_Bcast (&current_duration, 1, MPI_INT, 0, local_comm);
-			//MPI_Bcast (&current_spring, 1, MPI_FLOAT, 0, local_comm);
+			//MPI_Bcast (&current_duration, 1, MPI_INT, 0, global->local_comm);
+			//MPI_Bcast (&current_spring, 1, MPI_FLOAT, 0, global->local_comm);
 			//
 			//--------------------------------------------------------
 			
@@ -305,7 +237,7 @@ int main(int narg, char **arg)
 
 			// Choose a step to execute
 			step_rand = (float) rand() / RAND_MAX;
-			MPI_Bcast (&step_rand, 1, MPI_INT, 0, local_comm);
+			MPI_Bcast (&step_rand, 1, MPI_INT, 0, global->local_comm);
 			for (steptype = 0; steptype < parser->nsteps; ++steptype) {
 				chosen_step = (parser->steps)[steptype];
 				if (chosen_step->rand_min <= step_rand && step_rand < chosen_step->rand_max)
@@ -322,7 +254,7 @@ int main(int narg, char **arg)
 
 			// Compute acceptance
 			accept_rand = (float) rand() / RAND_MAX;
-			MPI_Bcast (&accept_rand, 1, MPI_INT, 0, local_comm);
+			MPI_Bcast (&accept_rand, 1, MPI_INT, 0, global->local_comm);
 			accept = log (accept_rand) < log_boltzmann;
 
 			// Act accordingly

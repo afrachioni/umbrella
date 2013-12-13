@@ -26,15 +26,10 @@ int main (int nargs, char **args) {
 }
 */
 
-Parser::Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp, MPI_Comm local_comm, \
-		int local_rank, MPI_Comm roots_comm, int num_windows) {
+Parser::Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp, Global *global) {
 	strcpy (this->fname, fname);
 	this->lmp = lmp;
-	
-	this->local_comm = local_comm;
-	this->local_rank = local_rank;
-	this->roots_comm = roots_comm;
-	this->num_windows = num_windows;
+	this->global = global;
 };
 
 Parser::~Parser() {
@@ -49,6 +44,8 @@ Parser::~Parser() {
 
 void Parser::parse() {
 	FILE *in_p = fopen (fname, "r");
+	if (in_p == NULL)
+		fprintf (stderr, "Cannot read from file: %s\n", fname);
 	int n;
 	int length;
 	char line_buf[MAX_LINE_LENGTH];
@@ -181,8 +178,10 @@ void Parser::parse() {
 }
 
 int Parser::process_brackets(char *line) {
+	//TODO pass line number for error messages?
+	char msg[500];
 	char file_line[MAX_LINE_LENGTH];
-	char file_data[MAX_LINE_LENGTH * num_windows];
+	char file_data[MAX_LINE_LENGTH * global->num_windows];
 	int n = strlen (line);
 	char *left = 0;
 	char *right = 0;
@@ -193,33 +192,26 @@ int Parser::process_brackets(char *line) {
 			break;
 		}
 	if (left) {
-		for (; i < n - 1; ++i) {
+		for (; i < n - 1; ++i)
 			if (line[i] == '>' && line[i + 1] == '>') {
 				right = &line[i];
 				break;
 			}
-		}
-		if (!right) {
-			fprintf (stderr, "No closing brackets detected!\n");
-			return 1;
-		}
+		if (!right) global->abort ((char*)"No closing brackets detected!");
 	} else
 		return 0;
-	if (right == left) {
-		fprintf (stderr, "Empty brackets!\n");
-		return 1;
-	}
+	if (right == left) global->abort ((char*)"Empty brackets encountered in script.");
 	char result[100];
 	strncpy (result, left, right - left);
 	result [right - left] = '\0';
 
 	FILE *fp = fopen (result, "r");
 	if (fp == NULL) {
-		fprintf (stderr, "Error opening file: %s\n", result);
-		return 1;
+		sprintf (msg, "Error opening bracketed file: %s", result);
+		global->abort (msg);
 	}
 
-	if (local_rank == 0) {
+	if (global->local_rank == 0) {
 		int i = 0;
 		while (!feof (fp)) {
 			fgets (file_line, MAX_LINE_LENGTH, fp);
@@ -230,19 +222,25 @@ int Parser::process_brackets(char *line) {
 					file_line[j] = '\0';
 			strcpy (file_data + i * MAX_LINE_LENGTH, file_line);
 			++i;
-			if (i > num_windows) {
-				fprintf (stderr, "Warning: num windows is exceeded by number of lines in file\n");
+			if (i > global->num_windows) {
+				sprintf (msg, "Number of lines in bracketed file \"%s\""
+					" is greater than the number of defined windows (%d).  "
+					"The first %d lines will be distributed to windows.", \
+					i, global->num_windows, global->num_windows);
+				global->warn(msg);
 				break;
 			}
 		}
-		if (i < num_windows) {
-			fprintf (stderr, "Not enough lines in file %s\n", result);
-			return 1;
+		if (i < global->num_windows) {
+			sprintf (msg, "Number of lines in bracketed file \"%s\""
+					" is less than the number of defined windows (%d)", \
+					i, global->num_windows);
+			global->abort (msg);
 		}
 	}
 	MPI_Scatter (file_data, MAX_LINE_LENGTH, MPI_CHAR, \
-			file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, roots_comm);
-	MPI_Bcast (file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, local_comm);
+			file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, global->roots_comm);
+	MPI_Bcast (file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, global->local_comm);
 	char buf[MAX_LINE_LENGTH];
 	strncpy (buf, line, left - line - 2);
 	buf[left - line - 2] = '\0';

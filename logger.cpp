@@ -14,7 +14,6 @@ Logger::Logger (char *fname, int nparams, int window_index, int local_rank, \
 Logger::~Logger() {}
 
 void Logger::init() {
-	fprintf (stderr, "local_rank: %d\n", local_rank);
 	if (local_rank == 0) {
 		fp = fopen (fname, "w"); // TODO catch exception
 		fprintf (fp, "# Anthony's Magnificent Sampler\n");

@@ -7,14 +7,13 @@
 //#include <lammps.h>
 #include <input.h>
 
+#include "global.h"
 #include "umbrella_step.h"
 #include "umbrella_parameter.h"
 
 class Parser {
 	public:
-		//Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp);
-		Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp, MPI_Comm local_comm, \
-				int local_rank, MPI_Comm roots_comm, int num_windows);
+		Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp, Global *global);
 		~Parser();
 		void parse();
 		void execute_init();
@@ -26,15 +25,11 @@ class Parser {
 		UmbrellaParameter **param_ptrs;
 
 	private:
-		MPI_Comm local_comm;
-		int local_rank;
-		MPI_Comm roots_comm;
-		int num_windows;
-
 		int process_brackets(char *line);
 		std::vector<UmbrellaParameter> params;
 		char fname [100];
 		LAMMPS_NS::LAMMPS *lmp;
+		Global *global;
 		std::vector<std::string> init_block;
 		std::map<std::string, UmbrellaStep> steps_map;
 };
