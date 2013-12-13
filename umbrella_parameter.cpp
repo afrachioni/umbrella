@@ -27,7 +27,7 @@ double UmbrellaParameter::compute_boltzmann_factor() {
 	//double current_value = *((double *) lammps_extract_variable(lmp, \
 				param_vname, (char *) "all")); //TODO pass group in
 	double temperature = *((double *) lammps_extract_variable(lmp, \
-				(char *)"AF_temp", (char *) "all")); //TODO pass group in
+				(char *)"thermo_temp", (char *) "all")); //TODO pass group in
 	if (temperature == 0) return -INFINITY; // Avoid nan
 	double target = *((double *) lammps_extract_variable(lmp, \
 				target_vname, (char *) "all")); //TODO pass group in

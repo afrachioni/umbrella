@@ -40,5 +40,7 @@ void Logger::step_taken (int step_index, int step_type, int accept) {
 			fprintf (fp, "%-15f", params[i]->current_value);
 		fprintf (fp, "%-5d", step_type);
 		fprintf (fp, "%-7d\n", accept);
+		if (step_index % 100 == 0)
+			fflush (fp);
 	}
 }
