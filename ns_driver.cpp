@@ -87,34 +87,32 @@ int main(int narg, char **arg)
 			fprintf (stdout, "                       "
 					"|       Compiled on "__DATE__", "__TIME__"       |\n");
 			fprintf (stdout, "                       "
-					"-------------------------------------------------\n");
+					"-------------------------------------------------\n\n");
 		}
-		//parse command line arguments
-		CLParser *p = new CLParser (narg, arg); // XXX No CL options in script version
-		p->verbose = 1;//turn off for DEBUG?
+		// Parse command line arguments
+		CLParser::verbose = me == 0;
+		CLParser *p = new CLParser (narg, arg);
 		if (p->parse_error) {
 			fprintf (stdout, "Parse errors present, exiting...\n");
 			MPI_Finalize ();//TODO
 		}
 
-		int num_windows = 2; // DEBUG
-		Global *global = new Global (MPI_COMM_WORLD, num_windows);
+		// Split MPI_COMM_WORLD into windows
+		Global *global = new Global (MPI_COMM_WORLD, p->windows);
 		global->split();
 
 		// Setup LAMMPS instance with initial conditions and settings
 		char line[100];
 		debugmsg ("Creating LAMMPSes...\n");
-		sprintf (line, "logs/log_%d.screen", global->window_index);
-		//char *args[] = {(char*)"foo", (char*)"-screen", \
-		line, (char*)"-log", (char*)"none"};
 		char *args[] = {(char*)"foo", (char*)"-screen", (char*)"none", \
 			(char*)"-log", (char*)"none"};
 		LAMMPS *lmp = new LAMMPS(5,args,global->local_comm);
-		//LAMMPS *lmp = new LAMMPS(0,NULL,global->local_comm);//for all stdout
 
-		Parser *parser = new Parser ("in.lmp", lmp, global);
+		// Parse input script
+		Parser *parser = new Parser (p->script, lmp, global);
 		parser->parse();
-#if DEBUG	
+
+#if DEBUG
 		// This should happen at runtime, the user might care
 		sprintf (line, "log logs/log_%d.lammps", global->window_index);
 		lmp->input->one(line);
@@ -125,7 +123,7 @@ int main(int narg, char **arg)
 		parser->execute_init();
 
 		int natoms = static_cast<int> (lmp->atom->natoms); // Just for fun
-		debugmsg ("Number of atoms: %d\n", natoms);
+		debugmsg ("Number of atoms on root window: %d\n", natoms);
 
 		// Execute per-step initialization blocks
 		for (int i = 0; i < parser->nsteps; ++i)

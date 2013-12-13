@@ -1,20 +1,18 @@
 #include <stdlib.h>
 #include <iostream>
+#include <string.h>
 #include "stdio.h"
 #include "optionparser.h"
 
 #include "cl_parser.h"
 
-enum options_index { INIT, COUNT, DURATION, TEMPERATURE, L, CUTOFF, HELP };
+enum options_index { COUNT, WINDOWS, SCRIPT, HELP };
 int CLParser::verbose = 0;
 const option::Descriptor usage [] =
 {
-	{ INIT, 0, "", "init", CLParser::NonEmpty, "file containing paths to initial restart files and window centers" },
-	{ COUNT, 0, "", "count", CLParser::IntegerCheck, "number of umbrella steps" },
-	{ DURATION, 0, "", "duration", CLParser::IntegerCheck, "duration of one umbrella step / fs" },
-	{ TEMPERATURE, 0, "", "temperature", CLParser::NumberCheck, "temperature / K" },
-	{ L, 0, "", "l", CLParser::IntegerCheck, "l for order parameter Q" },
-	{ CUTOFF, 0, "", "cutoff", CLParser::NumberCheck, "neighbor cutoff for Q6" },
+	{ COUNT, 0, "c", "count", CLParser::IntegerCheck, "number of umbrella steps" },
+	{ WINDOWS, 0, "w", "windows", CLParser::IntegerCheck, "number of parallel windows"},
+	{ SCRIPT, 0, "f", "script", CLParser::NonEmpty, "name of input script"},
 	{ HELP, 0, "", "help", option::Arg::None, "help usage" },
 	{ 0, 0, 0, 0, 0, 0 }
 };
@@ -54,29 +52,20 @@ CLParser::CLParser (int narg, char **arg)
 	count = atoi (count_arg);
 	if (verbose) fprintf (stdout, "\tNumber of umbrella steps:              %d\n", count);
 
-	const char *duration_arg = options[DURATION].last()->arg;
-	duration = atoi (duration_arg);
-	if (verbose) fprintf (stdout, "\tUmbrella step duration:                %d\n", duration);
+	const char *windows_arg = options[WINDOWS].last()->arg;
+	windows = atoi (windows_arg);
+	if (verbose) fprintf (stdout, "\tNumber of parallel windows:            %d\n", windows);
 
-	const char *temperature_arg = options[TEMPERATURE].last()->arg;
-	temperature = atof (temperature_arg);
-	if (verbose) fprintf (stdout, "\tTemperature:                           %f\n", temperature);
-
-	const char *l_arg = options[L].last()->arg;
-	l = atoi (l_arg);
-	if (verbose) fprintf (stdout, "\tl:                                     %d\n", l);
-
-	const char *cutoff_arg = options[CUTOFF].last()->arg;
-	cutoff = atof (cutoff_arg);
-	if (verbose) fprintf (stdout, "\tQ6 neighbor cutoff:                    %f\n", cutoff);
-
-	const char *init_arg = options[INIT].last()->arg;
-	init = fopen (init_arg, "r");
+	strcpy (script, options[SCRIPT].last()->arg);
+	FILE *init = fopen (script, "r");
 	if (init == NULL) {
-		//TODO this line prints multiple times for some reason
-		//fprintf (stderr, "Unable to read file: %s\n", init_arg); //XXX sloppily overriding argument requirement ++parse_error; return;
+		if (verbose) fprintf (stderr, "Unable to read input script: %s\n",  script);
+		++parse_error;
+		return;
 	}
-	if (verbose) fprintf (stdout, "\tInitial window configuration file:     %s\n", init_arg);
+	if (verbose) fprintf (stdout, "\tInput script:                          %s\n", script);
+	fclose (init);
+
 }
 option::ArgStatus CLParser::MyCheck (const option::Option& option, bool msg)
 {

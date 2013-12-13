@@ -168,9 +168,10 @@ void Parser::parse() {
 		++i;
 
 	}
+	// Might want to abort here
 	if (sum != 1)
 		global->warn((char*)"Sum of probabilities is not one.  "
-				"The last step type (s) will make up the difference.\n");
+				"The last step type(s) will make up the difference.\n");
 
 	nparams = params.size();
 	param_ptrs = new UmbrellaParameter *[nparams];

@@ -60,17 +60,22 @@ void Global::split() {
 
 void Global::abort(char *message) {
 	if (global_rank == 0) {
+		fprintf (stderr, "\033[31m\n");
 		fprintf (stderr, \
-		"*****************************************************************\n");
+		"=================================================================\n");
 		fprintf (stderr, "ERROR: %s\n", message);
 		fprintf (stderr, \
-		"*****************************************************************\n");
+		"=================================================================\n");
+		fprintf (stderr, "\033[0m\n");
 		fprintf (stderr, "\nKilling %d processes...\n\n", nprocs);
 	}
 	MPI_Abort (MPI_COMM_WORLD, 1);
 }
 
 void Global::warn(char *message) {
-	if (global_rank == 0)
+	if (global_rank == 0) {
+		fprintf (stderr, "\033[33m");
 		fprintf (stderr, "WARNING: %s\n", message);
+		fprintf (stderr, "\033[0m");
+	}
 }
