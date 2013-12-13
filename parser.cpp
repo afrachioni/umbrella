@@ -169,7 +169,8 @@ void Parser::parse() {
 
 	}
 	if (sum != 1)
-		fprintf (stderr, "WARNING: Sum of probabilities is not one.  The last step type (s) will make up the difference.\n");
+		global->warn((char*)"Sum of probabilities is not one.  "
+				"The last step type (s) will make up the difference.\n");
 
 	nparams = params.size();
 	param_ptrs = new UmbrellaParameter *[nparams];

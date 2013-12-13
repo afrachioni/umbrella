@@ -60,8 +60,12 @@ void Global::split() {
 
 void Global::abort(char *message) {
 	if (global_rank == 0) {
+		fprintf (stderr, \
+		"*****************************************************************\n");
 		fprintf (stderr, "ERROR: %s\n", message);
-		fprintf (stderr, "Killing %d processes...", nprocs);
+		fprintf (stderr, \
+		"*****************************************************************\n");
+		fprintf (stderr, "\nKilling %d processes...\n\n", nprocs);
 	}
 	MPI_Abort (MPI_COMM_WORLD, 1);
 }
