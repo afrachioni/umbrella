@@ -85,6 +85,7 @@ void Parser::parse() {
 	MPI_Bcast ( &max_line_length, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast ( &num_lines, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	// Copy to contiguous buffer for shipment over the network
+
 	file_data = new char [max_line_length * num_lines];
 	if (me == 0)
 		for (int i = 0; i < line_ptrs.size(); ++i)
@@ -115,7 +116,17 @@ void Parser::parse() {
 				steps_map[third_token] = *s;
 
 			} else if (strcmp (second_token, "parameter") == 0) {
-				p = new UmbrellaParameter (third_token, fourth_token, fifth_token, lmp);
+				int is_compute = 0;
+				char msg[100];
+				if (strncmp(third_token, "c_", 2) == 0)
+					is_compute = 1;
+				else if (strncmp(third_token, "v_", 2)) {
+					sprintf (msg, "Parameter name \"%s\" begins with neither "
+							"\"v_\" nor \"c_\".", third_token);
+					global->abort (msg);
+				}
+
+				p = new UmbrellaParameter (third_token + 2, fourth_token, fifth_token, lmp, is_compute);
 				params.push_back (*p);
 
 			} else if (strcmp (second_token, "takestep") == 0) {

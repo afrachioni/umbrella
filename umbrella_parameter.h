@@ -7,7 +7,7 @@
 class UmbrellaParameter {
 	public:
 		UmbrellaParameter (char *param_vname, char *target_vname, \
-				char *spring_vname, LAMMPS_NS::LAMMPS *lmp);
+				char *spring_vname, LAMMPS_NS::LAMMPS *lmp, int is_compute);
 		UmbrellaParameter (const UmbrellaParameter& up);
 		~UmbrellaParameter ();
 
@@ -15,6 +15,7 @@ class UmbrellaParameter {
 		double current_value;
 		char param_vname[100];
 	private:
+		int is_compute;
 		char target_vname[100];
 		char spring_vname[100];
 		LAMMPS_NS::LAMMPS *lmp;

@@ -65,10 +65,10 @@ void Global::abort(char *message) {
 	if (global_rank == 0) {
 		fprintf (stderr, "\033[31m\n");
 		fprintf (stderr, \
-		"=================================================================\n");
+		"=====================================================================\n");
 		fprintf (stderr, "ERROR: %s\n", message);
 		fprintf (stderr, \
-		"=================================================================\n");
+		"=====================================================================\n");
 		fprintf (stderr, "\033[0m\n");
 		fprintf (stderr, "\nKilling %d processes...\n\n", nprocs);
 	}
