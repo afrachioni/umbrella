@@ -41,7 +41,8 @@ void Global::split() {
 			num_active_windows = num_windows;
 
 		// Split COMM_WORLD into communicators for each window
-		MPI_Comm_split(MPI_COMM_WORLD, global_rank % num_active_windows, global_rank, &local_comm);
+		MPI_Comm_split(MPI_COMM_WORLD, global_rank % num_active_windows, \
+		        global_rank, &local_comm);
 		MPI_Comm_rank (local_comm, &local_rank);
 		window_index = global_rank % num_active_windows;
 		int local_roots_send[num_active_windows];
