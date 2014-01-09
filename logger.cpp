@@ -26,7 +26,7 @@ void Logger::init() {
 		for (int i = 0; i < nsteps; ++i)
 			fprintf (fp, "#     %-2d       %-15s%f\n", i, steps[i]->name, steps[i]->probability);
 		fprintf (fp, "#\n");
-		fprintf (fp, "#Step ");
+		fprintf (fp, "#Step    ");
 		for (int i = 0; i < nparams; ++i)
 			fprintf (fp, "%-15s", params[i]->param_vname);
 		fprintf (fp, "Type  Accept  Walltime\n");
@@ -36,7 +36,7 @@ void Logger::init() {
 
 void Logger::step_taken (int step_index, int step_type, int accept) {
 	if (local_rank == 0) {
-		fprintf (fp, "%-6d", step_index);
+		fprintf (fp, "%-9d", step_index);
 		for (int i = 0; i < nparams; ++i)
 			fprintf (fp, "%-15f", params[i]->current_value);
 		fprintf (fp, "%-6d", step_type);
