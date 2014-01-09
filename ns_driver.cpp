@@ -69,7 +69,6 @@
 
 using namespace LAMMPS_NS;
 
-int64_t get_time();
 int main(int narg, char **arg)
 {
 		MPI_Init(&narg,&arg);
@@ -273,13 +272,4 @@ int main(int narg, char **arg)
 		}
 		delete lmp;
 		MPI_Finalize();
-}
-int64_t get_time()
-{
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	uint64_t ret = tv.tv_usec;
-	ret /= 1000;
-	ret += (tv.tv_sec * 1000);
-	return ret;
 }

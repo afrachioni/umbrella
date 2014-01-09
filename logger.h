@@ -26,6 +26,8 @@ class Logger {
 		UmbrellaStep **steps;
 		char fname[100];
 		FILE *fp;
+		int64_t init_time;
+		int64_t get_time(); // could be static
 };
 
 #endif
