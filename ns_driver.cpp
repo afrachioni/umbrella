@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 #define VERSION "13.12.11.0"
-#define DEBUG 1
+#define DEBUG 0
 #define MAX_FNAME_LENGTH 500
 #define DUMP_EVERY_STEPS 100
 
@@ -252,8 +252,8 @@ int main(int narg, char **arg)
 
 			// Compute acceptance
 			accept_rand = (float) rand() / RAND_MAX;
-			MPI_Bcast (&accept_rand, 1, MPI_INT, 0, global->local_comm);
 			accept = log (accept_rand) < log_boltzmann;
+			MPI_Bcast (&accept, 1, MPI_INT, 0, global->local_comm);
 
 			// Act accordingly
 			if (accept)
