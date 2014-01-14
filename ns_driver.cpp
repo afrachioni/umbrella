@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 #define VERSION "13.12.11.0"
-#define DEBUG 0
+#define DEBUG 1
 #define MAX_FNAME_LENGTH 500
 #define DUMP_EVERY_STEPS 100
 
@@ -256,9 +256,11 @@ int main(int narg, char **arg)
 			MPI_Bcast (&accept, 1, MPI_INT, 0, global->local_comm);
 
 			// Act accordingly
-			if (accept)
+			if (accept) {
 				chosen_step->execute_accept();
-			else
+				for (int j = 0; j < parser->nparams; ++j)
+					(parser->param_ptrs)[j]->notify_accepted();
+			} else
 				chosen_step->execute_reject();
 
 			// Write things down

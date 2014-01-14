@@ -20,6 +20,8 @@ UmbrellaParameter::UmbrellaParameter (const UmbrellaParameter& up) {
 	strcpy (this->spring_vname, up.spring_vname);
 	this->lmp = up.lmp;
 	this->is_compute = up.is_compute;
+	this->current_potential = current_potential;
+	this->previous_potential = previous_potential;
 }
 
 // ALL the physics lives here
@@ -39,11 +41,14 @@ double UmbrellaParameter::compute_boltzmann_factor() {
 				target_vname, (char *) "all")); //TODO pass group in
 	double spring = *((double *) lammps_extract_variable(lmp, \
 				spring_vname, (char *) "all")); //TODO pass group in
-	double current_potential = (current_value-target)*(current_value-target);
+	current_potential = (current_value-target)*(current_value-target);
 	double rval = -0.5 * spring / temperature * \
 				  (current_potential - previous_potential);
-	previous_potential = current_potential;
 	return rval;
+}
+
+void UmbrellaParameter::notify_accepted() {
+	previous_potential = current_potential;
 }
 
 UmbrellaParameter::~UmbrellaParameter() {};
