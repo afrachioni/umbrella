@@ -153,6 +153,16 @@ void Parser::parse() {
 					break;
 				}
 				current_block = steps_map[third_token].get_step_init_block();
+			} else if (strcmp (second_token, "do_every") == 0) {
+				char *e;
+				int p = (int) std::strtol(third_token, &e, 0);
+				if (*e != 0) {
+					fprintf (stderr, "Not an integer! (line %d)\n", i);
+					break;
+				}
+				PeriodicTask *pt = new PeriodicTask (lmp, p, global);
+				current_block = pt->get_task_block();
+				tasks.push_back(pt);
 			} else if (strcmp (second_token, "get_positions") == 0) {
 				strcpy (line, "GET_ATOMS");
 			} else if (strcmp (second_token, "put_positions") == 0) {

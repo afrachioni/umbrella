@@ -10,6 +10,7 @@
 #include "global.h"
 #include "umbrella_step.h"
 #include "umbrella_parameter.h"
+#include "periodic_task.h"
 
 class Parser {
 	public:
@@ -23,6 +24,7 @@ class Parser {
 
 		int nparams;
 		UmbrellaParameter **param_ptrs;
+		std::vector<PeriodicTask*> tasks;
 
 	private:
 		int process_brackets(char *line);

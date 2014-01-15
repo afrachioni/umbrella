@@ -131,7 +131,7 @@ int main(int narg, char **arg)
 				(parser->steps)[i]->execute_init();
 
 		// Populate computes
-		lmp->input->one ("run 0");
+		lmp->input->one ("run 0"); //XXX I take care of this somewhere else, now called twice
 
 		//Umbrella definitions
 		double log_boltzmann;
@@ -204,7 +204,6 @@ int main(int narg, char **arg)
 		//------------------------------------------------------------
 
 
-
 		printmsg ("Samples away!\n\n");
 		//Q6_old is most recently accepted Q6
 		for (int i = 0; i < p->count; i++) {
@@ -238,6 +237,10 @@ int main(int narg, char **arg)
 			////////////////////////////////////////////////
 
 
+			// Execute any periodic tasks
+			for (int j = 0; j < parser->tasks.size(); ++j)
+				(parser->tasks)[j]->execute_task(i);
+
 			// Choose a step to execute
 			step_rand = (float) rand() / RAND_MAX;
 			MPI_Bcast (&step_rand, 1, MPI_INT, 0, global->local_comm);
@@ -270,7 +273,6 @@ int main(int narg, char **arg)
 
 			// Write things down
 			logger->step_taken (i, steptype, accept);
-
 
 			////////////////////////////////////////////////
 			// End of sampling loop                       //
