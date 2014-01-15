@@ -9,6 +9,7 @@
 
 double *UmbrellaStep::positions_buffer = NULL;
 int UmbrellaStep::get_atoms_called = 0;
+int UmbrellaStep::force_accept = 0;
 
 UmbrellaStep::UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, float probability, char* name, Global *global) {
 	this->lmp = lmp;
@@ -54,6 +55,8 @@ void UmbrellaStep::execute_block (LAMMPS_NS::LAMMPS *lmp, std::vector<std::strin
 						"before any call to get_positons.");
 			lmp->input->one ("# Scattering buffered positions...");
 			lammps_scatter_atoms(lmp, (char*)"x", 1, 3, positions_buffer);
+		} else if (strcmp (block[i].c_str(), "FORCE_ACCEPT") == 0) {
+			force_accept = 1;
 		} else
 			lmp->input->one (block[i].c_str());
 	}

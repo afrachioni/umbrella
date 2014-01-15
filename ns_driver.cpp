@@ -147,6 +147,7 @@ int main(int narg, char **arg)
 		logger->init();
 
 		// Initialize parameters (zeroeth sample must be accepted)
+		// Replace this by initializing UmbrellaStep::force_accept to one?
 		for (int j = 0; j < parser->nparams; ++j) {
 			(parser->param_ptrs)[j]->compute_boltzmann_factor();
 			(parser->param_ptrs)[j]->notify_accepted();
@@ -264,7 +265,8 @@ int main(int narg, char **arg)
 			MPI_Bcast (&accept, 1, MPI_INT, 0, global->local_comm);
 
 			// Act accordingly
-			if (accept) {
+			if (accept || UmbrellaStep::force_accept) {
+				UmbrellaStep::force_accept = 0;
 				chosen_step->execute_accept();
 				for (int j = 0; j < parser->nparams; ++j)
 					(parser->param_ptrs)[j]->notify_accepted();

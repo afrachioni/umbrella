@@ -28,6 +28,7 @@ class UmbrellaStep {
 
 		char name[100];
 		static int get_atoms_called;
+		static int force_accept;
 		static void execute_block(LAMMPS_NS::LAMMPS *lmp, std::vector<std::string> block, Global *global);
 	private:
 		LAMMPS_NS::LAMMPS *lmp;
