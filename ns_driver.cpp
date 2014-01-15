@@ -146,6 +146,11 @@ int main(int narg, char **arg)
 				parser->nsteps, parser->steps);
 		logger->init();
 
+		// Initialize parameters (zeroeth sample must be accepted)
+		for (int j = 0; j < parser->nparams; ++j) {
+			(parser->param_ptrs)[j]->compute_boltzmann_factor();
+			(parser->param_ptrs)[j]->notify_accepted();
+		}
 
 		// -----------------------------------------------------------
 		//  All this should get moved to a separate class
@@ -172,13 +177,13 @@ int main(int narg, char **arg)
 				printmsg ("Could not create management thread on root!");
 		}
 
-			const int update_count = 4;
-			int update_lengths[update_count] = {1, 1, 1, 1};
-			MPI_Aint update_offsets[update_count] = {0, sizeof(int), 2*sizeof(int), 2*sizeof(int) + sizeof(double)};
-			MPI_Datatype update_types[update_count] = {MPI_INT, MPI_INT, MPI_DOUBLE, MPI_DOUBLE};
-			MPI_Datatype update_message_type;
-			MPI_Type_struct (update_count, update_lengths, update_offsets, update_types, &update_message_type);
-			MPI_Type_commit (&update_message_type);
+		const int update_count = 4;
+		int update_lengths[update_count] = {1, 1, 1, 1};
+		MPI_Aint update_offsets[update_count] = {0, sizeof(int), 2*sizeof(int), 2*sizeof(int) + sizeof(double)};
+		MPI_Datatype update_types[update_count] = {MPI_INT, MPI_INT, MPI_DOUBLE, MPI_DOUBLE};
+		MPI_Datatype update_message_type;
+		MPI_Type_struct (update_count, update_lengths, update_offsets, update_types, &update_message_type);
+		MPI_Type_commit (&update_message_type);
 
 		//mkfifo ("logs/feed_pipe", S_IWUSR | S_IRUSR);
 		//int fd = open ("logs/feed_pipe", O_WRONLY | O_NONBLOCK);
@@ -227,7 +232,7 @@ int main(int narg, char **arg)
 			//MPI_Bcast (&current_spring, 1, MPI_FLOAT, 0, global->local_comm);
 			//
 			//--------------------------------------------------------
-			
+
 			////////////////////////////////////////////////
 			// Effective start of sampling loop           //
 			////////////////////////////////////////////////
