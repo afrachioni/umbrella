@@ -236,7 +236,7 @@ int Parser::process_brackets(char *line) {
 		global->abort (msg);
 	}
 
-	if (global->local_rank == 0) {
+	if (global->global_rank == 0) {
 		int i = 0;
 		while (!feof (fp)) {
 			fgets (file_line, MAX_LINE_LENGTH, fp);
@@ -251,7 +251,7 @@ int Parser::process_brackets(char *line) {
 				sprintf (msg, "Number of lines in bracketed file \"%s\""
 					" is greater than the number of defined windows (%d).  "
 					"The first %d lines will be distributed to windows.", \
-					i, global->num_windows, global->num_windows);
+					result, global->num_windows, global->num_windows);
 				global->warn(msg);
 				break;
 			}
@@ -259,12 +259,13 @@ int Parser::process_brackets(char *line) {
 		if (i < global->num_windows) {
 			sprintf (msg, "Number of lines in bracketed file \"%s\""
 					" is less than the number of defined windows (%d)", \
-					i, global->num_windows);
+					result, global->num_windows);
 			global->abort (msg);
 		}
 	}
-	MPI_Scatter (file_data, MAX_LINE_LENGTH, MPI_CHAR, \
-			file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, global->roots_comm);
+	if (global->local_rank == 0)
+		MPI_Scatter (file_data, MAX_LINE_LENGTH, MPI_CHAR, \
+				file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, global->roots_comm);
 	MPI_Bcast (file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, global->local_comm);
 	char buf[MAX_LINE_LENGTH];
 	strncpy (buf, line, left - line - 2);
