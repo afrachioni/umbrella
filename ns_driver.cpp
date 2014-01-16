@@ -266,7 +266,6 @@ int main(int narg, char **arg)
 
 			// Act accordingly
 			if (accept || UmbrellaStep::force_accept) {
-				UmbrellaStep::force_accept = 0;
 				chosen_step->execute_accept();
 				for (int j = 0; j < parser->nparams; ++j)
 					(parser->param_ptrs)[j]->notify_accepted();
@@ -274,8 +273,10 @@ int main(int narg, char **arg)
 				chosen_step->execute_reject();
 
 			// Write things down
-			logger->step_taken (i, steptype, accept);
+			logger->step_taken (i, steptype, accept || UmbrellaStep::force_accept || i == 1);//Clean all this up
 
+			if (UmbrellaStep::force_accept)
+				UmbrellaStep::force_accept = 0;
 			////////////////////////////////////////////////
 			// End of sampling loop                       //
 			////////////////////////////////////////////////
