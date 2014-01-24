@@ -101,7 +101,6 @@ int main(int narg, char **arg)
 		global->split();
 
 		// Setup LAMMPS instance with initial conditions and settings
-		char line[100];
 		debugmsg ("Creating LAMMPSes...\n");
 		char *args[] = {(char*)"foo", (char*)"-screen", (char*)"none", \
 			(char*)"-log", (char*)"none"};
@@ -112,6 +111,7 @@ int main(int narg, char **arg)
 		debugmsg ("Processing input script...\n");
 		parser->parse();
 
+		char line[100];
 #if DEBUG
 		// This should happen at runtime, the user might care
 		sprintf (line, "log logs/log_%d.lammps", global->window_index);
@@ -140,6 +140,8 @@ int main(int narg, char **arg)
 		int steptype;
 		float step_rand, accept_rand;
 
+		// Set up per-window logging (log names currently set here)
+		mkdir ("logs", S_IRWXU);
 		sprintf (line, "logs/log_%d.txt", global->window_index);
 		Logger *logger = new Logger(line, parser->nparams, (int)global->window_index, \
 				global->local_rank, parser->param_ptrs, \
