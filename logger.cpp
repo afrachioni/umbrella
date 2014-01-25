@@ -33,7 +33,6 @@ void Logger::init() {
 	}
 }
 
-
 void Logger::step_taken (int step_index, int step_type, int accept) {
 	if (local_rank == 0) {
 		fprintf (fp, "%-9d", step_index);
@@ -47,8 +46,7 @@ void Logger::step_taken (int step_index, int step_type, int accept) {
 	}
 }
 
-int64_t Logger::get_time()
-{
+int64_t Logger::get_time() {
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	uint64_t ret = tv.tv_usec;

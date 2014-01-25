@@ -9,7 +9,8 @@
 
 double *UmbrellaStep::positions_buffer = NULL;
 int UmbrellaStep::get_atoms_called = 0;
-int UmbrellaStep::force_accept = 0;
+// The zeroeth step is always accepted
+int UmbrellaStep::force_accept = 1;
 
 UmbrellaStep::UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, float probability, char* name, Global *global) {
 	this->lmp = lmp;

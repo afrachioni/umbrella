@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 #define VERSION "13.12.11.0"
-#define DEBUG 0
+#define DEBUG 1
 #define MAX_FNAME_LENGTH 500
 #define DUMP_EVERY_STEPS 100
 
@@ -111,7 +111,15 @@ int main(int narg, char **arg)
 		debugmsg ("Processing input script...\n");
 		parser->parse();
 
+
+		// Set up per-window logging (log names currently set here)
 		char line[100];
+		mkdir ("logs", S_IRWXU);
+		sprintf (line, "logs/log_%d.txt", global->window_index);
+		Logger *logger = new Logger(line, parser->nparams, (int)global->window_index, \
+				global->local_rank, parser->param_ptrs, \
+				parser->nsteps, parser->steps);
+		logger->init();
 #if DEBUG
 		// This should happen at runtime, the user might care
 		sprintf (line, "log logs/log_%d.lammps", global->window_index);
@@ -130,30 +138,12 @@ int main(int narg, char **arg)
 			if ((parser->steps)[i]->probability)
 				(parser->steps)[i]->execute_init();
 
-		// Populate computes
-		lmp->input->one ("run 0"); //XXX I take care of this somewhere else, now called twice
-
 		//Umbrella definitions
 		double log_boltzmann;
 		int accept;
 		UmbrellaStep *chosen_step;
 		int steptype;
 		float step_rand, accept_rand;
-
-		// Set up per-window logging (log names currently set here)
-		mkdir ("logs", S_IRWXU);
-		sprintf (line, "logs/log_%d.txt", global->window_index);
-		Logger *logger = new Logger(line, parser->nparams, (int)global->window_index, \
-				global->local_rank, parser->param_ptrs, \
-				parser->nsteps, parser->steps);
-		logger->init();
-
-		// Initialize parameters (zeroeth sample must be accepted)
-		// Replace this by initializing UmbrellaStep::force_accept to one?
-		for (int j = 0; j < parser->nparams; ++j) {
-			(parser->param_ptrs)[j]->compute_boltzmann_factor();
-			(parser->param_ptrs)[j]->notify_accepted();
-		}
 
 		// -----------------------------------------------------------
 		//  All this should get moved to a separate class
