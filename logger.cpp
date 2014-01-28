@@ -41,7 +41,8 @@ void Logger::step_taken (int step_index, int step_type, int accept) {
 		fprintf (fp, "%-6d", step_type);
 		fprintf (fp, "%-8d", accept);
 		fprintf (fp, "%-10ld\n", get_time() - init_time);
-		if (step_index % 100 == 0)
+		//TODO flush periodic in time, not samples
+		if (step_index % 500 == 0)
 			fflush (fp);
 	}
 }

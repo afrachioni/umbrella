@@ -129,27 +129,27 @@ void Parser::parse() {
 				p = new UmbrellaParameter (third_token + 2, fourth_token, fifth_token, lmp, is_compute);
 				params.push_back (*p);
 
-			} else if (strcmp (second_token, "takestep") == 0) {
+			} else if (strcmp (second_token, "take_step") == 0) {
 				if (steps_map.find(third_token) == steps_map.end()) {
-					fprintf (stderr, "Parse error: takestep before %s defined\n", third_token);
+					fprintf (stderr, "Parse error: take_step before %s defined\n", third_token);
 					break;
 				}
 				current_block = steps_map[third_token].get_take_step_block();
-			} else if (strcmp (second_token, "ifaccept") == 0) {
+			} else if (strcmp (second_token, "if_accept") == 0) {
 				if (steps_map.find(third_token) == steps_map.end()) {
-					fprintf (stderr, "Parse error: ifaccept before %s defined\n", third_token);
+					fprintf (stderr, "Parse error: if_accept before %s defined\n", third_token);
 					break;
 				}
 				current_block = steps_map[third_token].get_if_accept_block();
-			} else if (strcmp (second_token, "ifreject") == 0) {
+			} else if (strcmp (second_token, "if_reject") == 0) {
 				if (steps_map.find(third_token) == steps_map.end()) {
-					fprintf (stderr, "Parse error: ifreject before %s defined\n", third_token);
+					fprintf (stderr, "Parse error: if_reject before %s defined\n", third_token);
 					break;
 				}
 				current_block = steps_map[third_token].get_if_reject_block();
-			} else if (strcmp (second_token, "stepinit") == 0) {
+			} else if (strcmp (second_token, "step_init") == 0) {
 				if (steps_map.find(third_token) == steps_map.end()) {
-					fprintf (stderr, "Parse error: stepinit before %s defined\n", third_token);
+					fprintf (stderr, "Parse error: step_init before %s defined\n", third_token);
 					break;
 				}
 				current_block = steps_map[third_token].get_step_init_block();
