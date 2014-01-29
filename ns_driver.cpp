@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 #define VERSION "13.12.11.0"
-#define DEBUG 0
+#define DEBUG 1
 #define MAX_FNAME_LENGTH 500
 #define DUMP_EVERY_STEPS 100
 

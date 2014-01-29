@@ -105,7 +105,7 @@ void Parser::parse() {
 			if (n == 1) {
 				fprintf (stderr, "Parse error: empty directive at line %d.\n", i);
 				break;
-			} else if (strcmp (second_token, "steptype") == 0) {
+			} else if (strcmp (second_token, "step_type") == 0) {
 				char *e;
 				float d = (float) std::strtof(fourth_token, &e);
 				if (*e != 0) {
