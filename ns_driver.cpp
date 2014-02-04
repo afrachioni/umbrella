@@ -120,11 +120,11 @@ int main(int narg, char **arg)
 				global->local_rank, parser->param_ptrs, \
 				parser->nsteps, parser->steps);
 		logger->init();
-#if DEBUG
-		// This should happen at runtime, the user might care
-		sprintf (line, "log logs/log_%d.lammps", global->window_index);
-		lmp->input->one(line);
-#endif
+
+		if (p->log_lammps) {
+			sprintf (line, "log logs/log_%d.lammps", global->window_index);
+			lmp->input->one(line);
+		}
 
 
 		// Execute global window init

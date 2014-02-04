@@ -13,6 +13,7 @@ class CLParser
 		//static char err_str[1000];
 		int count;
 		int windows;
+		int log_lammps;
 		char script[100];
 
 		static option::ArgStatus MyCheck (const option::Option& option, bool msg);

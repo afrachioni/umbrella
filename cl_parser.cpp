@@ -6,13 +6,14 @@
 
 #include "cl_parser.h"
 
-enum options_index { COUNT, WINDOWS, SCRIPT, HELP };
+enum options_index { COUNT, WINDOWS, LOG_LAMMPS, SCRIPT, HELP };
 int CLParser::verbose = 0;
 //char CLParser::err_str[1000];
 const option::Descriptor usage [] =
 {
 	{ COUNT, 0, "c", "count", CLParser::IntegerCheck, "number of umbrella steps" },
 	{ WINDOWS, 0, "w", "windows", CLParser::IntegerCheck, "number of parallel windows"},
+	{ LOG_LAMMPS, 0, "l", "lammps_logs", option::Arg::None, "log LAMMPS IO to log_*.lammps"},
 	{ SCRIPT, 0, "f", "script", CLParser::NonEmpty, "name of input script"},
 	{ HELP, 0, "", "help", option::Arg::None, "help usage" },
 	{ 0, 0, 0, 0, 0, 0 }
@@ -36,6 +37,9 @@ CLParser::CLParser (int narg, char **arg)
 		++parse_error;
 		return;
 	}
+
+	if (options[LOG_LAMMPS])
+		log_lammps = 1;
 
 	int missing = 0;
 	for (int i = 0; i < HELP; i++) {
