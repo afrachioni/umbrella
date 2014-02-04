@@ -1,5 +1,6 @@
 #include <inttypes.h>
 #include <sys/time.h>
+#include <string.h>
 #include "logger.h"
 
 Logger::Logger (char *fname, int nparams, int window_index, int local_rank, \

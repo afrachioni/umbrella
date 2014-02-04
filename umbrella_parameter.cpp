@@ -2,6 +2,7 @@
 #include <lammps.h>
 #include <library.h>
 #include <math.h> // infinity
+#include <string.h>
 #include "umbrella_parameter.h"
 
 

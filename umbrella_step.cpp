@@ -1,5 +1,5 @@
 #include <vector> 
-#include <string>
+#include <string.h>
 #include <mpi.h>
 #include <lammps.h>
 #include <input.h>

@@ -3,6 +3,7 @@
 
 #include <mpi.h>
 #include <lammps.h>
+#include <string>
 
 #include "global.h"
 
