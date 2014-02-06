@@ -44,7 +44,7 @@ CLParser::CLParser (int narg, char **arg)
 	int missing = 0;
 	for (int i = 0; i < HELP; i++) {
 		option::Option opt = options[i];
-		if (!opt) {
+		if (!opt && i != LOG_LAMMPS) { //XXX a cleaner way probably exists
 			//sprintf ("--%s is a required option!\n", usage[i].longopt);
 			//strcat (err_str, line);
 			if (verbose) fprintf (stderr, "--%s is a required option!\n", usage[i].longopt);
