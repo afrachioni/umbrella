@@ -230,6 +230,11 @@ int main(int narg, char **arg)
 			////////////////////////////////////////////////
 
 
+			// Increment LAMMPS MC step counter
+			sprintf (line, "variable lu_step equal %d", i);
+			lmp->input->one (line);
+
+
 			// Execute any periodic tasks
 			for (int j = 0; j < parser->tasks.size(); ++j)
 				(parser->tasks)[j]->execute_task(i);
