@@ -59,6 +59,11 @@
 #include <sys/stat.h> //mkdir needs this
 #include <sys/types.h> //and this too
 
+#if __cplusplus >= 201103L
+#define CPP11 1
+#include<random>
+#endif
+
 // print node ID on Kraken
 #ifdef KRAKEN
 #include <pmi.h>
@@ -144,6 +149,11 @@ int main(int narg, char **arg)
 		UmbrellaStep *chosen_step;
 		int steptype;
 		float step_rand, accept_rand;
+
+#if CPP11
+		std::default_random_engine generator;
+		std::uniform_real_distribution<float> distribution (0, 1);
+#endif
 
 		// -----------------------------------------------------------
 		//  All this should get moved to a separate class
@@ -257,7 +267,11 @@ int main(int narg, char **arg)
 				log_boltzmann += (parser->param_ptrs)[j]->compute_boltzmann_factor();
 
 			// Compute acceptance
+#if CPP11
+			accept_rand = distribution(generator);
+#else
 			accept_rand = (float) rand() / RAND_MAX;
+#endif
 			accept = log (accept_rand) < log_boltzmann;
 			MPI_Bcast (&accept, 1, MPI_INT, 0, global->local_comm);
 
