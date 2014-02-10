@@ -62,6 +62,8 @@
 #if __cplusplus >= 201103L
 #define CPP11 1
 #include<random>
+#else
+#warning "No detected support for C++11.  Using std::rand()."
 #endif
 
 // print node ID on Kraken
