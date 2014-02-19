@@ -99,7 +99,8 @@ int main(int narg, char **arg)
 		CLParser::verbose = me == 0;
 		CLParser *p = new CLParser (narg, arg);
 		if (p->parse_error) {
-			fprintf (stdout, "Parse errors present, exiting...\n");
+			if (me == 0)
+				fprintf (stdout, "Command line errors present, exiting...\n");
 			MPI_Abort (MPI_COMM_WORLD, 1);//TODO
 		}
 
