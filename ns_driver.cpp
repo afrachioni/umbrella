@@ -100,7 +100,7 @@ int main(int narg, char **arg)
 		CLParser *p = new CLParser (narg, arg);
 		if (p->parse_error) {
 			fprintf (stdout, "Parse errors present, exiting...\n");
-			MPI_Finalize ();//TODO
+			MPI_Abort (MPI_COMM_WORLD, 1);//TODO
 		}
 
 		// Split MPI_COMM_WORLD into windows

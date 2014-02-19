@@ -11,11 +11,11 @@ int CLParser::verbose = 0;
 //char CLParser::err_str[1000];
 const option::Descriptor usage [] =
 {
-	{ COUNT, 0, "c", "count", CLParser::IntegerCheck, "number of umbrella steps" },
-	{ WINDOWS, 0, "w", "windows", CLParser::IntegerCheck, "number of parallel windows"},
-	{ LOG_LAMMPS, 0, "l", "lammps_logs", option::Arg::None, "log LAMMPS IO to log_*.lammps"},
-	{ SCRIPT, 0, "f", "script", CLParser::NonEmpty, "name of input script"},
-	{ HELP, 0, "", "help", option::Arg::None, "help usage" },
+	{ COUNT, 0, "c", "count", CLParser::IntegerCheck, "\t--count\t     number of umbrella steps" },
+	{ WINDOWS, 0, "w", "windows", CLParser::IntegerCheck, "\t--windows\t     number of parallel windows"},
+	{ LOG_LAMMPS, 0, "l", "lammps_logs", option::Arg::None, "\t--lammps_log\t     log LAMMPS IO to log_*.lammps"},
+	{ SCRIPT, 0, "f", "script", CLParser::NonEmpty, "\t--script\t     name of input script"},
+	{ HELP, 0, "", "help", option::Arg::None, "\t--help\t     print usage" },
 	{ 0, 0, 0, 0, 0, 0 }
 };
 CLParser::CLParser (int narg, char **arg)
