@@ -209,6 +209,10 @@ int main(int narg, char **arg)
 		//
 		//------------------------------------------------------------
 
+		// TODO maybe this belongs somewhere else
+		sprintf (line, "variable lu_natoms equal %d", natoms);
+		lmp->input->one (line);
+
 
 		printmsg ("Samples away!\n\n");
 		//Q6_old is most recently accepted Q6
