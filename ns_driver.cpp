@@ -59,11 +59,11 @@
 #include <sys/stat.h> //mkdir needs this
 #include <sys/types.h> //and this too
 
-#if __cplusplus >= 201103L
-#define CPP11 1
+#ifdef RANDOM
 #include<random>
 #else
-#warning "No detected support for C++11.  Using std::rand()."
+#warning "Using rand() for random numbers.  Complie with \
+-DRANDOM to use random features of the C++11 standard library."
 #endif
 
 // print node ID on Kraken
@@ -152,7 +152,7 @@ int main(int narg, char **arg)
 		int steptype;
 		float step_rand, accept_rand;
 
-#if CPP11
+#ifdef RANDOM
 		std::default_random_engine generator;
 		std::uniform_real_distribution<float> distribution (0, 1);
 #endif
@@ -269,7 +269,7 @@ int main(int narg, char **arg)
 				log_boltzmann += (parser->param_ptrs)[j]->compute_boltzmann_factor();
 
 			// Compute acceptance
-#if CPP11
+#ifdef RANDOM
 			accept_rand = distribution(generator);
 #else
 			accept_rand = (float) rand() / RAND_MAX;
