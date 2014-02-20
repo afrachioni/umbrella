@@ -80,3 +80,7 @@ void Global::warn(char *message) {
 	if (global_rank == 0)
 		fprintf (stdout, "\033[33mWARNING: %s\033[0m\n", message);
 }
+
+void Global::debug (char *message) {
+		fprintf (stdout, "\033[32m%s\033[0m\n", message);
+}

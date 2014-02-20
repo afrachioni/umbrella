@@ -19,5 +19,6 @@ class Global {
 		void split();
 		void abort(char *message);
 		void warn(char *message);
+		void debug (char *message);
 };
 #endif

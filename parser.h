@@ -33,6 +33,6 @@ class Parser {
 		LAMMPS_NS::LAMMPS *lmp;
 		Global *global;
 		std::vector<std::string> init_block;
-		std::map<std::string, UmbrellaStep> steps_map;
+		std::map<std::string, UmbrellaStep*> steps_map;
 };
 #endif
