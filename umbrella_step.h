@@ -4,6 +4,7 @@
 #include <mpi.h>
 #include <lammps.h>
 #include <string>
+#include<vector>
 
 #include "global.h"
 
@@ -19,7 +20,7 @@ class UmbrellaStep {
 		std::vector<std::string>* get_if_reject_block();
 
 		void execute_init();
-		void execute_step();
+		virtual void execute_step();
 		void execute_accept();
 		void execute_reject();
 
@@ -31,7 +32,7 @@ class UmbrellaStep {
 		static int get_atoms_called;
 		static int force_accept;
 		static void execute_block(LAMMPS_NS::LAMMPS *lmp, std::vector<std::string> block, Global *global);
-	private:
+//ex-private (needed for derived BarostatStep
 		LAMMPS_NS::LAMMPS *lmp;
 		static double *positions_buffer;
 		Global *global;

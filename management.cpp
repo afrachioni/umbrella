@@ -2,6 +2,9 @@
 #include<unistd.h>
 #include<pthread.h>
 
+#include <stdio.h>
+#include <mpi.h>
+
 #include<sys/types.h>
 #include<sys/stat.h>
 #include<fcntl.h>

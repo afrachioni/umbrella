@@ -7,6 +7,7 @@
 #include <cstdlib>
 
 #include "parser.h"
+#include "barostat_step.h"
 
 
 #define MAX_LINE_LENGTH 1000
@@ -55,6 +56,7 @@ void Parser::parse() {
 	char third_token[20];
 	char fourth_token[20];
 	char fifth_token[20];
+	char sixth_token[20];
 	UmbrellaParameter *p;
 
 	int me;
@@ -95,25 +97,35 @@ void Parser::parse() {
 	std::vector<std::string>* current_block = &init_block;
 	// no exceptions yet for too few tokens or things not specified
 	// Loop over lines in file buffer, populate appropriate structures
+	char *e; // error for string to number conversion
 	for (int i = 0; i < num_lines; ++i) {
 		line = file_data + i * max_line_length;
 		Parser::process_brackets (line);
 		length = strlen (line);//move inside?
-		n = sscanf (line, "%s %s %s %s %s", first_token, second_token, \
-				third_token, fourth_token, fifth_token);//move inside?
+		n = sscanf (line, "%s %s %s %s %s %s", first_token, second_token, \
+				third_token, fourth_token, fifth_token, sixth_token);//move inside?
 		if (strcmp (first_token, "#AF") == 0 && n > 0) {
 			if (n == 1) {
 				fprintf (stderr, "Parse error: empty directive at line %d.\n", i);
 				break;
 			} else if (strcmp (second_token, "step_type") == 0) {
-				char *e;
 				float d = (float) std::strtof(fourth_token, &e);
 				if (*e != 0) {
 					fprintf (stderr, "Number not a number!  (line %d)\n", i);
 					break;
 				}
-				UmbrellaStep *s = new UmbrellaStep (lmp, d, third_token, global); // TODO when does this die?
-				steps_map[third_token] = *s;
+				UmbrellaStep *s;
+				if (strcmp (fifth_token, "barostat") == 0) {
+					global->debug("detected barostat");
+					double press = std::strtod (sixth_token, &e);
+					if (*e != 0) {
+						fprintf (stderr, "Number not a number! (line %d)\n",i);
+						break;
+					}
+					s = new BarostatStep (lmp, d, third_token, global, press);
+				} else
+					s = new UmbrellaStep (lmp, d, third_token, global); // TODO when does this die?
+				steps_map[third_token] = s;
 
 			} else if (strcmp (second_token, "parameter") == 0) {
 				int is_compute = 0;
@@ -134,25 +146,25 @@ void Parser::parse() {
 					fprintf (stderr, "Parse error: take_step before %s defined\n", third_token);
 					break;
 				}
-				current_block = steps_map[third_token].get_take_step_block();
+				current_block = steps_map[third_token]->get_take_step_block();
 			} else if (strcmp (second_token, "if_accept") == 0) {
 				if (steps_map.find(third_token) == steps_map.end()) {
 					fprintf (stderr, "Parse error: if_accept before %s defined\n", third_token);
 					break;
 				}
-				current_block = steps_map[third_token].get_if_accept_block();
+				current_block = steps_map[third_token]->get_if_accept_block();
 			} else if (strcmp (second_token, "if_reject") == 0) {
 				if (steps_map.find(third_token) == steps_map.end()) {
 					fprintf (stderr, "Parse error: if_reject before %s defined\n", third_token);
 					break;
 				}
-				current_block = steps_map[third_token].get_if_reject_block();
+				current_block = steps_map[third_token]->get_if_reject_block();
 			} else if (strcmp (second_token, "step_init") == 0) {
 				if (steps_map.find(third_token) == steps_map.end()) {
 					fprintf (stderr, "Parse error: step_init before %s defined\n", third_token);
 					break;
 				}
-				current_block = steps_map[third_token].get_step_init_block();
+				current_block = steps_map[third_token]->get_step_init_block();
 			} else if (strcmp (second_token, "do_every") == 0) {
 				char *e;
 				int p = (int) std::strtol(third_token, &e, 0);
@@ -183,11 +195,11 @@ void Parser::parse() {
 	steps = new UmbrellaStep *[nsteps];
 	float sum = 0;
 	int i = 0;
-	for (std::map<std::string, UmbrellaStep>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
-		it->second.rand_min = sum;
-		sum += it->second.probability;
-		it->second.rand_max = sum;
-		steps[i] = & (it->second);
+	for (std::map<std::string, UmbrellaStep*>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
+		it->second->rand_min = sum;
+		sum += it->second->probability;
+		it->second->rand_max = sum;
+		steps[i] = it->second;
 		++i;
 
 	}
@@ -285,24 +297,24 @@ void Parser::print() {
 		fprintf (stdout, "\t%s\n", init_block[i].c_str());
 	fprintf (stdout, "Defined steps:\n");
 	std::vector<std::string> *v;
-	for (std::map<std::string, UmbrellaStep>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
+	for (std::map<std::string, UmbrellaStep*>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
 		fprintf ( stdout, "\tStep type: %s\n", it->first.c_str());
-		v = it->second.get_take_step_block();
+		v = it->second->get_take_step_block();
 		fprintf (stdout, "\t\tTake step:\n");
 		for (int j = 0; j < v->size(); ++j)
 			fprintf (stdout, "\t\t\t%s\n", v->at(j).c_str());
 
-		v = it->second.get_if_reject_block();
+		v = it->second->get_if_reject_block();
 		fprintf (stdout, "\t\tIf reject:\n");
 		for (int j = 0; j < v->size(); ++j)
 			fprintf (stdout, "\t\t\t%s\n", v->at(j).c_str());
 
-		v = it->second.get_if_accept_block();
+		v = it->second->get_if_accept_block();
 		fprintf (stdout, "\t\tIf accept:\n");
 		for (int j = 0; j < v->size(); ++j)
 			fprintf (stdout, "\t\t\t%s\n", v->at(j).c_str());
 
-		v = it->second.get_step_init_block();
+		v = it->second->get_step_init_block();
 		fprintf (stdout, "\t\tStep init:\n");
 		for (int j = 0; j < v->size(); ++j)
 			fprintf (stdout, "\t\t\t%s\n", v->at(j).c_str());
