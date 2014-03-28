@@ -31,7 +31,7 @@ void Logger::init() {
 		for (int i = 0; i < nparams; ++i) {
 			if (i < 2) {
 				char last_accepted_name[100];
-				sprintf (last_accepted_name, "Last %s", params[i]->param_vname);
+				sprintf (last_accepted_name, "Last_%s", params[i]->param_vname);
 				fprintf (fp, "%-15s", last_accepted_name);
 			}
 			fprintf (fp, "%-15s", params[i]->param_vname);
