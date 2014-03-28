@@ -3,6 +3,9 @@
 
 #include <mpi.h>
 #include <lammps.h>
+#include "logger.h"
+
+class Logger;
 
 class UmbrellaParameter {
 	public:
@@ -13,7 +16,10 @@ class UmbrellaParameter {
 
 		double compute_boltzmann_factor();
 		double current_value;
+		double last_accepted_value;
 		void notify_accepted();
+		void notify_accepted_debug(Logger *logger);
+		void notify_rejected_debug(Logger *logger);
 		char param_vname[100];
 	private:
 		int is_compute;

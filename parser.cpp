@@ -31,6 +31,8 @@ Parser::Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp, Global *global) {
 	strcpy (this->fname, fname);
 	this->lmp = lmp;
 	this->global = global;
+
+	bias_every = 1;
 };
 
 Parser::~Parser() {
@@ -57,6 +59,7 @@ void Parser::parse() {
 	char fourth_token[20];
 	char fifth_token[20];
 	char sixth_token[20];
+	char seventh_token[20];
 	UmbrellaParameter *p;
 
 	int me;
@@ -102,8 +105,8 @@ void Parser::parse() {
 		line = file_data + i * max_line_length;
 		Parser::process_brackets (line);
 		length = strlen (line);//move inside?
-		n = sscanf (line, "%s %s %s %s %s %s", first_token, second_token, \
-				third_token, fourth_token, fifth_token, sixth_token);//move inside?
+		n = sscanf (line, "%s %s %s %s %s %s %s", first_token, second_token, \
+				third_token, fourth_token, fifth_token, sixth_token, seventh_token);//move inside?
 		if (strcmp (first_token, "#AF") == 0 && n > 0) {
 			if (n == 1) {
 				fprintf (stderr, "Parse error: empty directive at line %d.\n", i);
@@ -116,13 +119,18 @@ void Parser::parse() {
 				}
 				UmbrellaStep *s;
 				if (strcmp (fifth_token, "barostat") == 0) {
-					global->debug("detected barostat");
+					//global->debug("detected barostat");
 					double press = std::strtod (sixth_token, &e);
 					if (*e != 0) {
 						fprintf (stderr, "Number not a number! (line %d)\n",i);
 						break;
 					}
-					s = new BarostatStep (lmp, d, third_token, global, press);
+					double couple = std::strtod (seventh_token, &e);
+					if (*e != 0) {
+						fprintf (stderr, "Number not a number! (line %d)\n",i);
+						break;
+					}
+					s = new BarostatStep (lmp, d, third_token, global, press, couple);
 				} else
 					s = new UmbrellaStep (lmp, d, third_token, global); // TODO when does this die?
 				steps_map[third_token] = s;
@@ -141,6 +149,12 @@ void Parser::parse() {
 				p = new UmbrellaParameter (third_token + 2, fourth_token, fifth_token, lmp, is_compute);
 				params.push_back (*p);
 
+			} else if (strcmp (second_token, "bias_every") == 0) {
+				bias_every = (int) std::strtol(third_token, &e, 0);
+				if (*e != 0) {
+					fprintf (stderr, "Not an integer! (line %d)\n", i);
+					break;
+				}
 			} else if (strcmp (second_token, "take_step") == 0) {
 				if (steps_map.find(third_token) == steps_map.end()) {
 					fprintf (stderr, "Parse error: take_step before %s defined\n", third_token);
@@ -166,7 +180,6 @@ void Parser::parse() {
 				}
 				current_block = steps_map[third_token]->get_step_init_block();
 			} else if (strcmp (second_token, "do_every") == 0) {
-				char *e;
 				int p = (int) std::strtol(third_token, &e, 0);
 				if (*e != 0) {
 					fprintf (stderr, "Not an integer! (line %d)\n", i);
@@ -175,12 +188,15 @@ void Parser::parse() {
 				PeriodicTask *pt = new PeriodicTask (lmp, p, global);
 				current_block = pt->get_task_block();
 				tasks.push_back(pt);
+				// Special tasks which get intercepted before LAMMPS
 			} else if (strcmp (second_token, "get_positions") == 0) {
 				strcpy (line, "GET_ATOMS");
 			} else if (strcmp (second_token, "put_positions") == 0) {
 				strcpy (line, "PUT_ATOMS");
 			} else if (strcmp (second_token, "force_accept") == 0) {
 				strcpy (line, "FORCE_ACCEPT");
+			//} else if (strcmp (second_token, "do_step") == 0) {
+				//sprintf (line, "DO_STEP %s", third_token);  // TODO check third null
 			} else {
 				fprintf (stderr, "Directive not recognized: %s\n", line);
 			}

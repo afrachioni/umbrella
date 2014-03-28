@@ -8,17 +8,23 @@
 #include "umbrella_step.h"
 
 double *UmbrellaStep::positions_buffer = NULL;
+double UmbrellaStep::xlo, UmbrellaStep::ylo, UmbrellaStep::zlo, \
+UmbrellaStep::xhi, UmbrellaStep::yhi, UmbrellaStep::zhi;
 int UmbrellaStep::get_atoms_called = 0;
+char UmbrellaStep::line[100];
 // The zeroeth step is always accepted
 int UmbrellaStep::force_accept = 1;
 
 UmbrellaStep::UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, float probability, char* name, Global *global) {
+	is_barostat = 0;
 	this->lmp = lmp;
 	this->probability = probability;
 	strcpy (this->name, name);
 	rand_min = 1;
 	rand_max = 0;
 	this->global = global;
+
+	this->logger = NULL;
 };
 UmbrellaStep::UmbrellaStep() {}
 
@@ -50,14 +56,34 @@ void UmbrellaStep::execute_block (LAMMPS_NS::LAMMPS *lmp, std::vector<std::strin
 			}
 			lmp->input->one ("# Copying positions to buffer...");
 			lammps_gather_atoms(lmp, (char*)"x", 1, 3, positions_buffer);
+			// Perhaps it's safe to copy, modify internal box bounds array
+			// Cursory check: it probably is.
+			xlo = *((double *) lammps_extract_global(lmp, "boxxlo"));
+			ylo = *((double *) lammps_extract_global(lmp, "boxylo"));
+			zlo = *((double *) lammps_extract_global(lmp, "boxzlo"));
+			xhi = *((double *) lammps_extract_global(lmp, "boxxhi"));
+			yhi = *((double *) lammps_extract_global(lmp, "boxyhi"));
+			zhi = *((double *) lammps_extract_global(lmp, "boxzhi"));
+
 		} else if (strcmp (block[i].c_str(), "PUT_ATOMS") == 0) {
 			if (!get_atoms_called)
 				global->abort((char*) "put_positons was called "
 						"before any call to get_positons.");
 			lmp->input->one ("# Scattering buffered positions...");
+
+			sprintf (line, "change_box all x final %f %f units box", xlo, xhi);
+			lmp->input->one (line);
+			sprintf (line, "change_box all y final %f %f units box", ylo, yhi);
+			lmp->input->one (line);
+			sprintf (line, "change_box all z final %f %f units box", zlo, zhi);
+			lmp->input->one (line);
+
 			lammps_scatter_atoms(lmp, (char*)"x", 1, 3, positions_buffer);
+
 		} else if (strcmp (block[i].c_str(), "FORCE_ACCEPT") == 0) {
 			force_accept = 1;
+		//} else if (strcmp (block[i].c_str(), "DO_STEP") == 0) {
+			// execute step
 		} else
 			lmp->input->one (block[i].c_str());
 	}
@@ -77,4 +103,8 @@ std::vector<std::string>* UmbrellaStep::get_if_reject_block() {
 
 std::vector<std::string>* UmbrellaStep::get_step_init_block() {
 	return &step_init_block;
+}
+
+void UmbrellaStep::set_logger_debug (Logger* logger) {
+	this->logger = logger;
 }

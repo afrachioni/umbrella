@@ -28,8 +28,14 @@ void Logger::init() {
 			fprintf (fp, "#     %-2d       %-15s%f\n", i, steps[i]->name, steps[i]->probability);
 		fprintf (fp, "#\n");
 		fprintf (fp, "#Step    ");
-		for (int i = 0; i < nparams; ++i)
+		for (int i = 0; i < nparams; ++i) {
+			if (i < 2) {
+				char last_accepted_name[100];
+				sprintf (last_accepted_name, "Last %s", params[i]->param_vname);
+				fprintf (fp, "%-15s", last_accepted_name);
+			}
 			fprintf (fp, "%-15s", params[i]->param_vname);
+		}
 		fprintf (fp, "Type  Accept  Walltime\n");
 	}
 }
@@ -37,15 +43,23 @@ void Logger::init() {
 void Logger::step_taken (int step_index, int step_type, int accept) {
 	if (local_rank == 0) {
 		fprintf (fp, "%-9d", step_index);
-		for (int i = 0; i < nparams; ++i)
+		for (int i = 0; i < nparams; ++i) {
+			if (i < 2)  // XXX Debug!
+				fprintf(fp, "%-15f", params[i]->last_accepted_value);
 			fprintf (fp, "%-15f", params[i]->current_value);
-		fprintf (fp, "%-6d", step_type);
+		}
+		//fprintf (fp, "%-6d", step_type);
 		fprintf (fp, "%-8d", accept);
 		fprintf (fp, "%-10ld\n", get_time() - init_time);
 		//TODO flush periodic in time, not samples
 		// DEBUG if (step_index % 100 == 0)
 			fflush (fp);
 	}
+}
+
+void Logger::comment (char *line) {
+	if (local_rank == 0)
+		fprintf (fp, "# %s\n", line);
 }
 
 int64_t Logger::get_time() {

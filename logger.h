@@ -1,12 +1,15 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <vector>
 
 #include "umbrella_parameter.h"
 #include "umbrella_step.h"
 
+class UmbrellaParameter;
+class UmbrellaStep;
 
 class Logger {
 	public:
@@ -16,7 +19,9 @@ class Logger {
 
 		void init();
 		void step_taken(int step_index, int step_type, int accept);
+		void comment (char *line);
 
+		static int64_t get_time(); // could be static
 	private:
 		int nparams;
 		int window_index;
@@ -27,7 +32,6 @@ class Logger {
 		char fname[100];
 		FILE *fp;
 		int64_t init_time;
-		int64_t get_time(); // could be static
 };
 
 #endif

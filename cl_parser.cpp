@@ -38,8 +38,7 @@ CLParser::CLParser (int narg, char **arg)
 		return;
 	}
 
-	if (options[LOG_LAMMPS])
-		log_lammps = 1;
+	log_lammps = options[LOG_LAMMPS] != NULL;
 
 	int missing = 0;
 	for (int i = 0; i < HELP; i++) {

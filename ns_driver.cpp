@@ -40,6 +40,9 @@
 // MPI window splitter
 #include "global.h"
 
+// For final report
+#include "barostat_step.h"
+
 
 // LAMMPS include files
 #include <stdio.h>
@@ -108,6 +111,12 @@ int main(int narg, char **arg)
 		Global *global = new Global (MPI_COMM_WORLD, p->windows);
 		global->split();
 
+		// Warn about hardcoded integrate accept/reject as global
+		global->warn("Step named \"integrate\" hardcoded to provide global"
+				" accept/reject blocks for now");
+		//global->warn("Using Lennard-Jones reduced units!  (Compiled in.)");
+		//global->warn("Hardcoded to never bias. (Ever.)  (Really.)");
+
 		// Setup LAMMPS instance with initial conditions and settings
 		debugmsg ("Creating LAMMPSes...\n");
 		char *args[] = {(char*)"foo", (char*)"-screen", (char*)"none", \
@@ -141,10 +150,21 @@ int main(int narg, char **arg)
 		int natoms = static_cast<int> (lmp->atom->natoms); // Just for fun
 		debugmsg ("Number of atoms on root window: %d\n", natoms);
 
+		// TODO maybe this belongs somewhere else
+		sprintf (line, "variable lu_natoms equal %d", natoms);
+		lmp->input->one (line);
+		lmp->input->one ("variable lu_vol equal vol");
+		lmp->input->one ("variable lu_temp equal temp");
+
 		// Execute per-step initialization blocks
-		for (int i = 0; i < parser->nsteps; ++i)
+		for (int i = 0; i < parser->nsteps; ++i) {
 			if ((parser->steps)[i]->probability)
 				(parser->steps)[i]->execute_init();
+
+			// XXX sneak this in here
+			//if ((parser->steps)[i]->is_barostat)
+				//(parser->steps)[i]->set_logger_debug(logger);
+		}
 
 		//Umbrella definitions
 		double log_boltzmann;
@@ -209,14 +229,25 @@ int main(int narg, char **arg)
 		//
 		//------------------------------------------------------------
 
-		// TODO maybe this belongs somewhere else
-		sprintf (line, "variable lu_natoms equal %d", natoms);
-		lmp->input->one (line);
-
+		int local_count = 0;
+		int local_accept_count = 0;
 
 		printmsg ("Samples away!\n\n");
 		//Q6_old is most recently accepted Q6
-		for (int i = 0; i < p->count; i++) {
+		int64_t start_time = Logger::get_time();
+		int64_t step_start_time = Logger::get_time();
+		for (int i = 0; i < p->count; ++i) {
+			if (i % 100 == 0 && global->global_rank == 0) {
+				int64_t now = Logger::get_time();
+				int64_t split = now - step_start_time;
+				step_start_time = now;
+				double rate = local_count?(double)local_accept_count/local_count:-1;
+				sprintf (line, "Step: %d\tRate: %f\tSplit: %lld\n", i, rate, split);
+				fprintf (stdout, line);
+				local_accept_count = 0;
+				local_count = 0;
+				//global->debug (line);
+			}
 			//--------------------------------------------------------
 			//
 			pthread_mutex_lock (&mpi_mutex);
@@ -266,12 +297,31 @@ int main(int narg, char **arg)
 			}
 
 			// Execute step
+			sprintf (line, "About to execute step of type %d", steptype);
+			//global->debug (line);
 			chosen_step->execute_step();
+
+			sprintf (line, "%s", chosen_step->name);
+			//logger->comment(line);
+
+			// Skip bias if necessary
+			if (i % parser->bias_every || 0) { // XXX Debug: never bias
+				//logger->step_taken (i, steptype, 1);
+				pthread_mutex_unlock (&mpi_mutex);
+				continue;
+			}
 
 			// Add up Boltzmann factors
 			log_boltzmann = 0;
-			for (int j = 0; j < parser->nparams; ++j)
-				log_boltzmann += (parser->param_ptrs)[j]->compute_boltzmann_factor();
+			double boltzmann_delta = 0;
+			for (int j = 0; j < parser->nparams; ++j) {
+				//log_boltzmann += (parser->param_ptrs)[j]->compute_boltzmann_factor();
+				boltzmann_delta = (parser->param_ptrs)[j]->compute_boltzmann_factor();
+				log_boltzmann += boltzmann_delta;
+
+				sprintf (line, "%f", boltzmann_delta);
+				//logger->comment(line);
+			}
 
 			// Compute acceptance
 #ifdef RANDOM
@@ -282,16 +332,36 @@ int main(int narg, char **arg)
 			accept = log (accept_rand) < log_boltzmann;
 			MPI_Bcast (&accept, 1, MPI_INT, 0, global->local_comm);
 
+
 			// Act accordingly
+			++local_count;
 			if (accept || UmbrellaStep::force_accept) {
-				chosen_step->execute_accept();
-				for (int j = 0; j < parser->nparams; ++j)
+				++local_accept_count;
+				//global->debug ("\t\t\t\tACCEPT");
+				if (UmbrellaStep::force_accept)
+					global->debug("||||||||||||||FORCE||||||||||||||");
+				//chosen_step->execute_accept();  // TODO switch this to a global accept iff bias_every > 1
+
+				// XXX Debug, experimental
+				parser->steps_map["integrate"]->execute_accept();
+				for (int j = 0; j < parser->nparams; ++j) {
+					//(parser->param_ptrs)[j]->notify_accepted_debug(logger);
 					(parser->param_ptrs)[j]->notify_accepted();
-			} else
-				chosen_step->execute_reject();
+				}
+			} else {
+
+				//for (int j = 0; j < parser->nparams; ++j)
+					//(parser->param_ptrs)[j]->notify_rejected_debug(logger);
+
+				//global->debug ("\t\t\t\t\tREJECT");
+				//chosen_step->execute_reject();  // TODO switch this to a global reject iff bias_every > 1
+
+				// XXX Debug, experimental
+				parser->steps_map["integrate"]->execute_reject();
+			}
 
 			// Write things down
-			logger->step_taken (i, steptype, accept || UmbrellaStep::force_accept || i == 1);//Clean all this up
+			logger->step_taken (i, steptype, accept || UmbrellaStep::force_accept);
 
 			if (UmbrellaStep::force_accept)
 				UmbrellaStep::force_accept = 0;
@@ -301,5 +371,14 @@ int main(int narg, char **arg)
 			pthread_mutex_unlock (&mpi_mutex);
 		}
 		delete lmp;
+
+		if (global->global_rank == 0) {
+			int64_t walltime = Logger::get_time() - start_time;
+			fprintf (stdout, "Finished sampling\n");
+			fprintf (stdout, "Walltime / s: %lld\n", walltime/60);
+			fprintf (stdout, "Sample frequency * s: %f\n", p->count*60/walltime);
+			fprintf (stdout, "Acceptance rate among volume moves: %f\n",
+					BarostatStep::get_rate());
+		}
 		MPI_Finalize();
 }

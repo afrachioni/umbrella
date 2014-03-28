@@ -34,10 +34,9 @@ double UmbrellaParameter::compute_boltzmann_factor() {
 		current_value = *((double *) lammps_extract_variable(lmp, \
 					param_vname, (char *) "all")); //TODO pass group in
 
-	//double temperature = *((double *) lammps_extract_variable(lmp, \
-	(char *)"thermo_temp", (char *) "all")); //TODO pass group in
 	double temperature = *((double *) lammps_extract_compute(lmp,(char*)"thermo_temp", 0, 0));
 	if (temperature == 0) return -INFINITY; // Avoid nan
+	
 	double target = *((double *) lammps_extract_variable(lmp, \
 				target_vname, (char *) "all")); //TODO pass group in
 	double spring = *((double *) lammps_extract_variable(lmp, \
@@ -50,6 +49,22 @@ double UmbrellaParameter::compute_boltzmann_factor() {
 
 void UmbrellaParameter::notify_accepted() {
 	previous_potential = current_potential;
+	last_accepted_value = current_value;
+}
+
+void UmbrellaParameter::notify_accepted_debug(Logger *logger) {
+	notify_accepted();
+
+	char line[100];
+	sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, previous_potential, current_potential);
+	logger->comment (line);
+}
+
+
+void UmbrellaParameter::notify_rejected_debug(Logger *logger) {
+	char line[100];
+	sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, previous_potential, current_potential);
+	logger->comment (line);
 }
 
 UmbrellaParameter::~UmbrellaParameter() {};

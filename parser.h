@@ -26,6 +26,9 @@ class Parser {
 		UmbrellaParameter **param_ptrs;
 		std::vector<PeriodicTask*> tasks;
 
+		int bias_every;
+
+		std::map<std::string, UmbrellaStep*> steps_map;
 	private:
 		int process_brackets(char *line);
 		std::vector<UmbrellaParameter> params;
@@ -33,6 +36,5 @@ class Parser {
 		LAMMPS_NS::LAMMPS *lmp;
 		Global *global;
 		std::vector<std::string> init_block;
-		std::map<std::string, UmbrellaStep*> steps_map;
 };
 #endif
