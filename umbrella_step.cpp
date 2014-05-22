@@ -65,6 +65,16 @@ void UmbrellaStep::execute_block (LAMMPS_NS::LAMMPS *lmp, std::vector<std::strin
 			yhi = *((double *) lammps_extract_global(lmp, "boxyhi"));
 			zhi = *((double *) lammps_extract_global(lmp, "boxzhi"));
 
+			sprintf (line, "# Positions retrieved. 1: %f\t%f\t%f",
+					positions_buffer[0], positions_buffer[1],
+					positions_buffer[2]);
+			lmp->input->one (line);
+
+			sprintf (line, "# Positions retrieved. 2: %f\t%f\t%f",
+					positions_buffer[3], positions_buffer[4],
+					positions_buffer[5]);
+			lmp->input->one (line);
+
 		} else if (strcmp (block[i].c_str(), "PUT_ATOMS") == 0) {
 			if (!get_atoms_called)
 				global->abort((char*) "put_positons was called "
@@ -79,6 +89,16 @@ void UmbrellaStep::execute_block (LAMMPS_NS::LAMMPS *lmp, std::vector<std::strin
 			lmp->input->one (line);
 
 			lammps_scatter_atoms(lmp, (char*)"x", 1, 3, positions_buffer);
+
+			sprintf (line, "# Positions scattered. 1: %f\t%f\t%f",
+					positions_buffer[0], positions_buffer[1],
+					positions_buffer[2]);
+			lmp->input->one (line);
+
+			sprintf (line, "# Positions scattered. 2: %f\t%f\t%f",
+					positions_buffer[3], positions_buffer[4],
+					positions_buffer[5]);
+			lmp->input->one (line);
 
 		} else if (strcmp (block[i].c_str(), "FORCE_ACCEPT") == 0) {
 			force_accept = 1;

@@ -112,6 +112,7 @@ int main(int narg, char **arg)
 		global->split();
 
 		// Warn about hardcoded integrate accept/reject as global
+		//global->warn("Temperature hardcoded to 10K");
 		global->warn("Step named \"integrate\" hardcoded to provide global"
 				" accept/reject blocks for now");
 		//global->warn("Using Lennard-Jones reduced units!  (Compiled in.)");
@@ -154,7 +155,7 @@ int main(int narg, char **arg)
 		sprintf (line, "variable lu_natoms equal %d", natoms);
 		lmp->input->one (line);
 		lmp->input->one ("variable lu_vol equal vol");
-		lmp->input->one ("variable lu_temp equal temp");
+		//lmp->input->one ("variable lu_temp equal 10");
 
 		// Execute per-step initialization blocks
 		for (int i = 0; i < parser->nsteps; ++i) {
@@ -232,6 +233,12 @@ int main(int narg, char **arg)
 		int local_count = 0;
 		int local_accept_count = 0;
 
+
+		FILE *random_file;
+		if (me == 0)
+			random_file = fopen ("random_numbers.txt", "w");
+
+
 		printmsg ("Samples away!\n\n");
 		//Q6_old is most recently accepted Q6
 		int64_t start_time = Logger::get_time();
@@ -273,9 +280,9 @@ int main(int narg, char **arg)
 			//
 			//--------------------------------------------------------
 
-			////////////////////////////////////////////////
-			// Effective start of sampling loop           //
-			////////////////////////////////////////////////
+			//|\|/|\|/|\|/|\|/|\|/|\|/|\|/|\|/|\|/|\|/|\|/|\|
+			// Effective start of sampling loop             |
+			//|\|/|\|/|\|/|\|/|\|/|\|/|\|/|\|/|\|/|\|/|\|/|\|
 
 
 			// Increment LAMMPS MC step counter
@@ -298,7 +305,6 @@ int main(int narg, char **arg)
 
 			// Execute step
 			sprintf (line, "About to execute step of type %d", steptype);
-			//global->debug (line);
 			chosen_step->execute_step();
 
 			sprintf (line, "%s", chosen_step->name);
@@ -308,6 +314,7 @@ int main(int narg, char **arg)
 			if (i % parser->bias_every || 0) { // XXX Debug: never bias
 				//logger->step_taken (i, steptype, 1);
 				pthread_mutex_unlock (&mpi_mutex);
+				//global->debug("##################### Skipped bias #####################");
 				continue;
 			}
 
@@ -315,12 +322,21 @@ int main(int narg, char **arg)
 			log_boltzmann = 0;
 			double boltzmann_delta = 0;
 			for (int j = 0; j < parser->nparams; ++j) {
+
 				//log_boltzmann += (parser->param_ptrs)[j]->compute_boltzmann_factor();
 				boltzmann_delta = (parser->param_ptrs)[j]->compute_boltzmann_factor();
 				log_boltzmann += boltzmann_delta;
 
 				sprintf (line, "%f", boltzmann_delta);
 				//logger->comment(line);
+				if (i == 5 && me == 0) {
+					global->debug( (parser->param_ptrs)[j]->param_vname);
+					global->debug(line);
+				}
+			}
+			if (i == 5 && me == 0) {
+				sprintf (line, "%f", log_boltzmann);
+				global->debug(line);
 			}
 
 			// Compute acceptance
@@ -329,6 +345,10 @@ int main(int narg, char **arg)
 #else
 			accept_rand = (float) rand() / RAND_MAX;
 #endif
+			if (me == 0)
+				fprintf (random_file, "%f\n", accept_rand);
+
+
 			accept = log (accept_rand) < log_boltzmann;
 			MPI_Bcast (&accept, 1, MPI_INT, 0, global->local_comm);
 
@@ -351,7 +371,7 @@ int main(int narg, char **arg)
 			} else {
 
 				//for (int j = 0; j < parser->nparams; ++j)
-					//(parser->param_ptrs)[j]->notify_rejected_debug(logger);
+				//(parser->param_ptrs)[j]->notify_rejected_debug(logger);
 
 				//global->debug ("\t\t\t\t\tREJECT");
 				//chosen_step->execute_reject();  // TODO switch this to a global reject iff bias_every > 1
@@ -368,8 +388,11 @@ int main(int narg, char **arg)
 			////////////////////////////////////////////////
 			// End of sampling loop                       //
 			////////////////////////////////////////////////
+
 			pthread_mutex_unlock (&mpi_mutex);
 		}
+		if (me == 0)
+			fclose (random_file);
 		delete lmp;
 
 		if (global->global_rank == 0) {

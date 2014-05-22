@@ -25,18 +25,18 @@ void Logger::init() {
 		fprintf (fp, "#\n");
 		fprintf (fp, "# Step label   Name           Probabilitiy\n");
 		for (int i = 0; i < nsteps; ++i)
-			fprintf (fp, "#     %-2d       %-15s%f\n", i, steps[i]->name, steps[i]->probability);
+			fprintf (fp, "#     %-2d       %-18s%f\n", i, steps[i]->name, steps[i]->probability);
 		fprintf (fp, "#\n");
 		fprintf (fp, "#Step    ");
 		for (int i = 0; i < nparams; ++i) {
-			if (i < 2) {
+			if (i < 1) {  // TODO should be if spring or something
 				char last_accepted_name[100];
 				sprintf (last_accepted_name, "Last_%s", params[i]->param_vname);
-				fprintf (fp, "%-15s", last_accepted_name);
+				fprintf (fp, "%-19s", last_accepted_name);
 			}
-			fprintf (fp, "%-15s", params[i]->param_vname);
+			fprintf (fp, "%-19s", params[i]->param_vname);
 		}
-		fprintf (fp, "Type  Accept  Walltime\n");
+		fprintf (fp, "Accept  Walltime\n");
 	}
 }
 
@@ -44,9 +44,9 @@ void Logger::step_taken (int step_index, int step_type, int accept) {
 	if (local_rank == 0) {
 		fprintf (fp, "%-9d", step_index);
 		for (int i = 0; i < nparams; ++i) {
-			if (i < 2)  // XXX Debug!
-				fprintf(fp, "%-15f", params[i]->last_accepted_value);
-			fprintf (fp, "%-15f", params[i]->current_value);
+			if (i < 1)  // XXX Debug!
+				fprintf(fp, "%-19.14f", params[i]->last_accepted_value);
+			fprintf (fp, "%-19.14f", params[i]->current_value);
 		}
 		//fprintf (fp, "%-6d", step_type);
 		fprintf (fp, "%-8d", accept);
