@@ -193,6 +193,10 @@ void Parser::parse() {
 				strcpy (line, "GET_ATOMS");
 			} else if (strcmp (second_token, "put_positions") == 0) {
 				strcpy (line, "PUT_ATOMS");
+			} else if (strcmp (second_token, "get_types") == 0) {
+				strcpy (line, "GET_TYPES");
+			} else if (strcmp (second_token, "put_types") == 0) {
+				strcmp (line, "PUT_TYPES");
 			} else if (strcmp (second_token, "force_accept") == 0) {
 				strcpy (line, "FORCE_ACCEPT");
 			//} else if (strcmp (second_token, "do_step") == 0) {

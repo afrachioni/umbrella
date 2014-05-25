@@ -8,9 +8,11 @@
 #include "umbrella_step.h"
 
 double *UmbrellaStep::positions_buffer = NULL;
+int *UmbrellaStep::types_buffer = NULL;
 double UmbrellaStep::xlo, UmbrellaStep::ylo, UmbrellaStep::zlo, \
 UmbrellaStep::xhi, UmbrellaStep::yhi, UmbrellaStep::zhi;
 int UmbrellaStep::get_atoms_called = 0;
+int UmbrellaStep::get_types_called = 0;
 char UmbrellaStep::line[100];
 // The zeroeth step is always accepted
 int UmbrellaStep::force_accept = 1;
@@ -100,6 +102,21 @@ void UmbrellaStep::execute_block (LAMMPS_NS::LAMMPS *lmp, std::vector<std::strin
 					positions_buffer[5]);
 			lmp->input->one (line);
 
+
+		} else if (strcmp (block[i].c_str(), "GET_TYPES") == 0) {
+			if (!get_types_called) {
+				lmp->input->one ("run 0");
+				types_buffer = new int[lmp->atom->natoms];
+				get_types_called = 1;
+			}
+			lmp->input->one ("# Copying types to buffer...");
+			lammps_gather_atoms(lmp, (char*)"type", 0, 1, types_buffer);
+		} else if (strcmp (block[i].c_str(), "PUT_TYPES") == 0) {
+			if (!get_types_called)
+				global->abort((char*) "put_types was called "
+						"before any call to get_positions.");
+			lmp->input->one("# Scatternig buffered types...");;
+			lammps_scatter_atoms(lmp, (char*)"type", 0, 1, types_buffer);
 		} else if (strcmp (block[i].c_str(), "FORCE_ACCEPT") == 0) {
 			force_accept = 1;
 		//} else if (strcmp (block[i].c_str(), "DO_STEP") == 0) {

@@ -34,12 +34,14 @@ class UmbrellaStep {
 
 		char name[100];
 		static int get_atoms_called;
+		static int get_types_called;
 		static int force_accept;
 		static void execute_block(LAMMPS_NS::LAMMPS *lmp, std::vector<std::string> block, Global *global);
 //ex-private (needed for derived BarostatStep
 		LAMMPS_NS::LAMMPS *lmp;
 
 		static double *positions_buffer;
+		static int *types_buffer;
 		static double xlo, xhi, ylo, yhi, zlo, zhi;
 		static char line[];
 
