@@ -5,13 +5,13 @@
 
 class BarostatStep : public UmbrellaStep {
 	public:
-		BarostatStep(LAMMPS_NS::LAMMPS *lmp, float probability, char* name, Global *global, double pressure, double couple);
+		BarostatStep(LAMMPS_NS::LAMMPS *lmp, float probability, char* name, Global *global, double pressure);
 		void execute_init();
 		void execute_step();
 		static double get_rate();
 	private:
 		int N;
-		double T, U, P, V, couple;
+		double T, U, P, V;
 		static double Uold, Vold;
 		static int accepted_count, count;
 

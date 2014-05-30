@@ -125,12 +125,7 @@ void Parser::parse() {
 						fprintf (stderr, "Number not a number! (line %d)\n",i);
 						break;
 					}
-					double couple = std::strtod (seventh_token, &e);
-					if (*e != 0) {
-						fprintf (stderr, "Number not a number! (line %d)\n",i);
-						break;
-					}
-					s = new BarostatStep (lmp, d, third_token, global, press, couple);
+					s = new BarostatStep (lmp, d, third_token, global, press);
 				} else
 					s = new UmbrellaStep (lmp, d, third_token, global); // TODO when does this die?
 				steps_map[third_token] = s;

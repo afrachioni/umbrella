@@ -13,10 +13,8 @@ double BarostatStep::Vold = 0;
 int BarostatStep::accepted_count = 0;
 int BarostatStep::count = 0;
 
-BarostatStep::BarostatStep(LAMMPS_NS::LAMMPS *lmp, float probability, char* name, Global *global, double pressure, double couple) : UmbrellaStep::UmbrellaStep ( lmp, probability, name, global) {
+BarostatStep::BarostatStep(LAMMPS_NS::LAMMPS *lmp, float probability, char* name, Global *global, double pressure) : UmbrellaStep::UmbrellaStep ( lmp, probability, name, global) {
 	this->P = pressure;
-	this->couple = couple;
-	//fprintf (stderr, "Name: %s:\tPressure: %f\tCouple: %f\n", name, pressure, couple);
 	UmbrellaStep::UmbrellaStep(lmp, probability, name, global);
 	is_barostat = 1;
 }
@@ -39,7 +37,7 @@ void BarostatStep::execute_step() {
 	V = *((double *)lammps_extract_variable(lmp,(char*)"lu_vol",(char*)"all"));
 
 
-	double exp = -couple*(U-Uold + P*(V-Vold)/eV - N*kb*T*log(V/Vold))/(kb*T);
+	double exp = -(U-Uold + P*(V-Vold)/eV - N*kb*T*log(V/Vold))/(kb*T);
 	double accept_rand = (double) rand() / RAND_MAX;
 	int accept = log (accept_rand) < exp;
 	MPI_Bcast (&accept, 1, MPI_INT, 0, global->local_comm);
