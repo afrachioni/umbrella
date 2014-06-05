@@ -120,9 +120,22 @@ int main(int narg, char **arg)
 
 		// Setup LAMMPS instance with initial conditions and settings
 		debugmsg ("Creating LAMMPSes...\n");
+
+		// Original -- wierd numbers in logs
 		char *args[] = {(char*)"foo", (char*)"-screen", (char*)"none", \
 			(char*)"-log", (char*)"none"};
 		LAMMPS *lmp = new LAMMPS(5,args,global->local_comm);
+
+		
+		// Also seems to work
+		//char *args[] = {(char*)"foo", (char*)"-echo", (char*)"none", \
+			(char*)"-log", (char*)"none"};
+		//LAMMPS *lmp = new LAMMPS(5,args,global->local_comm);
+
+		// Seems to work
+		//char *args[] = {(char*)"foo", \
+			(char*)"-log", (char*)"none"};
+		//LAMMPS *lmp = new LAMMPS(3,args,global->local_comm);
 
 		// Parse input script
 		Parser *parser = new Parser (p->script, lmp, global);
@@ -234,9 +247,9 @@ int main(int narg, char **arg)
 		int local_accept_count = 0;
 
 
-		FILE *random_file;
-		if (me == 0)
-			random_file = fopen ("random_numbers.txt", "w");
+		//FILE *random_file;
+		//if (me == 0)
+			//random_file = fopen ("random_numbers.txt", "w");
 
 
 		printmsg ("Samples away!\n\n");
@@ -249,7 +262,9 @@ int main(int narg, char **arg)
 				int64_t split = now - step_start_time;
 				step_start_time = now;
 				double rate = local_count?(double)local_accept_count/local_count:-1;
-				sprintf (line, "Step: %d\tRate: %f\tSplit: %lld\n", i, rate, split);
+				double barostat_rate = BarostatStep::get_rate();
+				BarostatStep::zero_rate();
+				sprintf (line, "Step: %d\tRate: %f\tBarostat rate: %f\tSplit: %lld\n", i, rate, barostat_rate, split);
 				fprintf (stdout, line);
 				local_accept_count = 0;
 				local_count = 0;
@@ -345,8 +360,8 @@ int main(int narg, char **arg)
 #else
 			accept_rand = (float) rand() / RAND_MAX;
 #endif
-			if (me == 0)
-				fprintf (random_file, "%f\n", accept_rand);
+			//if (me == 0)
+				//fprintf (random_file, "%f\n", accept_rand);
 
 
 			accept = log (accept_rand) < log_boltzmann;
@@ -391,8 +406,8 @@ int main(int narg, char **arg)
 
 			pthread_mutex_unlock (&mpi_mutex);
 		}
-		if (me == 0)
-			fclose (random_file);
+		//if (me == 0)
+			//fclose (random_file);
 		delete lmp;
 
 		if (global->global_rank == 0) {

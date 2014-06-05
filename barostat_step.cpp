@@ -73,3 +73,9 @@ void BarostatStep::execute_step() {
 double BarostatStep::get_rate() {
 	return (double)accepted_count / count;
 }
+
+//static
+void BarostatStep::zero_rate() {
+	accepted_count = 0;
+	count = 0;
+}

@@ -9,6 +9,7 @@ class BarostatStep : public UmbrellaStep {
 		void execute_init();
 		void execute_step();
 		static double get_rate();
+		static void zero_rate();
 	private:
 		int N;
 		double T, U, P, V;
