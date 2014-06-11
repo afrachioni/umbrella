@@ -53,7 +53,7 @@
 #include <input.h>
 #include <atom.h>
 #include <library.h>
-#include "management.cpp"
+//#include "management.cpp"
 
 // system include files
 #include <math.h>
@@ -193,7 +193,8 @@ int main(int narg, char **arg)
 
 		// -----------------------------------------------------------
 		//  All this should get moved to a separate class
-		pthread_mutex_t mpi_mutex = PTHREAD_MUTEX_INITIALIZER;
+		//pthread_mutex_t mpi_mutex = PTHREAD_MUTEX_INITIALIZER;
+		/*
 
 		const int count = 4;
 		int lengths[count] = {1, 1, 1, 1};
@@ -239,6 +240,7 @@ int main(int narg, char **arg)
 			pthread_mutex_unlock (&mpi_mutex);
 		}
 		MPI_Barrier (MPI_COMM_WORLD);
+		*/
 		//
 		//------------------------------------------------------------
 
@@ -271,6 +273,7 @@ int main(int narg, char **arg)
 			}
 			//--------------------------------------------------------
 			//
+			/* Did this recently due to wierd things
 			pthread_mutex_lock (&mpi_mutex);
 			if (global->local_rank == 0) {
 				MPI_Test (&req, &recv_complete, MPI_STATUS_IGNORE);
@@ -288,6 +291,7 @@ int main(int narg, char **arg)
 					MPI_Irecv (&msg, 1, message_type, 0, TAG, global->roots_comm, &req);
 				}
 			}
+			*/
 			//bcast to window
 			//MPI_Bcast (&current_duration, 1, MPI_INT, 0, global->local_comm);
 			//MPI_Bcast (&current_spring, 1, MPI_FLOAT, 0, global->local_comm);
@@ -327,7 +331,7 @@ int main(int narg, char **arg)
 			// Skip bias if necessary
 			if (i % parser->bias_every || 0) { // XXX Debug: never bias
 				//logger->step_taken (i, steptype, 1);
-				pthread_mutex_unlock (&mpi_mutex);
+				//pthread_mutex_unlock (&mpi_mutex);
 				//global->debug("##################### Skipped bias #####################");
 				continue;
 			}
@@ -403,7 +407,7 @@ int main(int narg, char **arg)
 			// End of sampling loop                       //
 			////////////////////////////////////////////////
 
-			pthread_mutex_unlock (&mpi_mutex);
+			//pthread_mutex_unlock (&mpi_mutex);
 		}
 		//if (me == 0)
 			//fclose (random_file);
