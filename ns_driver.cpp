@@ -168,7 +168,6 @@ int main(int narg, char **arg)
 		sprintf (line, "variable lu_natoms equal %d", natoms);
 		lmp->input->one (line);
 		lmp->input->one ("variable lu_vol equal vol");
-		//lmp->input->one ("variable lu_temp equal 10");
 
 		// Execute per-step initialization blocks
 		for (int i = 0; i < parser->nsteps; ++i) {
@@ -213,8 +212,8 @@ int main(int narg, char **arg)
 			management_data.message_type = message_type;
 
 			pthread_t manager;
-			if (pthread_create( &manager, NULL, &manage, &management_data))
-				printmsg ("Could not create management thread on root!");
+			//if (pthread_create( &manager, NULL, &manage, &management_data))
+				//printmsg ("Could not create management thread on root!");
 		}
 
 		const int update_count = 4;
