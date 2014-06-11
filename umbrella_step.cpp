@@ -91,11 +91,11 @@ void UmbrellaStep::execute_block (LAMMPS_NS::LAMMPS *lmp, std::vector<std::strin
 			lmp->input->one (line);
 
 			// XXX debug: hash entire positions buffer
-			double hash = 0;
-			for (int q = 0; q < 3 * lmp->atom->natoms; ++q)
-				hash += positions_buffer[q];
-			sprintf (line, "# positions hash: %f\n", hash);
-			lmp->input->one (line);
+			//double hash = 0;
+			//for (int q = 0; q < 3 * lmp->atom->natoms; ++q)
+				//hash += positions_buffer[q];
+			//sprintf (line, "# positions hash: %f\n", hash);
+			//lmp->input->one (line);
 
 
 			lammps_scatter_atoms(lmp, (char*)"x", 1, 3, positions_buffer);
