@@ -1,10 +1,10 @@
 #include <stdio.h>
+//#include <stdlib.h> //strtod
+#include <cstdlib>
 #include <string.h>
 #include <vector>
 #include <map>
 #include <string>
-//#include <stdlib.h> //strtod
-#include <cstdlib>
 
 #include "parser.h"
 #include "barostat_step.h"
@@ -112,7 +112,7 @@ void Parser::parse() {
 				fprintf (stderr, "Parse error: empty directive at line %d.\n", i);
 				break;
 			} else if (strcmp (second_token, "step_type") == 0) {
-				float d = (float) std::strtof(fourth_token, &e);
+				float d = (float) std::strtod(fourth_token, &e);
 				if (*e != 0) {
 					fprintf (stderr, "Number not a number!  (line %d)\n", i);
 					break;

@@ -17,7 +17,7 @@ BarostatStep::BarostatStep(LAMMPS_NS::LAMMPS *lmp, float probability, \
 		char* name, Global *global, double pressure) :\
 		UmbrellaStep::UmbrellaStep ( lmp, probability, name, global) {
 	this->P = pressure;
-	UmbrellaStep::UmbrellaStep(lmp, probability, name, global);
+	//UmbrellaStep::UmbrellaStep(lmp, probability, name, global);
 	is_barostat = 1;
 }
 

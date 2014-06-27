@@ -93,8 +93,8 @@ int main(int narg, char **arg)
 					"|           Anthony Frachioni,  1-2013          |\n");
 			fprintf (stdout, "                       "
 					"|            afrachi1@binghamton.edu            |\n");
-			fprintf (stdout, "                       "
-					"|       Compiled on "__DATE__", "__TIME__"       |\n");
+			//fprintf (stdout, "                       "
+					//"|       Compiled on "__DATE__", "__TIME__"       |\n");
 			fprintf (stdout, "                       "
 					"-------------------------------------------------\n\n");
 		}
