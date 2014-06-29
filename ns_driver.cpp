@@ -69,11 +69,6 @@
 -DRANDOM to use random features of the C++11 standard library."
 #endif
 
-// print node ID on Kraken
-#ifdef KRAKEN
-#include <pmi.h>
-#endif
-
 #define printmsg(...) if (global->global_rank == 0) fprintf(stdout, __VA_ARGS__);
 #define debugmsg(...) if (DEBUG && global->global_rank == 0) fprintf(stdout, __VA_ARGS__);
 
