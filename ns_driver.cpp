@@ -113,7 +113,7 @@ int main(int narg, char **arg)
 
 		// Warn about hardcoded integrate accept/reject as global
 		//global->warn("Temperature hardcoded to 10K");
-		global->warn("Step named \"integrate\" hardcoded to provide global"
+		global->warn((char*)"Step named \"integrate\" hardcoded to provide global"
 				" accept/reject blocks for now");
 		//global->warn("Using Lennard-Jones reduced units!  (Compiled in.)");
 		//global->warn("Hardcoded to never bias. (Ever.)  (Really.)");
@@ -377,7 +377,7 @@ int main(int narg, char **arg)
 				++local_accept_count;
 				//global->debug ("\t\t\t\tACCEPT");
 				if (UmbrellaStep::force_accept)
-					global->debug("||||||||||||||FORCE||||||||||||||");
+					global->debug((char*)"||||||||||||||FORCE||||||||||||||");
 				//chosen_step->execute_accept();  // TODO switch this to a global accept iff bias_every > 1
 
 				// XXX Debug, experimental

@@ -22,8 +22,8 @@ elif [ `hostname | cut -c 1-6` == "macpro" ]; then
 	mpicxx -g -L ~/myLAMMPS/src -L ~/myLAMMPS/lib/meam ns_driver.o cl_parser.o parser.o umbrella_step.o umbrella_parameter.o logger.o global.o periodic_task.o -llammps_wmp -lmeam -lgfortran -lfftw -o driver_wmp
 elif [ `hostname | cut -c 1-7` == "SAMSUNG" ]; then
 	echo "Building on Anthony's Samsung laptop under Cygwin"
-	mpicxx -g -std=c++0x -fpermissive -I ~/myLAMMPS/src -I ~/myLAMMPS/lib/meam -c *.cpp
-	mpicxx -g -std=c++0x -L ~/myLAMMPS/src -L ~/myLAMMPS/lib/meam ns_driver.o cl_parser.o parser.o umbrella_step.o umbrella_parameter.o logger.o global.o periodic_task.o barostat_step.o -llammps_anthony -lmeam -lgfortran -o driver_anthony
+	mpicxx -g -fpermissive -I ~/myLAMMPS/src -I ~/myLAMMPS/lib/meam -c *.cpp
+	mpicxx -g -L ~/myLAMMPS/src -L ~/myLAMMPS/lib/meam ns_driver.o cl_parser.o parser.o umbrella_step.o umbrella_parameter.o logger.o global.o periodic_task.o barostat_step.o -llammps_anthony -lmeam -lgfortran -o driver_anthony
 
 elif [ `hostname | cut -c 7-9` == "scs" ] || [ `hostname | cut -c 7-12` == "vulcan" ]; then
 	#Build on LBL Supercluster

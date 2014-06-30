@@ -60,12 +60,12 @@ void UmbrellaStep::execute_block (LAMMPS_NS::LAMMPS *lmp, std::vector<std::strin
 			lammps_gather_atoms(lmp, (char*)"x", 1, 3, positions_buffer);
 			// Perhaps it's safe to copy, modify internal box bounds array
 			// Cursory check: it probably is.
-			xlo = *((double *) lammps_extract_global(lmp, "boxxlo"));
-			ylo = *((double *) lammps_extract_global(lmp, "boxylo"));
-			zlo = *((double *) lammps_extract_global(lmp, "boxzlo"));
-			xhi = *((double *) lammps_extract_global(lmp, "boxxhi"));
-			yhi = *((double *) lammps_extract_global(lmp, "boxyhi"));
-			zhi = *((double *) lammps_extract_global(lmp, "boxzhi"));
+			xlo = *((double *) lammps_extract_global(lmp, (char*)"boxxlo"));
+			ylo = *((double *) lammps_extract_global(lmp, (char*)"boxylo"));
+			zlo = *((double *) lammps_extract_global(lmp, (char*)"boxzlo"));
+			xhi = *((double *) lammps_extract_global(lmp, (char*)"boxxhi"));
+			yhi = *((double *) lammps_extract_global(lmp, (char*)"boxyhi"));
+			zhi = *((double *) lammps_extract_global(lmp, (char*)"boxzhi"));
 
 			sprintf (line, "# Positions retrieved. 1: %f\t%f\t%f",
 					positions_buffer[0], positions_buffer[1],

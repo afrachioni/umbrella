@@ -45,11 +45,11 @@ void BarostatStep::execute_step() {
 	MPI_Bcast (&accept, 1, MPI_INT, 0, global->local_comm);
 
 	if (accept) {
-		if (logger != NULL) logger->comment ("accept box change");
+		if (logger != NULL) logger->comment ((char*)"accept box change");
 		execute_accept();
 		++accepted_count;
 	} else {
-		if (logger != NULL) logger->comment ("reject box change");
+		if (logger != NULL) logger->comment ((char*)"reject box change");
 		execute_reject();
 	}
 	++count;
