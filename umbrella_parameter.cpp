@@ -21,8 +21,6 @@ UmbrellaParameter::UmbrellaParameter (const UmbrellaParameter& up) {
 	strcpy (this->spring_vname, up.spring_vname);
 	this->lmp = up.lmp;
 	this->is_compute = up.is_compute;
-	//this->current_potential = current_potential;
-	//this->previous_potential = previous_potential;
 }
 
 // ALL the physics lives here
@@ -35,7 +33,6 @@ double UmbrellaParameter::compute_boltzmann_factor() {
 					param_vname, (char *) "all")); //TODO pass group in
 
 	double temperature = *((double *) lammps_extract_compute(lmp,(char*)"thermo_temp", 0, 0));
-	//double temperature = 10;
 	if (temperature == 0) return -INFINITY; // Avoid nan
 	
 	double target = *((double *) lammps_extract_variable(lmp, \
@@ -50,7 +47,6 @@ double UmbrellaParameter::compute_boltzmann_factor() {
 }
 
 void UmbrellaParameter::notify_accepted() {
-	//previous_potential = current_potential;
 	last_accepted_value = current_value;
 }
 
@@ -58,14 +54,14 @@ void UmbrellaParameter::notify_accepted_debug(Logger *logger) {
 	notify_accepted();
 
 	char line[100];
-	//sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, previous_potential, current_potential);
+	sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, last_accepted_value, current_value);
 	logger->comment (line);
 }
 
 
 void UmbrellaParameter::notify_rejected_debug(Logger *logger) {
 	char line[100];
-	//sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, previous_potential, current_potential);
+	sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, last_accepted_value, current_volue);
 	logger->comment (line);
 }
 
