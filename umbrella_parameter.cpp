@@ -50,6 +50,14 @@ void UmbrellaParameter::notify_accepted() {
 	last_accepted_value = current_value;
 }
 
+double UmbrellaParameter::get_current_value() {
+	return current_value;
+}
+
+double UmbrellaParameter::get_last_accepted_value() {
+	return last_accepted_value;
+}
+
 void UmbrellaParameter::notify_accepted_debug(Logger *logger) {
 	notify_accepted();
 
@@ -58,10 +66,9 @@ void UmbrellaParameter::notify_accepted_debug(Logger *logger) {
 	logger->comment (line);
 }
 
-
 void UmbrellaParameter::notify_rejected_debug(Logger *logger) {
 	char line[100];
-	sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, last_accepted_value, current_volue);
+	sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, last_accepted_value, current_value);
 	logger->comment (line);
 }
 

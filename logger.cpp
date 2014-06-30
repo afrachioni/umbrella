@@ -45,8 +45,8 @@ void Logger::step_taken (int step_index, int step_type, int accept) {
 		fprintf (fp, "%-9d", step_index);
 		for (int i = 0; i < nparams; ++i) {
 			if (i < 1)  // XXX Debug!
-				fprintf(fp, "%-19.12f", params[i]->last_accepted_value);
-			fprintf (fp, "%-19.12f", params[i]->current_value);
+				fprintf(fp, "%-19.12f", params[i]->get_last_accepted_value());
+			fprintf (fp, "%-19.12f", params[i]->get_current_value());
 		}
 		//fprintf (fp, "%-6d", step_type);
 		fprintf (fp, "%-8d", accept);

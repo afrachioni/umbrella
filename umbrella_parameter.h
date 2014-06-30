@@ -16,23 +16,18 @@ class UmbrellaParameter {
 
 		double compute_boltzmann_factor();
 		void notify_accepted();
+		double get_current_value();
+		double get_last_accepted_value();
 		void notify_accepted_debug(Logger *logger);
 		void notify_rejected_debug(Logger *logger);
 		char param_vname[100];
 	private:
+		double current_value;
+		double last_accepted_value;
 		int is_compute;
 		char target_vname[100];
 		char spring_vname[100];
 		LAMMPS_NS::LAMMPS *lmp;
-		double current_value;
-		double last_accepted_value;
-
-		/*
-		   previous_potential is the bias potential of the most recently
-		   accepted state.  current_potential is the bias potential of the most
-		   recently sampled state.  (Here, "potential" === (Q - target)^2).
-		*/
-		//double current_potential, previous_potential;
 };
 
 #endif
