@@ -21,8 +21,6 @@ UmbrellaParameter::UmbrellaParameter (const UmbrellaParameter& up) {
 	strcpy (this->spring_vname, up.spring_vname);
 	this->lmp = up.lmp;
 	this->is_compute = up.is_compute;
-	this->current_potential = current_potential;
-	this->previous_potential = previous_potential;
 }
 
 // ALL the physics lives here
@@ -35,36 +33,42 @@ double UmbrellaParameter::compute_boltzmann_factor() {
 					param_vname, (char *) "all")); //TODO pass group in
 
 	double temperature = *((double *) lammps_extract_compute(lmp,(char*)"thermo_temp", 0, 0));
-	//double temperature = 10;
 	if (temperature == 0) return -INFINITY; // Avoid nan
 	
 	double target = *((double *) lammps_extract_variable(lmp, \
 				target_vname, (char *) "all")); //TODO pass group in
 	double spring = *((double *) lammps_extract_variable(lmp, \
 				spring_vname, (char *) "all")); //TODO pass group in
-	current_potential = (current_value-target)*(current_value-target);
+	double current_potential = (current_value-target)*(current_value-target);
+	double previous_potential = (last_accepted_value-target)*(last_accepted_value-target);
 	double rval = -0.5 * spring / temperature * \
 				  (current_potential - previous_potential);
 	return rval;
 }
 
 void UmbrellaParameter::notify_accepted() {
-	previous_potential = current_potential;
 	last_accepted_value = current_value;
+}
+
+double UmbrellaParameter::get_current_value() {
+	return current_value;
+}
+
+double UmbrellaParameter::get_last_accepted_value() {
+	return last_accepted_value;
 }
 
 void UmbrellaParameter::notify_accepted_debug(Logger *logger) {
 	notify_accepted();
 
 	char line[100];
-	sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, previous_potential, current_potential);
+	sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, last_accepted_value, current_value);
 	logger->comment (line);
 }
 
-
 void UmbrellaParameter::notify_rejected_debug(Logger *logger) {
 	char line[100];
-	sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, previous_potential, current_potential);
+	sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, last_accepted_value, current_value);
 	logger->comment (line);
 }
 

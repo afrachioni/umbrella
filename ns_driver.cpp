@@ -62,12 +62,14 @@
 #include <sys/stat.h> //mkdir needs this
 #include <sys/types.h> //and this too
 
+/*
 #ifdef RANDOM
 #include<random>
 #else
 #warning "Using rand() for random numbers.  Complie with \
 -DRANDOM to use random features of the C++11 standard library."
 #endif
+*/
 
 #define printmsg(...) if (global->global_rank == 0) fprintf(stdout, __VA_ARGS__);
 #define debugmsg(...) if (DEBUG && global->global_rank == 0) fprintf(stdout, __VA_ARGS__);
@@ -108,7 +110,7 @@ int main(int narg, char **arg)
 
 		// Warn about hardcoded integrate accept/reject as global
 		//global->warn("Temperature hardcoded to 10K");
-		global->warn("Step named \"integrate\" hardcoded to provide global"
+		global->warn((char*)"Step named \"integrate\" hardcoded to provide global"
 				" accept/reject blocks for now");
 		//global->warn("Using Lennard-Jones reduced units!  (Compiled in.)");
 		//global->warn("Hardcoded to never bias. (Ever.)  (Really.)");
@@ -181,10 +183,12 @@ int main(int narg, char **arg)
 		int steptype;
 		float step_rand, accept_rand;
 
+/*
 #ifdef RANDOM
 		std::default_random_engine generator;
 		std::uniform_real_distribution<float> distribution (0, 1);
 #endif
+*/
 
 		// -----------------------------------------------------------
 		//  All this should get moved to a separate class
@@ -353,11 +357,13 @@ int main(int narg, char **arg)
 			}
 
 			// Compute acceptance
+/*
 #ifdef RANDOM
 			accept_rand = distribution(generator);
 #else
+*/
 			accept_rand = (float) rand() / RAND_MAX;
-#endif
+//#endif
 			//if (me == 0)
 				//fprintf (random_file, "%f\n", accept_rand);
 
@@ -372,7 +378,7 @@ int main(int narg, char **arg)
 				++local_accept_count;
 				//global->debug ("\t\t\t\tACCEPT");
 				if (UmbrellaStep::force_accept)
-					global->debug("||||||||||||||FORCE||||||||||||||");
+					global->debug((char*)"||||||||||||||FORCE||||||||||||||");
 				//chosen_step->execute_accept();  // TODO switch this to a global accept iff bias_every > 1
 
 				// XXX Debug, experimental
