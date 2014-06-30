@@ -62,12 +62,14 @@
 #include <sys/stat.h> //mkdir needs this
 #include <sys/types.h> //and this too
 
+/*
 #ifdef RANDOM
 #include<random>
 #else
 #warning "Using rand() for random numbers.  Complie with \
 -DRANDOM to use random features of the C++11 standard library."
 #endif
+*/
 
 // print node ID on Kraken
 #ifdef KRAKEN
@@ -186,10 +188,12 @@ int main(int narg, char **arg)
 		int steptype;
 		float step_rand, accept_rand;
 
+/*
 #ifdef RANDOM
 		std::default_random_engine generator;
 		std::uniform_real_distribution<float> distribution (0, 1);
 #endif
+*/
 
 		// -----------------------------------------------------------
 		//  All this should get moved to a separate class
@@ -358,11 +362,13 @@ int main(int narg, char **arg)
 			}
 
 			// Compute acceptance
+/*
 #ifdef RANDOM
 			accept_rand = distribution(generator);
 #else
+*/
 			accept_rand = (float) rand() / RAND_MAX;
-#endif
+//#endif
 			//if (me == 0)
 				//fprintf (random_file, "%f\n", accept_rand);
 
