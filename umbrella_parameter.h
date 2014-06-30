@@ -32,7 +32,7 @@ class UmbrellaParameter {
 		   accepted state.  current_potential is the bias potential of the most
 		   recently sampled state.  (Here, "potential" === (Q - target)^2).
 		*/
-		double current_potential, previous_potential;
+		//double current_potential, previous_potential;
 };
 
 #endif
