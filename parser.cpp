@@ -229,7 +229,7 @@ void Parser::parse() {
 		param_ptrs[i] = & params[i];
 }
 
-int Parser::process_brackets(char *line) {
+void Parser::process_brackets(char *line) {
 	//TODO pass line number for error messages?
 	char msg[500];
 	char file_line[MAX_LINE_LENGTH];
@@ -251,7 +251,7 @@ int Parser::process_brackets(char *line) {
 			}
 		if (!right) global->abort ((char*)"No closing brackets detected!");
 	} else
-		return 0;
+		return;
 	if (right == left) global->abort ((char*)"Empty brackets encountered in script.");
 	char result[100];
 	strncpy (result, left, right - left);

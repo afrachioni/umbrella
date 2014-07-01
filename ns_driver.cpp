@@ -418,7 +418,8 @@ int main(int narg, char **arg)
 			int64_t walltime = Logger::get_time() - start_time;
 			fprintf (stdout, "Finished sampling\n");
 			fprintf (stdout, "Walltime / s: %lld\n", walltime/60);
-			fprintf (stdout, "Sample frequency * s: %f\n", p->count*60/walltime);
+			fprintf (stdout, "Sample frequency * s: %f\n", \
+				((float) p->count*60)/walltime);
 			fprintf (stdout, "Acceptance rate among volume moves: %f\n",
 					BarostatStep::get_rate());
 		}

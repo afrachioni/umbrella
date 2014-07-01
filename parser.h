@@ -30,7 +30,7 @@ class Parser {
 
 		std::map<std::string, UmbrellaStep*> steps_map;
 	private:
-		int process_brackets(char *line);
+		void process_brackets(char *line);
 		std::vector<UmbrellaParameter> params;
 		char fname [100];
 		LAMMPS_NS::LAMMPS *lmp;
