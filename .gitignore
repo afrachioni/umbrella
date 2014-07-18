@@ -1,4 +1,5 @@
-*.o
+# Git version control should ignore object, binary, and editor swap files.
 *.sw*
 driver_*
+*.o
 *.out
