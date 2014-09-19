@@ -33,6 +33,7 @@ double UmbrellaParameter::compute_boltzmann_factor() {
 					param_vname, (char *) "all")); //TODO pass group in
 
 	double temperature = *((double *) lammps_extract_compute(lmp,(char*)"thermo_temp", 0, 0));
+	temperature = 1; //XXX
 	if (temperature == 0) return -INFINITY; // Avoid nan
 	
 	double target = *((double *) lammps_extract_variable(lmp, \

@@ -95,6 +95,7 @@ int main(int narg, char **arg)
 			fprintf (stdout, "                       "
 					"-------------------------------------------------\n\n");
 		}
+		srand(7);
 		// Parse command line arguments
 		CLParser::verbose = me == 0;
 		CLParser *p = new CLParser (narg, arg);
@@ -110,6 +111,7 @@ int main(int narg, char **arg)
 
 		// Warn about hardcoded integrate accept/reject as global
 		//global->warn("Temperature hardcoded to 10K");
+		global->warn((char*)"Temperature hardcoded to unity");
 		global->warn((char*)"Step named \"integrate\" hardcoded to provide global"
 				" accept/reject blocks for now");
 		//global->warn("Using Lennard-Jones reduced units!  (Compiled in.)");
@@ -256,8 +258,9 @@ int main(int narg, char **arg)
 		//Q6_old is most recently accepted Q6
 		int64_t start_time = Logger::get_time();
 		int64_t step_start_time = Logger::get_time();
+
 		for (int i = 0; i < p->count; ++i) {
-			if (i % 100 == 0 && global->global_rank == 0) {
+			if (i % 10000 == 0 && global->global_rank == 0) {
 				int64_t now = Logger::get_time();
 				int64_t split = now - step_start_time;
 				step_start_time = now;
@@ -364,9 +367,6 @@ int main(int narg, char **arg)
 */
 			accept_rand = (float) rand() / RAND_MAX;
 //#endif
-			//if (me == 0)
-				//fprintf (random_file, "%f\n", accept_rand);
-
 
 			accept = log (accept_rand) < log_boltzmann;
 			MPI_Bcast (&accept, 1, MPI_INT, 0, global->local_comm);
