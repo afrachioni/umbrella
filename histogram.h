@@ -12,6 +12,7 @@ class Histogram {
 		int update (double val);
 		int update ();
 		void write (FILE *f);
+		double get_mean(), get_standard_deviation();
 	private:
 		void init(int nbins, double min, double max);
 		int nbins;
@@ -19,7 +20,8 @@ class Histogram {
 		double max;
 		UmbrellaParameter *p;
 		double bin_width;
-		unsigned *hist;
+		double sum, sum_squares;
+		unsigned *hist, num_samples;
 };
 
 #endif
