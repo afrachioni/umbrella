@@ -40,36 +40,12 @@ void Logger::init() {
 	}
 }
 
-int nbins = 1000;
-unsigned histogram[1000];
-double hist_min = 1, hist_max = 3.5;
-double bin_width = (hist_max - hist_min) / nbins;
-double sum = 0, sum_squares = 0;
-int waste = 0;
-int less_than_min = 0, greater_than_max = 0;
-
 void Logger::step_taken (int step_index, int step_type, int accept) {
-	if (local_rank == 0) {
+	if (0 && local_rank == 0) { // XXX never write
 		fprintf (fp, "%-9d", step_index);
 		for (int i = 0; i < nparams; ++i) {
-			if (i < 1)  {// XXX Debug!
+			if (i < 1)  // XXX Debug!
 				fprintf(fp, "%-19.12f", params[i]->get_last_accepted_value());
-				// Histogram!
-				//
-				if (i >= waste) {
-					int x = params[i]->get_last_accepted_value();
-					if (x > hist_min && x < hist_max)
-						++histogram[(int) ((x - hist_min) / bin_width)];
-					else {
-						if (x < hist_min) ++less_than_min;
-						if (x > hist_max) ++greater_than_max;
-					}
-					sum += x;
-					sum_squares += x*x;
-				}
-				//
-				/////////////
-			}
 			fprintf (fp, "%-19.12f", params[i]->get_current_value());
 		}
 		//fprintf (fp, "%-6d", step_type);

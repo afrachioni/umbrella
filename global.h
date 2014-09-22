@@ -1,5 +1,5 @@
-#ifndef WINDOW_INFO_H
-#define WINDOW_INFO_H
+#ifndef GLOBAL_H
+#define GLOBAL_H
 
 #include <mpi.h>
 

@@ -43,6 +43,9 @@
 // For final report
 #include "barostat_step.h"
 
+// Histogram
+#include "histogram.h"
+
 
 // LAMMPS include files
 #include <stdio.h>
@@ -95,7 +98,6 @@ int main(int narg, char **arg)
 			fprintf (stdout, "                       "
 					"-------------------------------------------------\n\n");
 		}
-		srand(7);
 		// Parse command line arguments
 		CLParser::verbose = me == 0;
 		CLParser *p = new CLParser (narg, arg);
@@ -111,7 +113,6 @@ int main(int narg, char **arg)
 
 		// Warn about hardcoded integrate accept/reject as global
 		//global->warn("Temperature hardcoded to 10K");
-		global->warn((char*)"Temperature hardcoded to unity");
 		global->warn((char*)"Step named \"integrate\" hardcoded to provide global"
 				" accept/reject blocks for now");
 		//global->warn("Using Lennard-Jones reduced units!  (Compiled in.)");
@@ -156,6 +157,11 @@ int main(int narg, char **arg)
 			lmp->input->one(line);
 		}
 
+		
+		// Set up histogram on first parameter (bit of a hack for now)
+		global->debug ("Name of zeroeth param, presently hardcoded to histogram:");
+		global->debug (parser->param_ptrs[0]->param_vname);
+		Histogram *hist = new Histogram (1000, 3.4, 11.90 , parser->param_ptrs[0]);
 
 		// Execute global window init
 		parser->execute_init();
@@ -258,9 +264,8 @@ int main(int narg, char **arg)
 		//Q6_old is most recently accepted Q6
 		int64_t start_time = Logger::get_time();
 		int64_t step_start_time = Logger::get_time();
-
 		for (int i = 0; i < p->count; ++i) {
-			if (i % 10000 == 0 && global->global_rank == 0) {
+			if (i % 100 == 0 && global->global_rank == 0) {
 				int64_t now = Logger::get_time();
 				int64_t split = now - step_start_time;
 				step_start_time = now;
@@ -367,6 +372,9 @@ int main(int narg, char **arg)
 */
 			accept_rand = (float) rand() / RAND_MAX;
 //#endif
+			//if (me == 0)
+				//fprintf (random_file, "%f\n", accept_rand);
+
 
 			accept = log (accept_rand) < log_boltzmann;
 			MPI_Bcast (&accept, 1, MPI_INT, 0, global->local_comm);
@@ -401,6 +409,7 @@ int main(int narg, char **arg)
 
 			// Write things down
 			logger->step_taken (i, steptype, accept || UmbrellaStep::force_accept);
+			hist->update();
 
 			if (UmbrellaStep::force_accept)
 				UmbrellaStep::force_accept = 0;
@@ -413,6 +422,13 @@ int main(int narg, char **arg)
 		//if (me == 0)
 			//fclose (random_file);
 		delete lmp;
+
+		if (global->local_rank == 0) {
+			char hist_fname[100];
+			sprintf (hist_fname, "hist_data/hist_%d.txt", global->window_index);
+			FILE *hist_file = fopen (hist_fname, "w");
+			hist->write(hist_file);
+		}
 
 		if (global->global_rank == 0) {
 			int64_t walltime = Logger::get_time() - start_time;
