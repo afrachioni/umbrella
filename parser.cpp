@@ -11,6 +11,7 @@
 
 
 #define MAX_LINE_LENGTH 1000
+#define MAX_TOKEN_SIZE 100
 
 
 /*
@@ -53,14 +54,15 @@ void Parser::parse() {
 	int length;
 	char line_buf[MAX_LINE_LENGTH];
 	char *line;
-	char first_token[20];
-	char second_token[20];
-	char third_token[20];
-	char fourth_token[20];
-	char fifth_token[20];
-	char sixth_token[20];
-	char seventh_token[20];
+	char first_token[MAX_TOKEN_SIZE];
+	char second_token[MAX_TOKEN_SIZE];
+	char third_token[MAX_TOKEN_SIZE];
+	char fourth_token[MAX_TOKEN_SIZE];
+	char fifth_token[MAX_TOKEN_SIZE];
+	char sixth_token[MAX_TOKEN_SIZE];
+	char seventh_token[MAX_TOKEN_SIZE];
 	UmbrellaParameter *p;
+
 
 	int me;
 	MPI_Comm_rank(MPI_COMM_WORLD, &me);
