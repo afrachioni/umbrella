@@ -69,3 +69,14 @@ void Histogram::write (FILE *f) {
 			//fprintf (f, "%d\t%d\t%f\n", i, hist[i], min + (i + 0.5) * bin_width);
 	fclose (f);
 }
+
+void Histogram::write_stats (FILE *f) {
+		fprintf (f, "Target:\t%f\n", p->extract_target());
+		fprintf (f, "Spring:\t%f\n", p->extract_spring());
+		// KT
+		fprintf (f, "KT:\t%d\n", 1); //XXX
+		fprintf (f, "Samples:\t%d\n", num_samples);
+		fprintf (f, "Mean:\t%f\n", get_mean());
+		fprintf (f, "SD:\t%f\n", get_standard_deviation());
+		fclose(f);
+}

@@ -127,6 +127,8 @@ int main(int narg, char **arg)
 		LAMMPS *lmp = new LAMMPS(5,args,global->local_comm);
 
 		
+		/*
+		 * sterilize this just in case
 		// Also seems to work
 		//char *args[] = {(char*)"foo", (char*)"-echo", (char*)"none", \
 			(char*)"-log", (char*)"none"};
@@ -137,6 +139,7 @@ int main(int narg, char **arg)
 			(char*)"-log", (char*)"none"};
 		//LAMMPS *lmp = new LAMMPS(3,args,global->local_comm);
 
+		*/
 		// Parse input script
 		Parser *parser = new Parser (p->script, lmp, global);
 		debugmsg ("Processing input script...\n");
@@ -159,9 +162,9 @@ int main(int narg, char **arg)
 
 		
 		// Set up histogram on first parameter (bit of a hack for now)
-		global->debug ("Name of zeroeth param, presently hardcoded to histogram:");
+		global->debug ((char*)"Name of zeroeth param, presently hardcoded to histogram:");
 		global->debug (parser->param_ptrs[0]->param_vname);
-		Histogram *hist = new Histogram (1000, 3.4, 11.90 , parser->param_ptrs[0]);
+		Histogram *hist = new Histogram (1000, 1, 3.50, parser->param_ptrs[0]);
 
 		// Execute global window init
 		parser->execute_init();
@@ -272,7 +275,7 @@ int main(int narg, char **arg)
 				double rate = local_count?(double)local_accept_count/local_count:-1;
 				double barostat_rate = BarostatStep::get_rate();
 				BarostatStep::zero_rate();
-				sprintf (line, "Step: %d\tRate: %f\tBarostat rate: %f\tSplit: %lld\n", i, rate, barostat_rate, split);
+				sprintf (line, "Step: %d\tRate: %f\tBarostat rate: %f\tSplit: %" PRId64 "\n", i, rate, barostat_rate, split);
 				fprintf (stdout, line);
 				local_accept_count = 0;
 				local_count = 0;
@@ -316,7 +319,7 @@ int main(int narg, char **arg)
 
 
 			// Execute any periodic tasks
-			for (int j = 0; j < parser->tasks.size(); ++j)
+			for (unsigned j = 0; j < parser->tasks.size(); ++j)
 				(parser->tasks)[j]->execute_task(i);
 
 			// Choose a step to execute
@@ -421,19 +424,24 @@ int main(int narg, char **arg)
 		}
 		//if (me == 0)
 			//fclose (random_file);
-		delete lmp;
 
 		if (global->local_rank == 0) {
 			char hist_fname[100];
 			sprintf (hist_fname, "hist_data/hist_%d.txt", global->window_index);
 			FILE *hist_file = fopen (hist_fname, "w");
 			hist->write(hist_file);
+
+			char stats_fname[100];
+			sprintf (stats_fname, "window_stats/stats_%d.txt", global->window_index);
+			FILE *stats_file = fopen (stats_fname, "w");
+			hist->write_stats(stats_file);
 		}
+		delete lmp; // Needs to be alive for extraction!
 
 		if (global->global_rank == 0) {
 			int64_t walltime = Logger::get_time() - start_time;
 			fprintf (stdout, "Finished sampling\n");
-			fprintf (stdout, "Walltime / s: %lld\n", walltime/60);
+			fprintf (stdout, "Walltime / s: %" PRId64 "\n", walltime/60);
 			fprintf (stdout, "Sample frequency * s: %f\n", \
 				((float) p->count*60)/walltime);
 			fprintf (stdout, "Acceptance rate among volume moves: %f\n",

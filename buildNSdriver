@@ -35,11 +35,12 @@ elif [ `hostname | cut -c 7-9` == "scs" ] || [ `hostname | cut -c 7-12` == "vulc
 	module unload intel
 	module unload gcc
 	module unload pgi
-	module load intel # gcc
+
+	module load intel
 	module load fftw
 	module load boost
 	echo " Compiling..."
-	mpic++ -g -I ~/myLAMMPS/src -I ~/myLAMMPS/lib/meam -c *.cpp #-v -da -Q
+	mpic++ -g -Wall -I ~/myLAMMPS/src -I ~/myLAMMPS/lib/meam -c *.cpp #-v -da -Q
 	echo " Linking..."
 # for GNU, we need -gfortran; for Intel, we need -lifcore -lsvml -limf
 	mpic++ -g -L ~/myLAMMPS/src -L ~/myLAMMPS/lib/meam ns_driver.o cl_parser.o parser.o umbrella_step.o umbrella_parameter.o logger.o global.o periodic_task.o barostat_step.o histogram.o -llammps_vulcan -lmeam -lifcore -lsvml -limf -o driver_vulcan

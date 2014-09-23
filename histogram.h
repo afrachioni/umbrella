@@ -12,6 +12,7 @@ class Histogram {
 		int update (double val);
 		int update ();
 		void write (FILE *f);
+		void write_stats (FILE *f);
 		double get_mean(), get_standard_deviation();
 	private:
 		void init(int nbins, double min, double max);

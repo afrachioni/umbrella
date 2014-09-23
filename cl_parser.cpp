@@ -93,7 +93,6 @@ option::ArgStatus CLParser::NumberCheck (const option::Option& option, bool msg)
 	}
 	int periods = 0;
 	int err = 0;
-	char c = 'e';
 	for (int i = 0; arg[i] != '\0'; i++) {
 		if (arg[i] == '.')
 			periods++;
@@ -111,15 +110,11 @@ option::ArgStatus CLParser::IntegerCheck (const option::Option& option, bool msg
 {
 	const char *arg = option.arg;
 	if (arg == 0 || arg[0] == '\0') {
-		char line[100];
-		//sprintf (line, "Option \"%s\" requires an argument!\n");
-		//strcat (err_msg, line);
 		if (msg && verbose) fprintf (stderr, "Option '%s' requires an argument!\n", option.name);
 		return option::ARG_ILLEGAL;
 	}
 	int periods = 0;
 	int err = 0;
-	char c = 'e';
 	for (int i = 0; arg[i] != '\0'; i++) {
 		if (arg[i] == '.')
 			periods++;

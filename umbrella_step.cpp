@@ -49,7 +49,7 @@ void UmbrellaStep::execute_reject() {
 
 // static
 void UmbrellaStep::execute_block (LAMMPS_NS::LAMMPS *lmp, std::vector<std::string> block, Global *global) {
-	for (int i = 0; i < block.size(); ++i) {
+	for (unsigned i = 0; i < block.size(); ++i) {
 		if (strcmp (block[i].c_str(), "GET_ATOMS") == 0) {
 			if (!get_atoms_called) {
 				lmp->input->one ("run 0");

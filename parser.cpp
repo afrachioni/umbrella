@@ -93,7 +93,7 @@ void Parser::parse() {
 
 	file_data = new char [max_line_length * num_lines];
 	if (me == 0)
-		for (int i = 0; i < line_ptrs.size(); ++i)
+		for (unsigned i = 0; i < line_ptrs.size(); ++i)
 			strcpy (& file_data [i * max_line_length], line_ptrs[i].c_str());
 	MPI_Bcast ( file_data, max_line_length * num_lines, MPI_CHAR, 0, MPI_COMM_WORLD);
 
@@ -191,7 +191,7 @@ void Parser::parse() {
 			} else if (strcmp (second_token, "get_types") == 0) {
 				strcpy (line, "GET_TYPES");
 			} else if (strcmp (second_token, "put_types") == 0) {
-				strcmp (line, "PUT_TYPES");
+				strcpy (line, "PUT_TYPES");
 			} else if (strcmp (second_token, "force_accept") == 0) {
 				strcpy (line, "FORCE_ACCEPT");
 			//} else if (strcmp (second_token, "do_step") == 0) {
@@ -269,7 +269,7 @@ void Parser::process_brackets(char *line) {
 			fgets (file_line, MAX_LINE_LENGTH, fp);
 			if (feof (fp)) break;
 			if (file_line[0] == '#' || file_line[0] == '\n') continue; //TODO whitespace
-			for (int j = 0; j < strlen (file_line); ++j) // Snip newline
+			for (unsigned j = 0; j < strlen (file_line); ++j) // Snip newline
 				if (file_line [j] == '\n' || file_line [j] == '\r')
 					file_line[j] = '\0';
 			strcpy (file_data + i * MAX_LINE_LENGTH, file_line);
@@ -308,7 +308,7 @@ void Parser::execute_init() {
 
 void Parser::print() {
 	fprintf (stdout, "\nInitialization:\n");
-	for (int i = 0; i < init_block.size(); ++i)
+	for (unsigned i = 0; i < init_block.size(); ++i)
 		fprintf (stdout, "\t%s\n", init_block[i].c_str());
 	fprintf (stdout, "Defined steps:\n");
 	std::vector<std::string> *v;
@@ -316,25 +316,25 @@ void Parser::print() {
 		fprintf ( stdout, "\tStep type: %s\n", it->first.c_str());
 		v = it->second->get_take_step_block();
 		fprintf (stdout, "\t\tTake step:\n");
-		for (int j = 0; j < v->size(); ++j)
+		for (unsigned j = 0; j < v->size(); ++j)
 			fprintf (stdout, "\t\t\t%s\n", v->at(j).c_str());
 
 		v = it->second->get_if_reject_block();
 		fprintf (stdout, "\t\tIf reject:\n");
-		for (int j = 0; j < v->size(); ++j)
+		for (unsigned j = 0; j < v->size(); ++j)
 			fprintf (stdout, "\t\t\t%s\n", v->at(j).c_str());
 
 		v = it->second->get_if_accept_block();
 		fprintf (stdout, "\t\tIf accept:\n");
-		for (int j = 0; j < v->size(); ++j)
+		for (unsigned j = 0; j < v->size(); ++j)
 			fprintf (stdout, "\t\t\t%s\n", v->at(j).c_str());
 
 		v = it->second->get_step_init_block();
 		fprintf (stdout, "\t\tStep init:\n");
-		for (int j = 0; j < v->size(); ++j)
+		for (unsigned j = 0; j < v->size(); ++j)
 			fprintf (stdout, "\t\t\t%s\n", v->at(j).c_str());
 	}
 	fprintf (stdout, "Defined parameters:\n");
-	for (int j = 0; j < params.size(); ++j)
+	for (unsigned j = 0; j < params.size(); ++j)
 		fprintf (stdout, "\t%s\n", params[j].param_vname);
 }
