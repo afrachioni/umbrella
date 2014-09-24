@@ -76,9 +76,10 @@ void Histogram::write_stats (FILE *f) {
 		fprintf (f, "Target:\t%f\n", p->extract_target());
 		fprintf (f, "Spring:\t%f\n", p->extract_spring());
 		// KT
-		fprintf (f, "KT:\t%d\n", 1); //XXX
-		fprintf (f, "Samples:\t%d\n", num_samples);
-		fprintf (f, "Mean:\t%f\n", get_mean());
-		fprintf (f, "SD:\t%f\n", get_standard_deviation());
+		fprintf (f, "KT:         \t%d\n", 1); //XXX
+		fprintf (f, "Samples:    \t%d\n", num_samples);
+		fprintf (f, "Mean:       \t%f\n", get_mean());
+		fprintf (f, "SD:         \t%f\n", get_standard_deviation());
+		fprintf (f, "Sum_squares:\t%f\n", sum_squares);
 		fclose(f);
 }

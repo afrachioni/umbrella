@@ -41,7 +41,7 @@ void Logger::init() {
 }
 
 void Logger::step_taken (int step_index, int step_type, int accept) {
-	if (0 && local_rank == 0) { // XXX never write
+	if (1 && local_rank == 0) { // XXX never write
 		fprintf (fp, "%-9d", step_index);
 		for (int i = 0; i < nparams; ++i) {
 			if (i < 1)  // XXX Debug!

@@ -267,7 +267,7 @@ int main(int narg, char **arg)
 		//Q6_old is most recently accepted Q6
 		int64_t start_time = Logger::get_time();
 		int64_t step_start_time = Logger::get_time();
-		for (int i = 0; i < p->count; ++i) {
+		for (int i = 0; i < p->count + 1; ++i) {
 			if (i % 100 == 0 && global->global_rank == 0) {
 				int64_t now = Logger::get_time();
 				int64_t split = now - step_start_time;
@@ -416,24 +416,32 @@ int main(int narg, char **arg)
 
 			if (UmbrellaStep::force_accept)
 				UmbrellaStep::force_accept = 0;
+			//
+			//
+			if (global->local_rank == 0 && i % 10000 == 0 && i > 0)  {
+				char hist_fname[100];
+				sprintf (hist_fname, "hist_data/hist_%d_%d.txt", global->window_index, i);
+				FILE *hist_file = fopen (hist_fname, "w");
+				hist->write(hist_file);
+
+				char stats_fname[100];
+				sprintf (stats_fname, "window_stats/stats_%d_%d.txt", global->window_index, i);
+				FILE *stats_file = fopen (stats_fname, "w");
+				hist->write_stats(stats_file);
+
+				hist->reset();
+			}
+		}
+			//
+			//
+			//
+			//
 			////////////////////////////////////////////////
 			// End of sampling loop                       //
 			////////////////////////////////////////////////
 
 			//pthread_mutex_unlock (&mpi_mutex);
-		}
 
-		if (global->local_rank == 0) {
-			char hist_fname[100];
-			sprintf (hist_fname, "hist_data/hist_%d.txt", global->window_index);
-			FILE *hist_file = fopen (hist_fname, "w");
-			hist->write(hist_file);
-
-			char stats_fname[100];
-			sprintf (stats_fname, "window_stats/stats_%d.txt", global->window_index);
-			FILE *stats_file = fopen (stats_fname, "w");
-			hist->write_stats(stats_file);
-		}
 		delete lmp; // Needs to be alive for extraction!
 		delete parser;
 
