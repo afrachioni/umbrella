@@ -422,8 +422,6 @@ int main(int narg, char **arg)
 
 			//pthread_mutex_unlock (&mpi_mutex);
 		}
-		//if (me == 0)
-			//fclose (random_file);
 
 		if (global->local_rank == 0) {
 			char hist_fname[100];
@@ -437,6 +435,7 @@ int main(int narg, char **arg)
 			hist->write_stats(stats_file);
 		}
 		delete lmp; // Needs to be alive for extraction!
+		delete parser;
 
 		if (global->global_rank == 0) {
 			int64_t walltime = Logger::get_time() - start_time;

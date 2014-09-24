@@ -37,13 +37,9 @@ Parser::Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp, Global *global) {
 };
 
 Parser::~Parser() {
-	// XXX can't figure out why this throws a segmentation fault./
-	//std::vector<std::string> *s;
-	//for (std::map<std::string, UmbrellaStep>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
-		//fprintf (stderr, "Deleting UmbrellaStep: %s\n", it->first.c_str());
-		//delete &(it->second);
-	//}
-		//delete &steps_map;
+	std::map<std::string, UmbrellaStep*>::iterator it;
+	for (it = steps_map.begin(); it != steps_map.end(); ++it)
+		delete (it->second);
 };
 
 void Parser::parse() {
@@ -129,7 +125,7 @@ void Parser::parse() {
 					}
 					s = new BarostatStep (lmp, d, third_token, global, press);
 				} else
-					s = new UmbrellaStep (lmp, d, third_token, global); // TODO when does this die?
+					s = new UmbrellaStep (lmp, d, third_token, global);
 				steps_map[third_token] = s;
 
 			} else if (strcmp (second_token, "parameter") == 0) {
