@@ -440,9 +440,9 @@ int main(int narg, char **arg)
 		if (global->global_rank == 0) {
 			int64_t walltime = Logger::get_time() - start_time;
 			fprintf (stdout, "Finished sampling\n");
-			fprintf (stdout, "Walltime / s: %" PRId64 "\n", walltime/60);
-			fprintf (stdout, "Sample frequency * s: %f\n", \
-				((float) p->count*60)/walltime);
+			fprintf (stdout, "Walltime / s: %" PRId64 "\n", walltime/1000);
+			fprintf (stdout, "Mean sample period / s: %e\n", \
+				walltime/((float) p->count*1000));
 			fprintf (stdout, "Acceptance rate among volume moves: %f\n",
 					BarostatStep::get_rate());
 		}
