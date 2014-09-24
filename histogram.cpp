@@ -3,6 +3,7 @@
 
 #include "histogram.h"
 
+#include "global.h"
 #include "umbrella_parameter.h"
 
 Histogram::Histogram (int nbins, double min, double max) {
@@ -48,7 +49,9 @@ int Histogram::update (double val) {
 }
 
 int Histogram::update() {
-	// TODO error if p == NULL
+	if (p == NULL)
+		Global::get_instance()->abort("Histogram::update() called without "
+				"parameter set (should not happen)");
 	return update (p->get_last_accepted_value());
 }
 
