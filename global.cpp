@@ -4,6 +4,20 @@
 
 #define printmsg(...) if (global_rank == 0) fprintf(stdout, __VA_ARGS__);
 
+// static
+Global *Global::instance = NULL;
+
+// static
+Global* Global::get_instance() {
+	return instance;
+}
+
+// static
+void Global::init (MPI_Comm world, int num_windows) {
+	instance = new Global (world, num_windows);
+	instance->split();
+}
+
 Global::Global (MPI_Comm world, int num_windows) {
 	this->world = world;
 	this->num_windows = num_windows;

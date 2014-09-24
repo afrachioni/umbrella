@@ -3,9 +3,14 @@
 
 #include <mpi.h>
 
+// This is a singleton, mostly to protect me from my own future stupidity.
+// Fields cannot be accessed without a copy of the instance, the interface to 
+// which is NULL until the init method is called.
+
 class Global {
 	public:
-		Global (MPI_Comm world, int num_windows);
+		static Global *get_instance();
+		static void init (MPI_Comm world, int num_windows);
 		int nprocs;
 		int global_rank;
 		int local_rank;
@@ -20,5 +25,10 @@ class Global {
 		void abort(char *message);
 		void warn(char *message);
 		void debug (char *message);
+	private:
+		static Global *instance;
+		Global (MPI_Comm world, int num_windows);
+		Global (Global const&); // Make no copies! (Not implemented.)
+		void operator = (Global const&); // Or assignments.
 };
 #endif

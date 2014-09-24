@@ -108,8 +108,8 @@ int main(int narg, char **arg)
 		}
 
 		// Split MPI_COMM_WORLD into windows
-		Global *global = new Global (MPI_COMM_WORLD, p->windows);
-		global->split();
+		Global::init (MPI_COMM_WORLD, p->windows);
+		Global *global = Global::get_instance();
 
 		// Warn about hardcoded integrate accept/reject as global
 		//global->warn("Temperature hardcoded to 10K");
