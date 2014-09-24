@@ -258,10 +258,10 @@ int main(int narg, char **arg)
 		int local_accept_count = 0;
 
 
-		//FILE *random_file;
-		//if (me == 0)
-			//random_file = fopen ("random_numbers.txt", "w");
-
+		mkdir ("hist_data/", S_IRWXU);
+		sprintf (line, "hist_data/window_%d", global->window_index);
+		mkdir ("window_stats/", S_IRWXU);
+		sprintf (line, "window_stats/window_%d", global->window_index);
 
 		printmsg ("Samples away!\n\n");
 		//Q6_old is most recently accepted Q6
@@ -420,12 +420,12 @@ int main(int narg, char **arg)
 			//
 			if (global->local_rank == 0 && i % 10000 == 0 && i > 0)  {
 				char hist_fname[100];
-				sprintf (hist_fname, "hist_data/hist_%d_%d.txt", global->window_index, i);
+				sprintf (hist_fname, "hist_data/window_%d/hist_%d.txt", global->window_index, i);
 				FILE *hist_file = fopen (hist_fname, "w");
 				hist->write(hist_file);
 
 				char stats_fname[100];
-				sprintf (stats_fname, "window_stats/stats_%d_%d.txt", global->window_index, i);
+				sprintf (stats_fname, "window_stats/window_%d/stats_%d.txt", global->window_index, i);
 				FILE *stats_file = fopen (stats_fname, "w");
 				hist->write_stats(stats_file);
 
