@@ -110,6 +110,7 @@ int main(int narg, char **arg)
 		// Split MPI_COMM_WORLD into windows
 		Global::init (MPI_COMM_WORLD, p->windows);
 		Global *global = Global::get_instance();
+		srand(me);
 
 		// Warn about hardcoded integrate accept/reject as global
 		//global->warn("Temperature hardcoded to 10K");
@@ -258,10 +259,12 @@ int main(int narg, char **arg)
 		int local_accept_count = 0;
 
 
-		mkdir ("hist_data/", S_IRWXU);
+		mkdir ("hist_data", S_IRWXU);
 		sprintf (line, "hist_data/window_%d", global->window_index);
-		mkdir ("window_stats/", S_IRWXU);
+		mkdir (line, S_IRWXU);
+		mkdir ("window_stats", S_IRWXU);
 		sprintf (line, "window_stats/window_%d", global->window_index);
+		mkdir (line, S_IRWXU);
 
 		printmsg ("Samples away!\n\n");
 		//Q6_old is most recently accepted Q6
