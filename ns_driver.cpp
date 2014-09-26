@@ -165,7 +165,7 @@ int main(int narg, char **arg)
 		// Set up histogram on first parameter (bit of a hack for now)
 		global->debug ((char*)"Name of zeroeth param, presently hardcoded to histogram:");
 		global->debug (parser->param_ptrs[0]->param_vname);
-		Histogram *hist = new Histogram (1000, 1, 3.50, parser->param_ptrs[0]);
+		Histogram *hist = new Histogram (1000, 1*3.4, 3.5*3.4, parser->param_ptrs[0]);
 
 		// Execute global window init
 		parser->execute_init();
