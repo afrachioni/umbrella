@@ -166,6 +166,7 @@ int main(int narg, char **arg)
 		global->debug ((char*)"Name of zeroeth param, presently hardcoded to histogram:");
 		global->debug (parser->param_ptrs[0]->param_vname);
 		Histogram *hist = new Histogram (1000, 1*3.4, 3.5*3.4, parser->param_ptrs[0]);
+		//Histogram *hist = new Histogram (50, -1.5, 1.5, parser->param_ptrs[0]);
 
 		// Execute global window init
 		parser->execute_init();
@@ -450,12 +451,13 @@ int main(int narg, char **arg)
 
 		if (global->global_rank == 0) {
 			int64_t walltime = Logger::get_time() - start_time;
-			fprintf (stdout, "Finished sampling\n");
+			fprintf (stdout, "Root window has finished sampling.\n");
 			fprintf (stdout, "Walltime / s: %" PRId64 "\n", walltime/1000);
 			fprintf (stdout, "Mean sample period / s: %e\n", \
 				walltime/((float) p->count*1000));
 			fprintf (stdout, "Acceptance rate among volume moves: %f\n",
 					BarostatStep::get_rate());
+			fprintf (stdout, "Waiting for other windows...\n");
 		}
 		MPI_Finalize();
 }
