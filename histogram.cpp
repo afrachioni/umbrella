@@ -65,6 +65,14 @@ double Histogram::get_standard_deviation() {
 }
 
 void Histogram::write (FILE *f) {
+	fprintf (f, "# Histogram for window of index %d\n", Global::get_instance()->window_index);
+	fprintf (f, "# Target:\t%f\n", p->extract_target());
+	fprintf (f, "# Spring:\t%f\n", p->extract_spring());
+	fprintf (f, "# Min: %f\n", min);
+	fprintf (f, "# Max: %f\n", max);
+	fprintf (f, "# Bins: %d\n", nbins);
+	fprintf (f, "# Width: %d\n", bin_width);
+	fprintf (f, "#\n");
 	// Write index|count|center
 	for (int i = 0; i < nbins; ++i)
 		if (hist[i])

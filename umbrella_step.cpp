@@ -105,7 +105,7 @@ void UmbrellaStep::execute_block (LAMMPS_NS::LAMMPS *lmp, std::vector<std::strin
 
 		} else if (strcmp (block[i].c_str(), "GET_TYPES") == 0) {
 			if (!get_types_called) {
-				lmp->input->one ("run 0");
+				lmp->input->one ("run 0"); //XXX why?
 				types_buffer = new int[lmp->atom->natoms];
 				get_types_called = 1;
 			}
