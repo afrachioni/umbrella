@@ -30,6 +30,7 @@ Histogram::~Histogram () {
 }
 
 void Histogram::set_filename (char *filename) {
+	this->filename = new char[100];
 	strcpy (this->filename, filename);
 }
 
@@ -40,6 +41,7 @@ void Histogram::write(unsigned step_index) {
 	char window_index_string[100];
 	sprintf (window_index_string, "%d", Global::get_instance()->window_index);
 	std::string filename_str (filename);
+
 	size_t star_pos = filename_str.find ("*"); // TODO loop for multiple stars?
 	if (star_pos != std::string::npos)
 		filename_str.replace(star_pos, 1, step_index_string);

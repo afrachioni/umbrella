@@ -57,6 +57,7 @@ void Parser::parse() {
 	char fifth_token[MAX_TOKEN_SIZE];
 	char sixth_token[MAX_TOKEN_SIZE];
 	char seventh_token[MAX_TOKEN_SIZE];
+	char eighth_token[MAX_TOKEN_SIZE];
 	UmbrellaParameter *p;
 
 
@@ -103,8 +104,9 @@ void Parser::parse() {
 		line = file_data + i * max_line_length;
 		Parser::process_brackets (line);
 		length = strlen (line);//move inside?
-		n = sscanf (line, "%s %s %s %s %s %s %s", first_token, second_token, \
-				third_token, fourth_token, fifth_token, sixth_token, seventh_token);//move inside?
+		n = sscanf (line, "%s %s %s %s %s %s %s %s", first_token, second_token, \
+				third_token, fourth_token, fifth_token, sixth_token, \
+				seventh_token, eighth_token);//move inside?
 		if (strcmp (first_token, "#AF") == 0 && n > 0) {
 			if (n == 1) {
 				fprintf (stderr, "Parse error: empty directive at line %d.\n", i);
@@ -189,19 +191,25 @@ void Parser::parse() {
 						p = &*it; // No, not quite equivalent to 'it'.
 				}
 				if (p == NULL) {
-					fprintf (stderr, "Unable to locate parameter named \'%s\' "
-							"for histogram! (line %d)\n", third_token, i);
-					break;
+					sprintf (line, "Unable to locate parameter named \'%s\' "
+							"for histogram! (line %d)", third_token, i);
+					Global::get_instance()->abort(line);
 				}
 				float min = std::strtof(fourth_token, &e);
 				float max = std::strtof(fifth_token, &e);
 				int num = (int) std::strtoul(sixth_token, &e, 0);
 				int period = (int) std::strtoul(seventh_token, &e, 0);
 				if (*e != 0) {
-					fprintf (stderr, "Error parsing histogram options! (line %d)\n", i);
-					break;
+					// TODO line is off by one in printed message
+					sprintf (line, "Error parsing histogram options! (line %d)", i);
+					Global::get_instance()->abort(line);
 				}
+				Global::get_instance()->debug("creating histogram");
 				Histogram *h = new Histogram (num, min, max, period, p); //TODO die
+				Global::get_instance()->debug("setting filename to:");
+				Global::get_instance()->debug(eighth_token);
+				h->set_filename(eighth_token); //TODO make sure this exists
+				Global::get_instance()->debug("pushing to vector");
 				histograms.push_back(h);
 				
 

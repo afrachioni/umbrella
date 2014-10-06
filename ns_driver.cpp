@@ -165,7 +165,7 @@ int main(int narg, char **arg)
 		// Set up histogram on first parameter (bit of a hack for now)
 		global->debug ((char*)"Name of zeroeth param, presently hardcoded to histogram:");
 		global->debug (parser->param_ptrs[0]->param_vname);
-		Histogram *hist = new Histogram (1000, 1*3.4, 3.5*3.4, 1, parser->param_ptrs[0]);
+		//Histogram *hist = new Histogram (1000, 1*3.4, 3.5*3.4, 1, parser->param_ptrs[0]);
 		//Histogram *hist = new Histogram (2000, 0, 20, parser->param_ptrs[0]);
 		//Histogram *hist = new Histogram (2000, 1, 8, parser->param_ptrs[0]);
 		//Histogram *hist = new Histogram (50, -1.5, 1.5, parser->param_ptrs[0]);
@@ -418,28 +418,34 @@ int main(int narg, char **arg)
 
 			// Write things down
 			logger->step_taken (i, steptype, accept || UmbrellaStep::force_accept);
-			hist->update();
+			//hist->update();
 
 			for (std::vector<Histogram *>::iterator it = parser->histograms.begin();
-					it != parser->histograms.end(); ++it)
-				(*it)->update(i);
+					it != parser->histograms.end(); ++it) {
+				(*it)->update();
+				(*it)->write(i); //TODO make this better
+			}
 
 			if (UmbrellaStep::force_accept)
 				UmbrellaStep::force_accept = 0;
 			//
 			//
 			if (global->local_rank == 0 && i % 10000 == 0 && i > 0)  {
+				/*
 				char hist_fname[100];
 				sprintf (hist_fname, "hist_data/window_%d/hist_%d.txt", global->window_index, i);
 				FILE *hist_file = fopen (hist_fname, "w");
 				hist->write(hist_file);
+				*/
 
+				/*
 				char stats_fname[100];
 				sprintf (stats_fname, "window_stats/window_%d/stats_%d.txt", global->window_index, i);
 				FILE *stats_file = fopen (stats_fname, "w");
 				hist->write_stats(stats_file);
 
 				hist->reset();
+				*/
 			}
 		}
 			//
