@@ -6,19 +6,20 @@
 #include "global.h"
 #include "umbrella_parameter.h"
 
-Histogram::Histogram (int nbins, double min, double max) {
-	init (nbins, min, max);
+Histogram::Histogram (int nbins, double min, double max, unsigned period) {
+	init (nbins, min, max, period);
 }
 
-Histogram::Histogram (int nbins, double min, double max, UmbrellaParameter *p) {
-	init (nbins, min, max);
+Histogram::Histogram (int nbins, double min, double max, unsigned period, UmbrellaParameter *p) {
+	init (nbins, min, max, period);
 	this->p = p;
 }
 
-void Histogram::init(int nbins, double min, double max) {
+void Histogram::init(int nbins, double min, double max, unsigned period) {
 	this->nbins = nbins;
 	this->min = min;
 	this->max = max;
+	this->period = period;
 	this->bin_width = (max - min) / nbins;
 	hist = new unsigned[nbins];
 	reset();
@@ -26,6 +27,27 @@ void Histogram::init(int nbins, double min, double max) {
 
 Histogram::~Histogram () {
 	delete [] hist;
+}
+
+void Histogram::set_filename (char *filename) {
+	strcpy (this->filename, filename);
+}
+
+void Histogram::write(unsigned step_index) {
+	if (step_index % period) return;
+	char step_index_string[100];
+	sprintf (step_index_string, "%d", step_index);
+	char window_index_string[100];
+	sprintf (window_index_string, "%d", Global::get_instance()->window_index);
+	std::string filename_str (filename);
+	size_t star_pos = filename_str.find ("*"); // TODO loop for multiple stars?
+	if (star_pos != std::string::npos)
+		filename_str.replace(star_pos, 1, step_index_string);
+	size_t percent_pos = filename_str.find ("%");
+	if (percent_pos != std::string::npos)
+		filename_str.replace (percent_pos, 1, window_index_string);
+	FILE *f = fopen (filename_str.c_str(), "w"); // TODO check error
+	write (f);
 }
 
 void Histogram::reset () {
@@ -71,7 +93,7 @@ void Histogram::write (FILE *f) {
 	fprintf (f, "# Min: %f\n", min);
 	fprintf (f, "# Max: %f\n", max);
 	fprintf (f, "# Bins: %d\n", nbins);
-	fprintf (f, "# Width: %d\n", bin_width);
+	fprintf (f, "# Width: %f\n", bin_width);
 	fprintf (f, "#\n");
 	// Write index|count|center
 	for (int i = 0; i < nbins; ++i)

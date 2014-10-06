@@ -178,10 +178,33 @@ void Parser::parse() {
 					fprintf (stderr, "Not an integer! (line %d)\n", i);
 					break;
 				}
-				PeriodicTask *pt = new PeriodicTask (lmp, p, global);
+				PeriodicTask *pt = new PeriodicTask (lmp, p, global); //TODO die
 				current_block = pt->get_task_block();
 				tasks.push_back(pt);
 				// Special tasks which get intercepted before LAMMPS
+			} else if (strcmp (second_token, "histogram") == 0) {
+				UmbrellaParameter *p = NULL;
+				for (std::vector<UmbrellaParameter>::iterator it = params.begin(); it != params.end(); ++it) {
+					if (strcmp (third_token, it->param_vname) == 0)
+						p = &*it; // No, not quite equivalent to 'it'.
+				}
+				if (p == NULL) {
+					fprintf (stderr, "Unable to locate parameter named \'%s\' "
+							"for histogram! (line %d)\n", third_token, i);
+					break;
+				}
+				float min = std::strtof(fourth_token, &e);
+				float max = std::strtof(fifth_token, &e);
+				int num = (int) std::strtoul(sixth_token, &e, 0);
+				int period = (int) std::strtoul(seventh_token, &e, 0);
+				if (*e != 0) {
+					fprintf (stderr, "Error parsing histogram options! (line %d)\n", i);
+					break;
+				}
+				Histogram *h = new Histogram (num, min, max, period, p); //TODO die
+				histograms.push_back(h);
+				
+
 			} else if (strcmp (second_token, "get_positions") == 0) {
 				strcpy (line, "GET_ATOMS");
 			} else if (strcmp (second_token, "put_positions") == 0) {

@@ -11,6 +11,7 @@
 #include "umbrella_step.h"
 #include "umbrella_parameter.h"
 #include "periodic_task.h"
+#include "histogram.h"
 
 class Parser {
 	public:
@@ -24,7 +25,8 @@ class Parser {
 
 		int nparams;
 		UmbrellaParameter **param_ptrs;
-		std::vector<PeriodicTask*> tasks;
+		std::vector<PeriodicTask*> tasks; // XXX these can be bare objects, I think
+		std::vector<Histogram*> histograms;
 
 		int bias_every;
 

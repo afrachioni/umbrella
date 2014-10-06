@@ -165,7 +165,7 @@ int main(int narg, char **arg)
 		// Set up histogram on first parameter (bit of a hack for now)
 		global->debug ((char*)"Name of zeroeth param, presently hardcoded to histogram:");
 		global->debug (parser->param_ptrs[0]->param_vname);
-		Histogram *hist = new Histogram (1000, 1*3.4, 3.5*3.4, parser->param_ptrs[0]);
+		Histogram *hist = new Histogram (1000, 1*3.4, 3.5*3.4, 1, parser->param_ptrs[0]);
 		//Histogram *hist = new Histogram (2000, 0, 20, parser->param_ptrs[0]);
 		//Histogram *hist = new Histogram (2000, 1, 8, parser->param_ptrs[0]);
 		//Histogram *hist = new Histogram (50, -1.5, 1.5, parser->param_ptrs[0]);
@@ -419,6 +419,10 @@ int main(int narg, char **arg)
 			// Write things down
 			logger->step_taken (i, steptype, accept || UmbrellaStep::force_accept);
 			hist->update();
+
+			for (std::vector<Histogram *>::iterator it = parser->histograms.begin();
+					it != parser->histograms.end(); ++it)
+				(*it)->update(i);
 
 			if (UmbrellaStep::force_accept)
 				UmbrellaStep::force_accept = 0;
