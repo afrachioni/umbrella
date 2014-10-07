@@ -424,6 +424,7 @@ int main(int narg, char **arg)
 					it != parser->histograms.end(); ++it) {
 				(*it)->update();
 				(*it)->write(i); //TODO make this better
+				(*it)->reset();
 			}
 
 			if (UmbrellaStep::force_accept)
