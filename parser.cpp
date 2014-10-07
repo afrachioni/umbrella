@@ -58,7 +58,6 @@ void Parser::parse() {
 	char sixth_token[MAX_TOKEN_SIZE];
 	char seventh_token[MAX_TOKEN_SIZE];
 	char eighth_token[MAX_TOKEN_SIZE];
-	UmbrellaParameter *p;
 
 
 	int me;
@@ -141,8 +140,8 @@ void Parser::parse() {
 					global->abort (msg);
 				}
 
-				p = new UmbrellaParameter (third_token + 2, fourth_token, fifth_token, lmp, is_compute);
-				params.push_back (*p);
+				UmbrellaParameter *p = new UmbrellaParameter (third_token + 2, fourth_token, fifth_token, lmp, is_compute);
+				params.push_back (p);
 
 			} else if (strcmp (second_token, "bias_every") == 0) {
 				bias_every = (int) std::strtol(third_token, &e, 0);
@@ -186,9 +185,9 @@ void Parser::parse() {
 				// Special tasks which get intercepted before LAMMPS
 			} else if (strcmp (second_token, "histogram") == 0) {
 				UmbrellaParameter *p = NULL;
-				for (std::vector<UmbrellaParameter>::iterator it = params.begin(); it != params.end(); ++it) {
-					if (strcmp (third_token, it->param_vname) == 0)
-						p = &*it; // No, not quite equivalent to 'it'.
+				for (std::vector<UmbrellaParameter *>::iterator it = params.begin(); it != params.end(); ++it) {
+					if (strcmp (third_token, (*it)->param_vname) == 0)
+						p = *it; // No, not quite equivalent to 'it'.
 				}
 				if (p == NULL) {
 					sprintf (line, "Unable to locate parameter named \'%s\' "
@@ -204,12 +203,8 @@ void Parser::parse() {
 					sprintf (line, "Error parsing histogram options! (line %d)", i);
 					Global::get_instance()->abort(line);
 				}
-				Global::get_instance()->debug("creating histogram");
 				Histogram *h = new Histogram (num, min, max, period, p); //TODO die
-				Global::get_instance()->debug("setting filename to:");
-				Global::get_instance()->debug(eighth_token);
 				h->set_filename(eighth_token); //TODO make sure this exists
-				Global::get_instance()->debug("pushing to vector");
 				histograms.push_back(h);
 				
 
@@ -255,7 +250,7 @@ void Parser::parse() {
 	nparams = params.size();
 	param_ptrs = new UmbrellaParameter *[nparams];
 	for (int i = 0; i < nparams; ++i)
-		param_ptrs[i] = & params[i];
+		param_ptrs[i] = params[i];
 }
 
 void Parser::process_brackets(char *line) {
@@ -365,5 +360,5 @@ void Parser::print() {
 	}
 	fprintf (stdout, "Defined parameters:\n");
 	for (unsigned j = 0; j < params.size(); ++j)
-		fprintf (stdout, "\t%s\n", params[j].param_vname);
+		fprintf (stdout, "\t%s\n", params[j]->param_vname);
 }
