@@ -90,13 +90,20 @@ double Histogram::get_standard_deviation() {
 
 void Histogram::write (FILE *f) {
 	fprintf (f, "# Histogram for window of index %d\n", Global::get_instance()->window_index);
-	fprintf (f, "# Target:\t%f\n", p->extract_target());
-	fprintf (f, "# Spring:\t%f\n", p->extract_spring());
-	fprintf (f, "# Min: %f\n", min);
-	fprintf (f, "# Max: %f\n", max);
-	fprintf (f, "# Bins: %d\n", nbins);
-	fprintf (f, "# Width: %f\n", bin_width);
+	fprintf (f, "# Target:     \t%f\n", p->extract_target());
+	fprintf (f, "# Spring:     \t%f\n", p->extract_spring());
+	fprintf (f, "# KT:         \t%d\n", 1); //XXX
+	fprintf (f, "# Samples:    \t%d\n", num_samples);
+	fprintf (f, "# Mean:       \t%f\n", get_mean());
+	fprintf (f, "# SD:         \t%f\n", get_standard_deviation());
+	fprintf (f, "# Sum:        \t%f\n", sum);
+	fprintf (f, "# Sum_squares:\t%f\n", sum_squares);
+	fprintf (f, "# Min:        \t%f\n", min);
+	fprintf (f, "# Max:        \t%f\n", max);
+	fprintf (f, "# Bins:       \t%d\n", nbins);
+	fprintf (f, "# Width:      \t%f\n", bin_width);
 	fprintf (f, "#\n");
+	fprintf (f, "#index	count	center\n");
 	// Write index|count|center
 	for (int i = 0; i < nbins; ++i)
 		if (hist[i])
