@@ -78,6 +78,7 @@ void Global::split() {
 void Global::abort(char *message) {
 	if (global_rank == 0) {
 		fprintf (stderr, "\033[31m\n");
+		// TODO N equal signs
 		fprintf (stderr, \
 		"======================================"
 		"=====================================\n");
@@ -88,7 +89,7 @@ void Global::abort(char *message) {
 		fprintf (stderr, "\033[0m\n");
 		fprintf (stderr, "\nKilling %d processes...\n\n", nprocs);
 	}
-	MPI_Barrier (MPI_COMM_WORLD);
+	MPI_Barrier (MPI_COMM_WORLD); //TODO why is this here?  I think any process can call this alone.
 	MPI_Abort (MPI_COMM_WORLD, 1);
 }
 
