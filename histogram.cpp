@@ -34,6 +34,7 @@ void Histogram::set_filename (char *filename) {
 	strcpy (this->filename, filename);
 }
 
+// TODO check for possible segfault if histogram empty
 void Histogram::write(unsigned step_index) {
 	if (step_index % period) return;
 	char step_index_string[100];
@@ -50,6 +51,7 @@ void Histogram::write(unsigned step_index) {
 		filename_str.replace (percent_pos, 1, window_index_string);
 	FILE *f = fopen (filename_str.c_str(), "w"); // TODO check error
 	write (f);
+	reset();
 }
 
 void Histogram::reset () {
