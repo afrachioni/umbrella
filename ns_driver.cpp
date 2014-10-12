@@ -381,10 +381,6 @@ int main(int narg, char **arg)
 */
 			accept_rand = (float) rand() / RAND_MAX;
 //#endif
-			//if (me == 0)
-				//fprintf (random_file, "%f\n", accept_rand);
-
-
 			accept = log (accept_rand) < log_boltzmann;
 			MPI_Bcast (&accept, 1, MPI_INT, 0, global->local_comm);
 
@@ -401,15 +397,9 @@ int main(int narg, char **arg)
 				// XXX Debug, experimental
 				parser->steps_map["integrate"]->execute_accept();
 				for (int j = 0; j < parser->nparams; ++j) {
-					//(parser->param_ptrs)[j]->notify_accepted_debug(logger);
 					(parser->param_ptrs)[j]->notify_accepted();
 				}
 			} else {
-
-				//for (int j = 0; j < parser->nparams; ++j)
-				//(parser->param_ptrs)[j]->notify_rejected_debug(logger);
-
-				//global->debug ("\t\t\t\t\tREJECT");
 				//chosen_step->execute_reject();  // TODO switch this to a global reject iff bias_every > 1
 
 				// XXX Debug, experimental
@@ -418,7 +408,6 @@ int main(int narg, char **arg)
 
 			// Write things down
 			logger->step_taken (i, steptype, accept || UmbrellaStep::force_accept);
-			//hist->update();
 
 			for (std::vector<Histogram *>::iterator it = parser->histograms.begin();
 					it != parser->histograms.end(); ++it) {
@@ -428,25 +417,6 @@ int main(int narg, char **arg)
 
 			if (UmbrellaStep::force_accept)
 				UmbrellaStep::force_accept = 0;
-			//
-			//
-			if (global->local_rank == 0 && i % 10000 == 0 && i > 0)  {
-				/*
-				char hist_fname[100];
-				sprintf (hist_fname, "hist_data/window_%d/hist_%d.txt", global->window_index, i);
-				FILE *hist_file = fopen (hist_fname, "w");
-				hist->write(hist_file);
-				*/
-
-				/*
-				char stats_fname[100];
-				sprintf (stats_fname, "window_stats/window_%d/stats_%d.txt", global->window_index, i);
-				FILE *stats_file = fopen (stats_fname, "w");
-				hist->write_stats(stats_file);
-
-				hist->reset();
-				*/
-			}
 		}
 			//
 			//
