@@ -269,7 +269,7 @@ void Parser::process_brackets(char *line) {
 	for (i = 0; i < n; ++i)
 		if (line[i] == '@') {
 			if (window_len > 1)
-				for (j = n; j > i + 1; --j)
+				for (j = n; j > i; --j)
 					line[j + window_len - 1] = line[j];
 			// TODO error if line gets overrun
 			for (j = 0; j < window_len; ++j)
