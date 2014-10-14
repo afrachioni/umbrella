@@ -104,7 +104,8 @@ int main(int narg, char **arg)
 		if (p->parse_error) {
 			if (me == 0)
 				fprintf (stdout, "Command line errors present, exiting...\n");
-			MPI_Abort (MPI_COMM_WORLD, 1);//TODO
+			MPI_Finalize ();
+			return 0;
 		}
 
 		// Split MPI_COMM_WORLD into windows
@@ -442,4 +443,5 @@ int main(int narg, char **arg)
 			fprintf (stdout, "Waiting for other windows...\n");
 		}
 		MPI_Finalize();
+		return 0;
 }
