@@ -355,36 +355,13 @@ int main(int narg, char **arg)
 
 			// Add up Boltzmann factors
 			log_boltzmann = 0;
-			double boltzmann_delta = 0;
-			for (int j = 0; j < parser->nparams; ++j) {
-
-				//log_boltzmann += (parser->param_ptrs)[j]->compute_boltzmann_factor();
-				boltzmann_delta = (parser->param_ptrs)[j]->compute_boltzmann_factor();
-				log_boltzmann += boltzmann_delta;
-
-				sprintf (line, "%f", boltzmann_delta);
-				//logger->comment(line);
-				if (i == 5 && me == 0) {
-					global->debug( (parser->param_ptrs)[j]->param_vname);
-					global->debug(line);
-				}
-			}
-			if (i == 5 && me == 0) {
-				sprintf (line, "%f", log_boltzmann);
-				global->debug(line);
-			}
+			for (int j = 0; j < parser->nparams; ++j)
+				log_boltzmann += (parser->param_ptrs)[j]->compute_boltzmann_factor();
 
 			// Compute acceptance
-/*
-#ifdef RANDOM
-			accept_rand = distribution(generator);
-#else
-*/
 			accept_rand = (float) rand() / RAND_MAX;
-//#endif
 			accept = log (accept_rand) < log_boltzmann;
 			MPI_Bcast (&accept, 1, MPI_INT, 0, global->local_comm);
-
 
 			// Act accordingly
 			++local_count;
