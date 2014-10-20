@@ -5,15 +5,15 @@
 
 class Quantity {
 	public:
-		Quantity::Quantity(char *q, LAMMPS *lmp);
-		double Quantity::get_value();
-		bool Quantity::is_constant();
-		bool Quantity::is_valid();
+		Quantity(char *q, LAMMPS_NS::LAMMPS *lmp);
+		double get_value();
+		bool is_constant();
+		bool is_valid();
 
 	private:
-		LAMMPS *lmp;
+		LAMMPS_NS::LAMMPS *lmp;
 		char name[100];
-		bool is_compute, is_variable, is_valid;
+		bool compute, variable, valid;
 		double constant;
 };
 #endif
