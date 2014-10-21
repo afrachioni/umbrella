@@ -19,6 +19,7 @@ help:
 	@echo ''
 	@files="`ls MAKE/Makefile.*`"; \
 		for file in $$files; do head -1 $$file; done
+	@echo ''
 
 clean:
 	@echo 'make clean-all           delete all object files'
