@@ -1,19 +1,23 @@
-CXX = mpic++
-CPPFLAGS = 
-INC = -I ~/myLAMMPS_2/src -I ~/myLAMMPS_2/lib/meam
-LIB_PATHS = -L ~/myLAMMPS_2/src -L ~/myLAMMPS_2/lib/meam
-LIBS = -llammps_vulcan -lmeam -lifcore -lsvml -limf
-SRC = $(wildcard *.cpp)
-OBJ = $(SRC:%.cpp=%.o)
+EXE = driver_$@
+#vpath %.cpp ..
+#vpath %.h ..
+#SRC = $(wildcard *.cpp)
+#INC = $(wildcard *.h)
+#OBJ = $(SRC:.cpp=.o)
+#"OBJ = $(OBJ)" "SRC = $(SRC)"
 
-%.d: %.cpp
-	$(CXX) -M $(CPPFLAGS) $(INC) $< -MF $@
+.DEFAULT:
+	@test -f MAKE/Makefile.$@
+	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
+	@cp MAKE/Makefile.$@ Obj_$@
+	@cd Obj_$@; $(MAKE) $(MFLAGS) -f Makefile.$@ $@
 
-%.o : %.cpp 
-	$(CXX) $(CPPFLAGS) $(INC) -c $< -o $@
--include $(SRC:%.cpp=%.d)
+clean:
+	@echo 'make clean-all           delete all object files'
+	@echo 'make clean-machine       delete object files for one machine'
 
-driver_vulcan: $(OBJ)
-	$(CXX) $(LIB_PATHS) $(OBJ) $(LIBS) -o $@
+clean-all:
+	rm -rf Obj_*
 
-vulcan: driver_vulcan
+clean-%:
+	rm -rf Obj_$(@:clean-%=%)
