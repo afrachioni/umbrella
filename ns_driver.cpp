@@ -310,7 +310,7 @@ int main(int narg, char **arg)
 			chosen_step->execute_step();
 
 			// Skip bias if necessary
-			if (i % parser->bias_every || 0) {
+			if (i % parser->bias_every || 0)
 				continue;
 
 			// Add up Boltzmann factors

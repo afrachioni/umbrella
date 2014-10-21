@@ -1,0 +1,17 @@
+# anthony: Anthony's Samsung laptop, GCC + OpenMPI
+#
+CXX = mpic++
+CXXFLAGS = -O3
+LAMMPS_INC = -I ~/myLAMMPS_2/src -I ~/myLAMMPS_2/lib/meam
+LAMMPS_LIB = -L ~/myLAMMPS_2/src -L ~/myLAMMPS_2/lib/meam
+LIBS = -llammps_anthony -lmeam -lgfortran
+
+%.d: ../%.cpp
+	$(CXX) -M $(CPPFLAGS) $(LAMMPS_INC) $< -MF $@
+
+%.o : ../%.cpp 
+	$(CXX) $(CPPFLAGS) $(LAMMPS_INC) -c $< -o $@
+-include $(SRC:%.cpp=%.d)
+
+../driver_$(TARGET): $(OBJ)
+	$(CXX) $(LAMMPS_LIB) $(OBJ) $(LIBS) -o $@
