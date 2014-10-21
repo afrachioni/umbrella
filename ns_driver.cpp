@@ -23,8 +23,6 @@
 
 #define VERSION "13.12.11.0"
 #define DEBUG 1
-#define MAX_FNAME_LENGTH 500
-#define DUMP_EVERY_STEPS 100
 
 // Command line options parser
 #include "cl_parser.h"
@@ -64,15 +62,6 @@
 #include <sys/time.h>
 #include <sys/stat.h> //mkdir needs this
 #include <sys/types.h> //and this too
-
-/*
-#ifdef RANDOM
-#include<random>
-#else
-#warning "Using rand() for random numbers.  Complie with \
--DRANDOM to use random features of the C++11 standard library."
-#endif
-*/
 
 #define printmsg(...) if (global->global_rank == 0) fprintf(stdout, __VA_ARGS__);
 #define debugmsg(...) if (DEBUG && global->global_rank == 0) fprintf(stdout, __VA_ARGS__);
@@ -162,15 +151,6 @@ int main(int narg, char **arg)
 			lmp->input->one(line);
 		}
 
-		
-		// Set up histogram on first parameter (bit of a hack for now)
-		global->debug ((char*)"Name of zeroeth param, presently hardcoded to histogram:");
-		global->debug (parser->param_ptrs[0]->param_vname);
-		//Histogram *hist = new Histogram (1000, 1*3.4, 3.5*3.4, 1, parser->param_ptrs[0]);
-		//Histogram *hist = new Histogram (2000, 0, 20, parser->param_ptrs[0]);
-		//Histogram *hist = new Histogram (2000, 1, 8, parser->param_ptrs[0]);
-		//Histogram *hist = new Histogram (50, -1.5, 1.5, parser->param_ptrs[0]);
-
 		// Execute global window init
 		parser->execute_init();
 
@@ -183,14 +163,9 @@ int main(int narg, char **arg)
 		lmp->input->one ("variable lu_vol equal vol");
 
 		// Execute per-step initialization blocks
-		for (int i = 0; i < parser->nsteps; ++i) {
+		for (int i = 0; i < parser->nsteps; ++i)
 			if ((parser->steps)[i]->probability)
 				(parser->steps)[i]->execute_init();
-
-			// XXX sneak this in here
-			//if ((parser->steps)[i]->is_barostat)
-				//(parser->steps)[i]->set_logger_debug(logger);
-		}
 
 		//Umbrella definitions
 		double log_boltzmann;
@@ -198,13 +173,6 @@ int main(int narg, char **arg)
 		UmbrellaStep *chosen_step;
 		int steptype;
 		float step_rand, accept_rand;
-
-/*
-#ifdef RANDOM
-		std::default_random_engine generator;
-		std::uniform_real_distribution<float> distribution (0, 1);
-#endif
-*/
 
 		// -----------------------------------------------------------
 		//  All this should get moved to a separate class
@@ -339,19 +307,11 @@ int main(int narg, char **arg)
 			}
 
 			// Execute step
-			sprintf (line, "About to execute step of type %d", steptype);
 			chosen_step->execute_step();
 
-			sprintf (line, "%s", chosen_step->name);
-			//logger->comment(line);
-
 			// Skip bias if necessary
-			if (i % parser->bias_every || 0) { // XXX Debug: never bias
-				//logger->step_taken (i, steptype, 1);
-				//pthread_mutex_unlock (&mpi_mutex);
-				//global->debug("##################### Skipped bias #####################");
+			if (i % parser->bias_every || 0)
 				continue;
-			}
 
 			// Add up Boltzmann factors
 			log_boltzmann = 0;
