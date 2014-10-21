@@ -194,8 +194,8 @@ void Parser::parse() {
 							"for histogram! (line %d)", third_token, i);
 					Global::get_instance()->abort(line);
 				}
-				float min = std::strtof(fourth_token, &e);
-				float max = std::strtof(fifth_token, &e);
+				float min = std::strtod(fourth_token, &e);
+				float max = std::strtod(fifth_token, &e);
 				int num = (int) std::strtoul(sixth_token, &e, 0);
 				int period = (int) std::strtoul(seventh_token, &e, 0);
 				if (*e != 0) {
@@ -261,7 +261,22 @@ void Parser::process_brackets(char *line) {
 	int n = strlen (line);
 	char *left = 0;
 	char *right = 0;
-	int i;
+	int i, j;
+	char window_str[100];  //TODO I suppose it could be overrun
+	sprintf (window_str, "%d", global->window_index);
+	int window_len = strlen (window_str);
+	// TODO maybe do this after brackets
+	for (i = 0; i < n; ++i)
+		if (line[i] == '@') {
+			if (window_len > 1)
+				for (j = n; j > i; --j)
+					line[j + window_len - 1] = line[j];
+			// TODO error if line gets overrun
+			for (j = 0; j < window_len; ++j)
+				line[i + j] = window_str[j];
+		}
+				
+	
 	for (i = 0; i < n - 1; ++i)
 		if (line[i] == '<' && line[i + 1] == '<') {
 			left = &line[i + 2];

@@ -31,9 +31,9 @@ elif [ `hostname | cut -c 1-6` == "c8-2a-" ]; then
 elif [ `hostname | cut -c 1-7` == "SAMSUNG" ]; then
 	echo "Building on Anthony's Samsung laptop under Cygwin"
 	echo " Compiling..."
-	mpicxx -g -fpermissive -I ~/myLAMMPS/src -I ~/myLAMMPS/lib/meam -c *.cpp
+	mpicxx -g -fpermissive -I ~/myLAMMPS_2/src -I ~/myLAMMPS_2/lib/meam -c *.cpp
 	echo " Linking..."
-	mpicxx -g -L ~/myLAMMPS/src -L ~/myLAMMPS/lib/meam ns_driver.o cl_parser.o parser.o umbrella_step.o umbrella_parameter.o logger.o global.o periodic_task.o barostat_step.o -llammps_anthony -lmeam -lgfortran -o driver_anthony
+	mpicxx -g -L ~/myLAMMPS_2/src -L ~/myLAMMPS_2/lib/meam ns_driver.o cl_parser.o parser.o umbrella_step.o umbrella_parameter.o logger.o global.o periodic_task.o barostat_step.o histogram.o -llammps_anthony -lmeam -lgfortran -o driver_anthony
 
 elif [ `hostname | cut -c 7-9` == "scs" ] || [ `hostname | cut -c 7-12` == "vulcan" ]; then
 	#Build on LBL Supercluster
@@ -48,10 +48,10 @@ elif [ `hostname | cut -c 7-9` == "scs" ] || [ `hostname | cut -c 7-12` == "vulc
 	module load fftw
 	module load boost
 	echo " Compiling..."
-	mpic++ -O3 -w2 -I ~/myLAMMPS/src -I ~/myLAMMPS/lib/meam -c *.cpp #-v -da -Q
+	mpic++ -O3 -w2 -I ~/myLAMMPS_2/src -I ~/myLAMMPS_2/lib/meam -c *.cpp #-v -da -Q
 	echo " Linking..."
 # for GNU, we need -gfortran; for Intel, we need -lifcore -lsvml -limf
-	mpic++ -L ~/myLAMMPS/src -L ~/myLAMMPS/lib/meam ns_driver.o cl_parser.o parser.o umbrella_step.o umbrella_parameter.o logger.o global.o periodic_task.o barostat_step.o histogram.o -llammps_vulcan -lmeam -lifcore -lsvml -limf -o driver_vulcan
+	mpic++ -L ~/myLAMMPS_2/src -L ~/myLAMMPS_2/lib/meam ns_driver.o cl_parser.o parser.o umbrella_step.o umbrella_parameter.o logger.o global.o periodic_task.o barostat_step.o histogram.o quantity.o -llammps_vulcan -lmeam -lifcore -lsvml -limf -o driver_vulcan
 # for now, leave management.o out of link, since this seems to break it
 	#mpic++ -g -L ~/myLAMMPS/src -L ~/myLAMMPS/lib/meam *.o -llammps_vulcan -lmeam -lifcore -lsvml -limf -o driver_vulcan
 else

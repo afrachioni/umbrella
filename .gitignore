@@ -3,3 +3,6 @@
 driver_*
 *.o
 *.out
+# Also platform specific dependency files
+*.d
+Obj_*

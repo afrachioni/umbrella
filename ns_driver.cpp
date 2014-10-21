@@ -23,8 +23,6 @@
 
 #define VERSION "13.12.11.0"
 #define DEBUG 1
-#define MAX_FNAME_LENGTH 500
-#define DUMP_EVERY_STEPS 100
 
 // Command line options parser
 #include "cl_parser.h"
@@ -65,15 +63,6 @@
 #include <sys/stat.h> //mkdir needs this
 #include <sys/types.h> //and this too
 
-/*
-#ifdef RANDOM
-#include<random>
-#else
-#warning "Using rand() for random numbers.  Complie with \
--DRANDOM to use random features of the C++11 standard library."
-#endif
-*/
-
 #define printmsg(...) if (global->global_rank == 0) fprintf(stdout, __VA_ARGS__);
 #define debugmsg(...) if (DEBUG && global->global_rank == 0) fprintf(stdout, __VA_ARGS__);
 
@@ -104,7 +93,8 @@ int main(int narg, char **arg)
 		if (p->parse_error) {
 			if (me == 0)
 				fprintf (stdout, "Command line errors present, exiting...\n");
-			MPI_Abort (MPI_COMM_WORLD, 1);//TODO
+			MPI_Finalize ();
+			return 0;
 		}
 
 		// Split MPI_COMM_WORLD into windows
@@ -161,15 +151,6 @@ int main(int narg, char **arg)
 			lmp->input->one(line);
 		}
 
-		
-		// Set up histogram on first parameter (bit of a hack for now)
-		global->debug ((char*)"Name of zeroeth param, presently hardcoded to histogram:");
-		global->debug (parser->param_ptrs[0]->param_vname);
-		//Histogram *hist = new Histogram (1000, 1*3.4, 3.5*3.4, 1, parser->param_ptrs[0]);
-		//Histogram *hist = new Histogram (2000, 0, 20, parser->param_ptrs[0]);
-		//Histogram *hist = new Histogram (2000, 1, 8, parser->param_ptrs[0]);
-		//Histogram *hist = new Histogram (50, -1.5, 1.5, parser->param_ptrs[0]);
-
 		// Execute global window init
 		parser->execute_init();
 
@@ -182,14 +163,9 @@ int main(int narg, char **arg)
 		lmp->input->one ("variable lu_vol equal vol");
 
 		// Execute per-step initialization blocks
-		for (int i = 0; i < parser->nsteps; ++i) {
+		for (int i = 0; i < parser->nsteps; ++i)
 			if ((parser->steps)[i]->probability)
 				(parser->steps)[i]->execute_init();
-
-			// XXX sneak this in here
-			//if ((parser->steps)[i]->is_barostat)
-				//(parser->steps)[i]->set_logger_debug(logger);
-		}
 
 		//Umbrella definitions
 		double log_boltzmann;
@@ -197,13 +173,6 @@ int main(int narg, char **arg)
 		UmbrellaStep *chosen_step;
 		int steptype;
 		float step_rand, accept_rand;
-
-/*
-#ifdef RANDOM
-		std::default_random_engine generator;
-		std::uniform_real_distribution<float> distribution (0, 1);
-#endif
-*/
 
 		// -----------------------------------------------------------
 		//  All this should get moved to a separate class
@@ -338,56 +307,21 @@ int main(int narg, char **arg)
 			}
 
 			// Execute step
-			sprintf (line, "About to execute step of type %d", steptype);
 			chosen_step->execute_step();
 
-			sprintf (line, "%s", chosen_step->name);
-			//logger->comment(line);
-
 			// Skip bias if necessary
-			if (i % parser->bias_every || 0) { // XXX Debug: never bias
-				//logger->step_taken (i, steptype, 1);
-				//pthread_mutex_unlock (&mpi_mutex);
-				//global->debug("##################### Skipped bias #####################");
+			if (i % parser->bias_every || 0)
 				continue;
-			}
 
 			// Add up Boltzmann factors
 			log_boltzmann = 0;
-			double boltzmann_delta = 0;
-			for (int j = 0; j < parser->nparams; ++j) {
-
-				//log_boltzmann += (parser->param_ptrs)[j]->compute_boltzmann_factor();
-				boltzmann_delta = (parser->param_ptrs)[j]->compute_boltzmann_factor();
-				log_boltzmann += boltzmann_delta;
-
-				sprintf (line, "%f", boltzmann_delta);
-				//logger->comment(line);
-				if (i == 5 && me == 0) {
-					global->debug( (parser->param_ptrs)[j]->param_vname);
-					global->debug(line);
-				}
-			}
-			if (i == 5 && me == 0) {
-				sprintf (line, "%f", log_boltzmann);
-				global->debug(line);
-			}
+			for (int j = 0; j < parser->nparams; ++j)
+				log_boltzmann += (parser->param_ptrs)[j]->compute_boltzmann_factor();
 
 			// Compute acceptance
-/*
-#ifdef RANDOM
-			accept_rand = distribution(generator);
-#else
-*/
 			accept_rand = (float) rand() / RAND_MAX;
-//#endif
-			//if (me == 0)
-				//fprintf (random_file, "%f\n", accept_rand);
-
-
 			accept = log (accept_rand) < log_boltzmann;
 			MPI_Bcast (&accept, 1, MPI_INT, 0, global->local_comm);
-
 
 			// Act accordingly
 			++local_count;
@@ -401,15 +335,9 @@ int main(int narg, char **arg)
 				// XXX Debug, experimental
 				parser->steps_map["integrate"]->execute_accept();
 				for (int j = 0; j < parser->nparams; ++j) {
-					//(parser->param_ptrs)[j]->notify_accepted_debug(logger);
 					(parser->param_ptrs)[j]->notify_accepted();
 				}
 			} else {
-
-				//for (int j = 0; j < parser->nparams; ++j)
-				//(parser->param_ptrs)[j]->notify_rejected_debug(logger);
-
-				//global->debug ("\t\t\t\t\tREJECT");
 				//chosen_step->execute_reject();  // TODO switch this to a global reject iff bias_every > 1
 
 				// XXX Debug, experimental
@@ -418,7 +346,6 @@ int main(int narg, char **arg)
 
 			// Write things down
 			logger->step_taken (i, steptype, accept || UmbrellaStep::force_accept);
-			//hist->update();
 
 			for (std::vector<Histogram *>::iterator it = parser->histograms.begin();
 					it != parser->histograms.end(); ++it) {
@@ -428,25 +355,6 @@ int main(int narg, char **arg)
 
 			if (UmbrellaStep::force_accept)
 				UmbrellaStep::force_accept = 0;
-			//
-			//
-			if (global->local_rank == 0 && i % 10000 == 0 && i > 0)  {
-				/*
-				char hist_fname[100];
-				sprintf (hist_fname, "hist_data/window_%d/hist_%d.txt", global->window_index, i);
-				FILE *hist_file = fopen (hist_fname, "w");
-				hist->write(hist_file);
-				*/
-
-				/*
-				char stats_fname[100];
-				sprintf (stats_fname, "window_stats/window_%d/stats_%d.txt", global->window_index, i);
-				FILE *stats_file = fopen (stats_fname, "w");
-				hist->write_stats(stats_file);
-
-				hist->reset();
-				*/
-			}
 		}
 			//
 			//
@@ -472,4 +380,5 @@ int main(int narg, char **arg)
 			fprintf (stdout, "Waiting for other windows...\n");
 		}
 		MPI_Finalize();
+		return 0;
 }
