@@ -1,4 +1,4 @@
-# vulcan: LBNL Molecular Foundry Vulcan, Intel + OpenMPI
+# vulcan:     LBNL Molecular Foundry Vulcan, Intel + OpenMPI
 #
 CXX = mpic++
 CXXFLAGS = -O3

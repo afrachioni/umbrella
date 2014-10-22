@@ -1,4 +1,4 @@
-# anthony: Anthony's Samsung laptop, GCC + OpenMPI
+# anthony:    Anthony's Samsung laptop, GNU + OpenMPI
 #
 CXX = mpic++
 CXXFLAGS = -O3

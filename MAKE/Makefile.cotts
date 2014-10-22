@@ -1,4 +1,4 @@
-# cotts: Professor Cotts' MacBook Pro, GNU + OpenMPI
+# cotts:      Professor Cotts' MacBook Pro, GNU + OpenMPI
 #
 CXX = mpic++
 CXXFLAGS =
