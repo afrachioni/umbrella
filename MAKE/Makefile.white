@@ -1,0 +1,17 @@
+# white:      Professor White's Mac Pro, GNU + OpenMPI
+#
+CXX = mpic++
+CXXFLAGS =
+LAMMPS_INC = -I ~/myLAMMPS/src -I ~/myLAMMPS/lib/meam
+LAMMPS_LIB = -L ~/myLAMMPS/src -L ~/myLAMMPS/lib/meam
+LIBS = -llammps_wmp -lmeam -lgfortran -lfftw
+
+%.d: ../%.cpp
+	$(CXX) -M $(CPPFLAGS) $(LAMMPS_INC) $< -MF $@
+
+%.o : ../%.cpp 
+	$(CXX) $(CPPFLAGS) $(LAMMPS_INC) -c $< -o $@
+-include $(SRC:%.cpp=%.d)
+
+../driver_$(TARGET): $(OBJ)
+	$(CXX) $(LAMMPS_LIB) $(OBJ) $(LIBS) -o $@
