@@ -90,7 +90,10 @@ void Global::abort(char *message) {
 		fprintf (stderr, "\033[0m\n");
 		fprintf (stdout, "\nKilling %d processes...\n\n", nprocs);
 	}
-	MPI_Barrier (MPI_COMM_WORLD); //TODO why is this here?  I think any process can call this alone.
+	//TODO: Any process should be able to call this alone.  Use locks to
+	// restrict printing to first caller, then ensure printing is done before
+	// calling abort.
+	MPI_Barrier (MPI_COMM_WORLD);
 	MPI_Abort (MPI_COMM_WORLD, 1);
 }
 
