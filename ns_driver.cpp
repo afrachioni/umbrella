@@ -379,6 +379,6 @@ int main(int narg, char **arg)
 					BarostatStep::get_rate());
 			fprintf (stdout, "Waiting for other windows...\n");
 		}
-		MPI_Finalize();
+		Global::get_instance()->finalize();
 		return 0;
 }

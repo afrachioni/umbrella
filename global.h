@@ -25,6 +25,7 @@ class Global {
 		void abort(char *message);
 		void warn(char *message);
 		void debug (char *message);
+		void finalize ();
 	private:
 		static Global *instance;
 		int abort_called;

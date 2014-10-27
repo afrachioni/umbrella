@@ -26,6 +26,11 @@ Global::Global (MPI_Comm world, int num_windows) {
 			MPI_COMM_WORLD, &window);
 }
 
+void Global::finalize () {
+	MPI_Win_free (&window);
+	MPI_Finalize();
+}
+
 void Global::split() {
 		MPI_Comm_rank(MPI_COMM_WORLD,&global_rank);
 		MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
