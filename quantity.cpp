@@ -12,7 +12,8 @@
 
 #include "global.h"
 
-Quantity::Quantity(char *q, LAMMPS_NS::LAMMPS *lmp) {
+Quantity::Quantity(char *q, LAMMPS_NS::LAMMPS *lmp, \
+		bool positive, bool integer) {
 	this->lmp = lmp;
 	if (q[0] == 'c' && q[1] == '_')
 		compute = true;
@@ -22,6 +23,8 @@ Quantity::Quantity(char *q, LAMMPS_NS::LAMMPS *lmp) {
 		char *e;
 		constant = strtod (q, &e);
 		if (*e != 0) valid = false;
+		if (positive && constant < 0) valid = false;
+		if (integer && (long long) constant != constant) valid = false;
 	}
 	if (compute || variable)
 		strcpy (name, q + 2);

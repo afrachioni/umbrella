@@ -5,7 +5,7 @@
 
 class Quantity {
 	public:
-		Quantity(char *q, LAMMPS_NS::LAMMPS *lmp);
+		Quantity(char *q, LAMMPS_NS::LAMMPS *lmp, bool positive, bool integer);
 		double get_value();
 		bool is_constant();
 		bool is_valid();
@@ -14,6 +14,7 @@ class Quantity {
 		LAMMPS_NS::LAMMPS *lmp;
 		char name[100];
 		bool compute, variable, valid;
+		bool positive, integer;
 		double constant;
 };
 #endif
