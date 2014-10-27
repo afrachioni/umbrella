@@ -97,7 +97,7 @@ void Global::abort(char *message) {
 		fprintf (stderr, "|| ERROR: %s ||\n", message);
 		fprintf (stderr, line);
 		fprintf (stderr, "\033[0m\n");
-		fprintf (stdout, "\nKilling %d processes...\n\n", nprocs);
+		fprintf (stderr, "\nKilling %d processes...\n\n", nprocs);
 		MPI_Abort (MPI_COMM_WORLD, 1);
 	}
 }
