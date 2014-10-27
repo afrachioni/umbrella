@@ -27,6 +27,8 @@ class Global {
 		void debug (char *message);
 	private:
 		static Global *instance;
+		int abort_called;
+		MPI_Win window;
 		Global (MPI_Comm world, int num_windows);
 		Global (Global const&); // Make no copies! (Not implemented.)
 		void operator = (Global const&); // Or assignments.

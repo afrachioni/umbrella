@@ -21,6 +21,9 @@ void Global::init (MPI_Comm world, int num_windows) {
 Global::Global (MPI_Comm world, int num_windows) {
 	this->world = world;
 	this->num_windows = num_windows;
+	abort_called = 0;
+	MPI_Win_create (&abort_called, sizeof(int), sizeof(int), MPI_INFO_NULL, \
+			MPI_COMM_WORLD, &window);
 }
 
 void Global::split() {
@@ -76,7 +79,13 @@ void Global::split() {
 }
 
 void Global::abort(char *message) {
-	if (global_rank == 0) {
+	MPI_Win_lock (MPI_LOCK_EXCLUSIVE, 0, 0, window);
+	MPI_Get (&abort_called, 1, MPI_INT, 0, 0, 1, MPI_INT, window);
+	if (abort_called) MPI_Barrier (MPI_COMM_WORLD); // all going to die.
+	else {
+		MPI_Put (&abort_called, 1, MPI_INT, 0, 0, 1, MPI_INT, window);
+		MPI_Win_unlock (0, window);
+
 		fprintf (stderr, "\033[31m\n");
 		// TODO N be safe
 		char line[500];
@@ -89,12 +98,8 @@ void Global::abort(char *message) {
 		fprintf (stderr, line);
 		fprintf (stderr, "\033[0m\n");
 		fprintf (stdout, "\nKilling %d processes...\n\n", nprocs);
+		MPI_Abort (MPI_COMM_WORLD, 1);
 	}
-	//TODO: Any process should be able to call this alone.  Use locks to
-	// restrict printing to first caller, then ensure printing is done before
-	// calling abort.
-	MPI_Barrier (MPI_COMM_WORLD);
-	MPI_Abort (MPI_COMM_WORLD, 1);
 }
 
 void Global::warn(char *message) {
