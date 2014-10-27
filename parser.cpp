@@ -7,6 +7,7 @@
 #include <string>
 
 #include "parser.h"
+#include "quantity.h"
 #include "barostat_step.h"
 
 
@@ -110,6 +111,8 @@ void Parser::parse() {
 			if (n == 1) {
 				fprintf (stderr, "Parse error: empty directive at line %d.\n", i);
 				break;
+			} else if (strcmp (second_token, "temperature") == 0) {
+				Quantity *temp = new Quantity (third_token, lmp, true, false);
 			} else if (strcmp (second_token, "step_type") == 0) {
 				float d = (float) std::strtod(fourth_token, &e);
 				if (*e != 0) {
@@ -251,6 +254,10 @@ void Parser::parse() {
 	param_ptrs = new UmbrellaParameter *[nparams];
 	for (int i = 0; i < nparams; ++i)
 		param_ptrs[i] = params[i];
+}
+
+double Parser::get_temp() {
+	return temp->get_value();
 }
 
 void Parser::process_brackets(char *line) {

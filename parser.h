@@ -8,6 +8,7 @@
 #include <input.h>
 
 #include "global.h"
+#include "quantity.h"
 #include "umbrella_step.h"
 #include "umbrella_parameter.h"
 #include "periodic_task.h"
@@ -22,6 +23,7 @@ class Parser {
 		void print();
 		int nsteps;
 		UmbrellaStep **steps;
+		double get_temp();
 
 		int nparams;
 		UmbrellaParameter **param_ptrs;
@@ -35,6 +37,7 @@ class Parser {
 		void process_brackets(char *line);
 		std::vector<UmbrellaParameter *> params;
 		char fname [100];
+		Quantity *temp;
 		LAMMPS_NS::LAMMPS *lmp;
 		Global *global;
 		std::vector<std::string> init_block;
