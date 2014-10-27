@@ -11,11 +11,12 @@ class Global {
 	public:
 		static Global *get_instance();
 		static void init (MPI_Comm world, int num_windows);
-		int nprocs;
-		int global_rank;
-		int local_rank;
-		int num_windows;
-		int window_index;
+
+		// TODO maybe make these static?
+		int get_global_rank();
+		int get_local_rank();
+		int get_num_windows();
+		int get_window_index();
 
 		MPI_Comm world;
 		MPI_Comm local_comm;
@@ -27,6 +28,11 @@ class Global {
 		void debug (char *message);
 		void finalize ();
 	private:
+		int nprocs;
+		int global_rank;
+		int local_rank;
+		int num_windows;
+		int window_index;
 		static Global *instance;
 		int abort_called;
 		MPI_Win window;

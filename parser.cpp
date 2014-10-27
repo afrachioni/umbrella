@@ -257,13 +257,13 @@ void Parser::process_brackets(char *line) {
 	//TODO pass line number for error messages?
 	char msg[500];
 	char file_line[MAX_LINE_LENGTH];
-	char file_data[MAX_LINE_LENGTH * global->num_windows];
+	char file_data[MAX_LINE_LENGTH * global->get_num_windows()];
 	int n = strlen (line);
 	char *left = 0;
 	char *right = 0;
 	int i, j;
 	char window_str[100];  //TODO I suppose it could be overrun
-	sprintf (window_str, "%d", global->window_index);
+	sprintf (window_str, "%d", global->get_window_index());
 	int window_len = strlen (window_str);
 	// TODO maybe do this after brackets
 	for (i = 0; i < n; ++i)
@@ -302,7 +302,7 @@ void Parser::process_brackets(char *line) {
 		global->abort (msg);
 	}
 
-	if (global->global_rank == 0) {
+	if (global->get_global_rank() == 0) {
 		int i = 0;
 		while (!feof (fp)) {
 			fgets (file_line, MAX_LINE_LENGTH, fp);
@@ -313,23 +313,24 @@ void Parser::process_brackets(char *line) {
 					file_line[j] = '\0';
 			strcpy (file_data + i * MAX_LINE_LENGTH, file_line);
 			++i;
-			if (i > global->num_windows) {
+			if (i > global->get_num_windows()) {
 				sprintf (msg, "Number of lines in bracketed file \"%s\""
 					" is greater than the number of defined windows (%d).  "
 					"The first %d lines will be distributed to windows.", \
-					result, global->num_windows, global->num_windows);
+					result, global->get_num_windows(), \
+					global->get_num_windows());
 				global->warn(msg);
 				break;
 			}
 		}
-		if (i < global->num_windows) {
+		if (i < global->get_num_windows()) {
 			sprintf (msg, "Number of lines in bracketed file \"%s\""
 					" is less than the number of defined windows (%d)", \
-					result, global->num_windows);
+					result, global->get_num_windows());
 			global->abort (msg);
 		}
 	}
-	if (global->local_rank == 0)
+	if (global->get_local_rank() == 0)
 		MPI_Scatter (file_data, MAX_LINE_LENGTH, MPI_CHAR, \
 				file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, global->roots_comm);
 	MPI_Bcast (file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, global->local_comm);

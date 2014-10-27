@@ -31,6 +31,22 @@ void Global::finalize () {
 	MPI_Finalize();
 }
 
+int Global::get_global_rank() {
+	return global_rank;
+}
+
+int Global::get_local_rank() {
+	return local_rank;
+}
+
+int Global::get_num_windows() {
+	return num_windows;
+}
+
+int Global::get_window_index() {
+	return window_index;
+}
+
 void Global::split() {
 		MPI_Comm_rank(MPI_COMM_WORLD,&global_rank);
 		MPI_Comm_size(MPI_COMM_WORLD,&nprocs);

@@ -63,8 +63,8 @@
 #include <sys/stat.h> //mkdir needs this
 #include <sys/types.h> //and this too
 
-#define printmsg(...) if (global->global_rank == 0) fprintf(stdout, __VA_ARGS__);
-#define debugmsg(...) if (DEBUG && global->global_rank == 0) fprintf(stdout, __VA_ARGS__);
+#define printmsg(...) if (global->get_global_rank() == 0) fprintf(stdout, __VA_ARGS__);
+#define debugmsg(...) if (DEBUG && global->get_global_rank() == 0) fprintf(stdout, __VA_ARGS__);
 
 using namespace LAMMPS_NS;
 
@@ -140,14 +140,14 @@ int main(int narg, char **arg)
 		// Set up per-window logging (log names currently set here)
 		char line[100];
 		mkdir ("logs", S_IRWXU);
-		sprintf (line, "logs/log_%d.txt", global->window_index);
-		Logger *logger = new Logger(line, parser->nparams, (int)global->window_index, \
-				global->local_rank, parser->param_ptrs, \
+		sprintf (line, "logs/log_%d.txt", global->get_window_index());
+		Logger *logger = new Logger(line, parser->nparams, (int)global->get_window_index(), \
+				global->get_local_rank(), parser->param_ptrs, \
 				parser->nsteps, parser->steps);
 		logger->init();
 
 		if (p->log_lammps) {
-			sprintf (line, "log logs/log_%d.lammps", global->window_index);
+			sprintf (line, "log logs/log_%d.lammps", global->get_window_index());
 			lmp->input->one(line);
 		}
 
@@ -232,10 +232,10 @@ int main(int narg, char **arg)
 
 
 		mkdir ("hist_data", S_IRWXU);
-		sprintf (line, "hist_data/window_%d", global->window_index);
+		sprintf (line, "hist_data/window_%d", global->get_window_index());
 		mkdir (line, S_IRWXU);
 		mkdir ("window_stats", S_IRWXU);
-		sprintf (line, "window_stats/window_%d", global->window_index);
+		sprintf (line, "window_stats/window_%d", global->get_window_index());
 		mkdir (line, S_IRWXU);
 
 		printmsg ("Samples away!\n\n");
@@ -243,7 +243,7 @@ int main(int narg, char **arg)
 		int64_t start_time = Logger::get_time();
 		int64_t step_start_time = Logger::get_time();
 		for (int i = 0; i < p->count + 1; ++i) {
-			if (i % 100 == 0 && global->global_rank == 0) {
+			if (i % 100 == 0 && global->get_global_rank() == 0) {
 				int64_t now = Logger::get_time();
 				int64_t split = now - step_start_time;
 				step_start_time = now;
@@ -369,7 +369,7 @@ int main(int narg, char **arg)
 		delete lmp; // Needs to be alive for extraction!
 		delete parser;
 
-		if (global->global_rank == 0) {
+		if (global->get_global_rank() == 0) {
 			int64_t walltime = Logger::get_time() - start_time;
 			fprintf (stdout, "Root window has finished sampling.\n");
 			fprintf (stdout, "Walltime / s: %" PRId64 "\n", walltime/1000);

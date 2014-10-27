@@ -40,7 +40,8 @@ void Histogram::write(unsigned step_index) {
 	char step_index_string[100];
 	sprintf (step_index_string, "%d", step_index);
 	char window_index_string[100];
-	sprintf (window_index_string, "%d", Global::get_instance()->window_index);
+	sprintf (window_index_string, "%d", \
+			Global::get_instance()->get_window_index());
 	std::string filename_str (filename);
 
 	size_t star_pos = filename_str.find ("*"); // TODO loop for multiple stars?
@@ -91,7 +92,7 @@ double Histogram::get_standard_deviation() {
 }
 
 void Histogram::write (FILE *f) {
-	fprintf (f, "# Histogram for window of index %d\n", Global::get_instance()->window_index);
+	fprintf (f, "# Histogram for window of index %d\n", Global::get_instance()->get_window_index());
 	fprintf (f, "# Target:     \t%f\n", p->extract_target());
 	fprintf (f, "# Spring:     \t%f\n", p->extract_spring());
 	fprintf (f, "# KT:         \t%d\n", 1); //XXX
