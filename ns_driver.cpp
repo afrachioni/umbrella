@@ -5,7 +5,7 @@
    Built to examine nucleation in tin
 
    Copyright 2013 Anthony Frachioni - All Rights Reserved
-                           afrachi1@binghamton.edu
+                          afrachioni@gmail.com
 -------------------------------------------------------------------------
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@ int main(int narg, char **arg)
 			fprintf (stdout, "                       "
 					"|           Anthony Frachioni,  1-2013          |\n");
 			fprintf (stdout, "                       "
-					"|            afrachi1@binghamton.edu            |\n");
+					"|              afrachioni@gmail.com             |\n");
 			//fprintf (stdout, "                       "
 					//"|       Compiled on "__DATE__", "__TIME__"       |\n");
 			fprintf (stdout, "                       "

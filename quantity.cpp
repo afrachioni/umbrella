@@ -1,4 +1,5 @@
 #include <stdlib.h> // strtod
+#include <cstring>
 
 #include <mpi.h>
 #include <lammps.h>
