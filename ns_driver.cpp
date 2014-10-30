@@ -250,8 +250,7 @@ int main(int narg, char **arg)
 				double rate = local_count?(double)local_accept_count/local_count:-1;
 				double barostat_rate = BarostatStep::get_rate();
 				BarostatStep::zero_rate();
-				sprintf (line, "Step: %d\tRate: %f\tBarostat rate: %f\tSplit: %" PRId64 "\n", i, rate, barostat_rate, split);
-				fprintf (stdout, line);
+				fprintf (stdout, "Step: %d\tRate: %f\tBarostat rate: %f\tSplit: %" PRId64 "\n", i, rate, barostat_rate, split);
 				local_accept_count = 0;
 				local_count = 0;
 				//global->debug (line);
