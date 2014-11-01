@@ -100,6 +100,8 @@ void Global::split() {
 }
 
 void Global::abort(char *message) {
+	// TODO This causes a segmentation fault on Copper, I think
+	// (May be related to using MPICH rather than OpenMPI?)
 	MPI_Win_lock (MPI_LOCK_EXCLUSIVE, 0, 0, window);
 	MPI_Get (&abort_called, 1, MPI_INT, 0, 0, 1, MPI_INT, window);
 	if (abort_called) MPI_Barrier (MPI_COMM_WORLD); // all going to die.
