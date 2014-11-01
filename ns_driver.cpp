@@ -5,7 +5,7 @@
    Built to examine nucleation in tin
 
    Copyright 2013 Anthony Frachioni - All Rights Reserved
-                           afrachi1@binghamton.edu
+                          afrachioni@gmail.com
 -------------------------------------------------------------------------
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@ int main(int narg, char **arg)
 			fprintf (stdout, "                       "
 					"|           Anthony Frachioni,  1-2013          |\n");
 			fprintf (stdout, "                       "
-					"|            afrachi1@binghamton.edu            |\n");
+					"|              afrachioni@gmail.com             |\n");
 			//fprintf (stdout, "                       "
 					//"|       Compiled on "__DATE__", "__TIME__"       |\n");
 			fprintf (stdout, "                       "
@@ -250,8 +250,7 @@ int main(int narg, char **arg)
 				double rate = local_count?(double)local_accept_count/local_count:-1;
 				double barostat_rate = BarostatStep::get_rate();
 				BarostatStep::zero_rate();
-				sprintf (line, "Step: %d\tRate: %f\tBarostat rate: %f\tSplit: %" PRId64 "\n", i, rate, barostat_rate, split);
-				fprintf (stdout, line);
+				fprintf (stdout, "Step: %d\tRate: %f\tBarostat rate: %f\tSplit: %" PRId64 "\n", i, rate, barostat_rate, split);
 				local_accept_count = 0;
 				local_count = 0;
 				//global->debug (line);

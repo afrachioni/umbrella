@@ -1,6 +1,7 @@
 #include "global.h"
 
 #include <stdio.h>
+#include <cstring>
 
 #define printmsg(...) if (global_rank == 0) fprintf(stdout, __VA_ARGS__);
 
@@ -116,9 +117,9 @@ void Global::abort(char *message) {
 			line[i] = '=';
 		line[strlen(message)+13] = '\n';
 		line[strlen(message)+14] = '\0';
-		fprintf (stderr, line);
+		fputs (line, stderr);
 		fprintf (stderr, "|| ERROR: %s ||\n", message);
-		fprintf (stderr, line);
+		fputs (line, stderr);
 		fprintf (stderr, "\033[0m\n");
 		fprintf (stderr, "\nKilling %d processes...\n\n", nprocs);
 		MPI_Abort (MPI_COMM_WORLD, 1);
