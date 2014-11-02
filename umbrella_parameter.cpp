@@ -35,13 +35,7 @@ double UmbrellaParameter::compute_boltzmann_factor() {
 	//temperature = 1; //XXX
 	//temperature = 1/8.617e-5; //XXX
 	if (temperature == 0) return -INFINITY; // Avoid nan
-	
-	/*
-	//double target = *((double *) lammps_extract_variable(lmp, \
-				target_vname, (char *) "all")); //TODO pass group in
-	//double spring = *((double *) lammps_extract_variable(lmp, \
-				spring_vname, (char *) "all")); //TODO pass group in
-	*/
+
 	double target = extract_target();
 	double spring = extract_spring();
 	double current_potential = (current_value-target)*(current_value-target);
