@@ -11,7 +11,8 @@ Histogram::Histogram (int nbins, double min, double max, unsigned period) {
 	init (nbins, min, max, period);
 }
 
-Histogram::Histogram (int nbins, double min, double max, unsigned period, UmbrellaParameter *p) {
+Histogram::Histogram (int nbins, double min, double max, unsigned period, \
+		UmbrellaParameter *p) {
 	init (nbins, min, max, period);
 	this->p = p;
 }
@@ -100,7 +101,8 @@ double Histogram::get_standard_deviation() {
 }
 
 void Histogram::write (FILE *f) {
-	fprintf (f, "# Histogram for window of index %d\n", Global::get_instance()->get_window_index());
+	fprintf (f, "# Histogram for window of index %d\n", \
+			Global::get_instance()->get_window_index());
 	fprintf (f, "# Target:     \t%f\n", p->extract_target());
 	fprintf (f, "# Spring:     \t%f\n", p->extract_spring());
 	fprintf (f, "# KT:         \t%d\n", 1); //XXX
@@ -118,7 +120,7 @@ void Histogram::write (FILE *f) {
 	// Write index|count|center
 	for (int i = 0; i < nbins; ++i)
 		if (hist[i])
-			fprintf (f, "%d\t%d\t%f\n", i, hist[i], min + (i + 0.5) * bin_width);
+			fprintf(f,"%d\t%d\t%f\n", i, hist[i], min + (i + 0.5) * bin_width);
 	fclose (f);
 }
 
