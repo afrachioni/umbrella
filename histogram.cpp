@@ -51,7 +51,14 @@ void Histogram::write(unsigned step_index) {
 	size_t percent_pos = filename_str.find ("%");
 	if (percent_pos != std::string::npos)
 		filename_str.replace (percent_pos, 1, window_index_string);
-	FILE *f = fopen (filename_str.c_str(), "w"); // TODO check error
+	FILE *f = fopen (filename_str.c_str(), "w");
+	if (f == NULL) {
+		char line[100];
+		// TODO maybe get mad if this returns > 100
+		snprintf (line, 100, "Could not open histogram output file: %s", \
+				filename_str.c_str());
+		Global::get_instance()->abort(line);
+	}
 	write (f);
 	reset();
 }
