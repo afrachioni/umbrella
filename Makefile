@@ -2,12 +2,28 @@ EXE = driver_$@
 SRC = $(wildcard *.cpp)
 OBJ = $(SRC:.cpp=.o)
 
+
+../gitversion.h: ../.git/HEAD ../.git/index
+	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@
+	echo "const char *gitmessage = \"$(shell git log --format=%s%b -n 1)\";" >> $@
+
+%.d: ../%.cpp
+	$(CXX) -M $(CPPFLAGS) $(LAMMPS_INC) $< -MF $@
+
+%.o : ../%.cpp 
+	$(CXX) $(CPPFLAGS) $(LAMMPS_INC) -c $< -o $@
+-include $(SRC:%.cpp=%.d)
+
+../driver_$(TARGET): $(OBJ)
+	$(CXX) $(LAMMPS_LIB) $(OBJ) $(LIBS) -o $@
+
+
 .DEFAULT:
 	@test -f MAKE/Makefile.$@
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
 	@cp MAKE/Makefile.$@ Obj_$@
 	@cd Obj_$@; $(MAKE) $(MFLAGS) -f Makefile.$@ ../driver_$@ \
-		"OBJ = $(OBJ)" "SRC = $(SRC)" "TARGET = $@"
+		"OBJ = $(OBJ)" "SRC = $(SRC) gitversion.cpp" "TARGET = $@"
 
 help:
 	@echo ''

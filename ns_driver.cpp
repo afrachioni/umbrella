@@ -44,6 +44,7 @@
 // Histogram
 #include "histogram.h"
 
+#include "gitversion.h"
 
 // LAMMPS include files
 #include <stdio.h>
@@ -77,13 +78,17 @@ int main(int narg, char **arg)
 			fprintf (stdout, "                       "
 					"-------------------------------------------------\n");
 			fprintf (stdout, "                       "
-					"|  LAMMPS umbrella sampler, version %s  |\n", VERSION);
+					"|            LAMMPS umbrella sampler            |\n");
 			fprintf (stdout, "                       "
-					"|           Anthony Frachioni,  1-2013          |\n");
+					"|           Anthony Frachioni, 1-2013           |\n");
 			fprintf (stdout, "                       "
 					"|              afrachioni@gmail.com             |\n");
-			//fprintf (stdout, "                       "
-					//"|       Compiled on "__DATE__", "__TIME__"       |\n");
+			fprintf (stdout, "                       "
+					"|                                               |\n");
+			fprintf (stdout, "                       "
+					"| Latest commit: %30s |\n", gitmessage);
+			fprintf (stdout, "                       "
+					"|    %s   |\n", gitversion);
 			fprintf (stdout, "                       "
 					"-------------------------------------------------\n\n");
 		}

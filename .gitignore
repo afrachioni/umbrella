@@ -6,3 +6,5 @@ driver_*
 # Also platform specific dependency files
 *.d
 Obj_*
+# And header file containing recent commit data
+gitversion.h

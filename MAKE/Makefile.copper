@@ -1,17 +1,8 @@
 # copper:     Workstation at the Molecular Foundry, GNU + OpenMPI
 #
+include ../Makefile
 CXX = mpic++
 CXXFLAGS =
 LAMMPS_INC = -I ~/LAMMPS/src #-I ~/LAMMPS/lib/meam
 LAMMPS_LIB = -L ~/LAMMPS/src #-L ~/LAMMPS/lib/meam
 LIBS = -llammps_mpi
-
-%.d: ../%.cpp
-	$(CXX) -M $(CPPFLAGS) $(LAMMPS_INC) $< -MF $@
-
-%.o : ../%.cpp 
-	$(CXX) $(CPPFLAGS) $(LAMMPS_INC) -c $< -o $@
--include $(SRC:%.cpp=%.d)
-
-../driver_$(TARGET): $(OBJ)
-	$(CXX) $(LAMMPS_LIB) $(OBJ) $(LIBS) -o $@
