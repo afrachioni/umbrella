@@ -44,8 +44,6 @@
 // Histogram
 #include "histogram.h"
 
-#include "gitversion.h"
-
 // LAMMPS include files
 #include <stdio.h>
 #include <stdlib.h>
@@ -68,6 +66,9 @@
 #define debugmsg(...) if (DEBUG && global->get_global_rank() == 0) fprintf(stdout, __VA_ARGS__);
 
 using namespace LAMMPS_NS;
+
+extern const char *gitversion;
+extern const char *gitmessage;
 
 int main(int narg, char **arg)
 {

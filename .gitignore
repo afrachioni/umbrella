@@ -7,4 +7,4 @@ driver_*
 *.d
 Obj_*
 # And header file containing recent commit data
-gitversion.h
+gitversion.cpp
