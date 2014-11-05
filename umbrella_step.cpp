@@ -92,10 +92,6 @@ void UmbrellaStep::execute_block (LAMMPS_NS::LAMMPS *lmp, std::vector<std::strin
 
 			int64_t time = Logger::get_time();
 			lammps_scatter_atoms(lmp, (char*)"x", 1, 3, positions_buffer);
-			if (Global::get_instance()->get_global_rank() == 0) {
-				fprintf (stdout, "time: %" PRId64 "\n", Logger::get_time());
-				fprintf (stdout, "scatter time: %" PRId64 "\n", Logger::get_time() - time);
-			}
 
 			sprintf (line, "# Positions scattered. 1: %f\t%f\t%f",
 					positions_buffer[0], positions_buffer[1],
