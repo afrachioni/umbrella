@@ -14,12 +14,13 @@ help:
 		for file in $$files; do head -1 $$file; done
 	@echo ''
 
-.DEFAULT: gitversion.cpp
+.DEFAULT:
 	@test -f MAKE/Makefile.$@
+	@$(MAKE) -s $(MFLAGS) gitversion.cpp
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
 	@cp MAKE/Makefile.$@ Obj_$@
-	@cd Obj_$@; $(MAKE) $(MFLAGS) -f Makefile.$@ ../driver_$@ \
-		"OBJ = $(OBJ)" "SRC = $(SRC)" "TARGET = $@"
+	@$(MAKE) $(MFLAGS) -f Makefile.$@ ../driver_$@ \
+		"OBJ = $(OBJ)" "SRC = $(SRC)" "TARGET = $@" -C Obj_$@
 
 gitversion.cpp: .git/HEAD .git/index
 	@if [ ! -e gitversion.cpp ]; then :$(eval SRC = $(SRC) gitversion.cpp); fi
