@@ -1,5 +1,5 @@
 EXE = driver_$@
-SRC = $(wildcard *.cpp) gitversion.cpp
+SRC = $(wildcard *.cpp)
 OBJ = $(SRC:.cpp=.o)
 
 help:
@@ -14,14 +14,15 @@ help:
 		for file in $$files; do head -1 $$file; done
 	@echo ''
 
-.DEFAULT: foo
+.DEFAULT: gitversion.cpp
 	@test -f MAKE/Makefile.$@
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
 	@cp MAKE/Makefile.$@ Obj_$@
 	@cd Obj_$@; $(MAKE) $(MFLAGS) -f Makefile.$@ ../driver_$@ \
 		"OBJ = $(OBJ)" "SRC = $(SRC)" "TARGET = $@"
 
-../gitversion.cpp: ../.git/HEAD ../.git/index
+gitversion.cpp: .git/HEAD .git/index
+	@if [ ! -e gitversion.cpp ]; then :$(eval SRC = $(SRC) gitversion.cpp); fi
 	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@
 	echo "const char *gitmessage = \"$(shell git log --format=%s%b -n 1)\";" >> $@
 
