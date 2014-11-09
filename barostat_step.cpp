@@ -42,9 +42,9 @@ void BarostatStep::execute_step() {
 
 
 	// XXX This is the long range correction to the pressure, see Verlet
-	double density = *((double *) lammps_extract_variable(lmp,(char*)"density",(char*)"all"));
-	double density_factor = density * 0.929915;
-	//double density_factor = 0;
+	//double density = *((double *) lammps_extract_variable(lmp,(char*)"density",(char*)"all"));
+	//double density_factor = density * 0.929915;
+	double density_factor = 0;
 
 	double exp = -(U-Uold + (P - density_factor)*(V-Vold)/eV - N*kb*T*log(V/Vold))/(kb*T);
 	double accept_rand = (double) rand() / RAND_MAX;
