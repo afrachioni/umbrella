@@ -24,7 +24,10 @@ help:
 
 gitversion.cpp: .git/HEAD .git/index
 	@if [ ! -e gitversion.cpp ]; then :$(eval SRC = $(SRC) gitversion.cpp); fi
-	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@
+	echo "// This file is generated automatically by the make process," > $@
+	echo "// to provide information about the most recent Git commit." >> $@
+	echo "// Editing or deleting it could confuse the build system." >> $@
+	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" >> $@
 	echo "const char *gitmessage = \"$(shell git log --format=%s%b -n 1)\";" >> $@
 
 %.d: ../%.cpp
