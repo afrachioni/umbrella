@@ -69,6 +69,7 @@ using namespace LAMMPS_NS;
 
 extern const char *gitversion;
 extern const char *gitmessage;
+extern const char *gitbranch;
 
 int main(int narg, char **arg)
 {
@@ -87,7 +88,9 @@ int main(int narg, char **arg)
 			fprintf (stdout, "                       "
 					"|                                               |\n");
 			fprintf (stdout, "                       "
-					"| Latest commit: %30s |\n", gitmessage);
+					"| Latest commit: %-30s |\n", gitmessage);
+			fprintf (stdout, "                       "
+					"| On branch: %-34s |\n", gitbranch);
 			fprintf (stdout, "                       "
 					"|    %s   |\n", gitversion);
 			fprintf (stdout, "                       "

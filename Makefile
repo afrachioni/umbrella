@@ -29,6 +29,7 @@ gitversion.cpp: .git/HEAD .git/index
 	echo "// Editing or deleting it could confuse the build system." >> $@
 	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" >> $@
 	echo "const char *gitmessage = \"$(shell git log --format=%s%b -n 1)\";" >> $@
+	echo "const char *gitbranch = \"$(shell git rev-parse --abbrev-ref HEAD)\";" >> $@
 
 %.d: ../%.cpp
 	$(CXX) -M $(CPPFLAGS) $(LAMMPS_INC) $< -MF $@
