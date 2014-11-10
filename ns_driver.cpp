@@ -145,7 +145,8 @@ int main(int narg, char **arg)
 		debugmsg ("Processing input script...\n");
 		if (parser->parse()) {
 			if (me == 0)
-				fprintf (stdout, "Script errors present, exiting...\n");
+				fprintf (stdout, "\nScript errors present:\n%s", \
+						parser->error_message());
 			global->finalize();
 			return 0;
 		}

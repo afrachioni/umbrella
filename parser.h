@@ -24,6 +24,7 @@ class Parser {
 		int nsteps;
 		UmbrellaStep **steps;
 		double get_temp();
+		char *error_message();
 
 		int nparams;
 		UmbrellaParameter **param_ptrs;
@@ -34,6 +35,7 @@ class Parser {
 
 		std::map<std::string, UmbrellaStep*> steps_map;
 	private:
+		char msg[100];
 		void process_brackets(char *line);
 		std::vector<UmbrellaParameter *> params;
 		char fname [100];

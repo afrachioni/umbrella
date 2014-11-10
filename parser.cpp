@@ -33,7 +33,7 @@ Parser::Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp, Global *global) {
 	strcpy (this->fname, fname);
 	this->lmp = lmp;
 	this->global = global;
-
+	msg[0] = '\0';
 	bias_every = 1;
 };
 
@@ -101,6 +101,7 @@ int Parser::parse() {
 	// Loop over lines in file buffer, populate appropriate structures
 	char *e; // error for string to number conversion
 	for (int i = 0; i < num_lines; ++i) {
+		int ln = i + 1;
 		line = file_data + i * max_line_length;
 		Parser::process_brackets (line);
 		length = strlen (line);//move inside?
@@ -133,23 +134,25 @@ int Parser::parse() {
 				steps_map[third_token] = s;
 
 			} else if (strcmp (second_token, "parameter") == 0) {
-				char msg[100];
-				Quantity *param = new Quantity (third_token, lmp, false, false);
-				if (!param->is_valid()) {
-					sprintf (msg, "\"%s\" is not a valid parameter name (line %d).\n", third_token, i);
-					Global::get_instance()->stop(msg); return 1;
-				}
-				Quantity *target = new Quantity (fourth_token, lmp, false, false);
-				if (!target->is_valid()) {
-					sprintf (msg, "\"%s\" is not a valid target quantity (line %d).\n", fourth_token, i);
-					Global::get_instance()->stop(msg); return 1;
-				}
+				if (n != 5)
+					sprintf (msg, "Incorrect number of tokens to define "
+							"parameter (expected five, line %d).\n", ln);
+				Quantity *param = new Quantity (third_token, lmp, false,false);
+				if (!param->is_valid())
+					sprintf (msg, "%s\"%s\" is not a valid parameter name "
+							"(line %d).\n", msg, third_token, ln);
+				Quantity *target = new Quantity (fourth_token,lmp,false,false);
+				if (!target->is_valid())
+					sprintf (msg, "%s\"%s\" is not a valid target quantity "
+							"(line %d).\n", msg, fourth_token, ln);
 				// repulsive potentials should work, but let's be safe
-				Quantity *spring = new Quantity (fifth_token, lmp, true, false);
-				if (!spring->is_valid()) {
-					sprintf (msg, "\"%s\" is not a valid spring quantity (line %d).\n", fifth_token, i);
-					Global::get_instance()->stop(msg); return 1;
-				}
+				Quantity *spring = new Quantity (fifth_token,lmp, true, false);
+				if (!spring->is_valid())
+					sprintf (msg, "%s\"%s\" is not a valid spring quantity "
+							"(line %d).\n", msg, fifth_token, ln);
+
+				if (strcmp(msg, ""))
+					return 1;
 
 				UmbrellaParameter *p = new UmbrellaParameter (param, target, spring, lmp);
 				params.push_back (p);
@@ -267,6 +270,10 @@ int Parser::parse() {
 
 double Parser::get_temp() {
 	return temp->get_value();
+}
+
+char *Parser::error_message() {
+	return msg;
 }
 
 void Parser::process_brackets(char *line) {
