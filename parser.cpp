@@ -160,38 +160,42 @@ int Parser::parse() {
 			} else if (strcmp (second_token, "bias_every") == 0) {
 				bias_every = (int) std::strtol(third_token, &e, 0);
 				if (*e != 0) {
-					fprintf (stderr, "Not an integer! (line %d)\n", i);
-					break;
+					sprintf (msg, "Not an integer! (line %d)\n", ln);
+					return 1;
 				}
 			} else if (strcmp (second_token, "take_step") == 0) {
 				if (steps_map.find(third_token) == steps_map.end()) {
-					fprintf (stderr, "Parse error: take_step before %s defined\n", third_token);
-					break;
+					sprintf (msg, "Parse error: take_step before %s defined "
+						   "(line %d).\n", third_token, ln);
+					return 1;
 				}
 				current_block = steps_map[third_token]->get_take_step_block();
 			} else if (strcmp (second_token, "if_accept") == 0) {
 				if (steps_map.find(third_token) == steps_map.end()) {
-					fprintf (stderr, "Parse error: if_accept before %s defined\n", third_token);
-					break;
+					sprintf (msg, "Parse error: if_accept before %s defined "
+							"(line %d).\n", third_token, ln);
+					return 1;
 				}
 				current_block = steps_map[third_token]->get_if_accept_block();
 			} else if (strcmp (second_token, "if_reject") == 0) {
 				if (steps_map.find(third_token) == steps_map.end()) {
-					fprintf (stderr, "Parse error: if_reject before %s defined\n", third_token);
-					break;
+					sprintf (msg, "Parse error: if_reject before %s defined "
+							"(line %d).\n", third_token, ln);
+					return 1;
 				}
 				current_block = steps_map[third_token]->get_if_reject_block();
 			} else if (strcmp (second_token, "step_init") == 0) {
 				if (steps_map.find(third_token) == steps_map.end()) {
-					fprintf (stderr, "Parse error: step_init before %s defined\n", third_token);
-					break;
+					sprintf (msg, "Parse error: step_init before %s defined "
+							"(line %d).\n", third_token, ln);
+					return 1;
 				}
 				current_block = steps_map[third_token]->get_step_init_block();
 			} else if (strcmp (second_token, "do_every") == 0) {
 				int p = (int) std::strtol(third_token, &e, 0);
 				if (*e != 0) {
-					fprintf (stderr, "Not an integer! (line %d)\n", i);
-					break;
+					fprintf (stderr, "Not an integer! (line %d)\n", ln);
+					return 1;
 				}
 				PeriodicTask *pt = new PeriodicTask (lmp, p, global); //TODO die
 				current_block = pt->get_task_block();
