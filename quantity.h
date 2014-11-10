@@ -6,7 +6,7 @@
 class Quantity {
 	public:
 		Quantity(char *q, LAMMPS_NS::LAMMPS *lmp, bool positive, bool integer);
-		Quantity(const Quantity &q);
+		//Quantity(const Quantity &q);
 		double get_value();
 		bool is_constant();
 		bool is_valid();

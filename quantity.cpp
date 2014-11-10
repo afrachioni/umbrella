@@ -31,6 +31,7 @@ Quantity::Quantity(char *q, LAMMPS_NS::LAMMPS *lmp, \
 		strcpy (name, q + 2);
 }
 
+/* XXX pretty sure this is default behavior
 Quantity::Quantity(const Quantity &q) {
 	lmp = q.lmp;
 	strcpy (name, q.name);
@@ -40,6 +41,7 @@ Quantity::Quantity(const Quantity &q) {
 	positive = q.positive;
 	constant = q.constant;
 }
+*/
 
 double Quantity::get_value() {
 	char line[1000];
