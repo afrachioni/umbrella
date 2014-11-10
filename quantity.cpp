@@ -32,6 +32,13 @@ Quantity::Quantity(char *q, LAMMPS_NS::LAMMPS *lmp, \
 }
 
 Quantity::Quantity(const Quantity &q) {
+	lmp = q.lmp;
+	strcpy (name, q.name);
+	compute = q.compute;
+	variable = q.variable;
+	valid = q.valid;
+	positive = q.positive;
+	constant = q.constant;
 }
 
 double Quantity::get_value() {
