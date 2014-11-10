@@ -133,22 +133,23 @@ void Parser::parse() {
 				steps_map[third_token] = s;
 
 			} else if (strcmp (second_token, "parameter") == 0) {
-				int is_compute = 0;
 				char msg[100];
-				if (strncmp(third_token, "c_", 2) == 0)
-					is_compute = 1;
-				else if (strncmp(third_token, "v_", 2)) {
-					sprintf (msg, "Parameter name \"%s\" begins with neither "
-							"\"v_\" nor \"c_\".", third_token);
+				Quantity *param = new Quantity (third_token, lmp, false, false);
+				if (!param->is_valid()) {
+					sprintf (msg, "\"%s\" is not a valid parameter name.", third_token);
 					global->abort (msg);
 				}
-				Quantity *param = new Quantity (third_token, lmp, false, false);
-				if (!param->is_valid()) fprintf (stderr, "%s is not valid!\n", third_token);
 				Quantity *target = new Quantity (fourth_token, lmp, false, false);
-				if (!target->is_valid()) fprintf (stderr, "%s is not valid!\n", fourth_token);
+				if (!target->is_valid()) {
+					sprintf (msg, "\"%s\" is not a valid target quantity.", fourth_token);
+					global->abort (msg);
+				}
 				// repulsive potentials should work, but let's be safe
 				Quantity *spring = new Quantity (fifth_token, lmp, true, false);
-				if (!spring->is_valid()) fprintf (stderr, "%s is not valid!\n", fifth_token);
+				if (!spring->is_valid()) {
+					sprintf (msg, "\"%s\" is not a valid spring quantity.", fifth_token);
+					global->abort (msg);
+				}
 
 				UmbrellaParameter *p = new UmbrellaParameter (param, target, spring, lmp);
 				//UmbrellaParameter *p = new UmbrellaParameter ();
