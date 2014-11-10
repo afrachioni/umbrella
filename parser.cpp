@@ -115,24 +115,24 @@ int Parser::parse() {
 			} else if (strcmp (second_token, "temperature") == 0) {
 				Quantity *temp = new Quantity (third_token, lmp, true, false);
 			} else if (strcmp (second_token, "step_type") == 0) {
-				float d = (float) std::strtod(fourth_token, &e);
-				if (*e != 0) {
-					fprintf (stderr, "Number not a number!  (line %d)\n", i);
-					break;
-				}
+				// TODO complain about number of tokens if necessary
+				Quantity *d = new Quantity (fourth_token, lmp, true, false);
+				if (!d->is_valid() || !d->is_constant())
+					sprintf (msg, "Step probability must be a positive "
+							"constant (line %d).\n", ln);
 				UmbrellaStep *s;
 				if (strcmp (fifth_token, "barostat") == 0) {
-					//global->debug("detected barostat");
-					double press = std::strtod (sixth_token, &e);
-					if (*e != 0) {
-						fprintf (stderr, "Number not a number! (line %d)\n",i);
-						break;
-					}
+					Quantity *press = new Quantity (sixth_token, lmp, false, false);
+					if (!press->is_valid())
+						sprintf (msg, "%s\"%s\" is not a valid pressure "
+								"(line %d)", msg, sixth_token, ln);
 					s = new BarostatStep (lmp, d, third_token, global, press);
 				} else
 					s = new UmbrellaStep (lmp, d, third_token, global);
 				steps_map[third_token] = s;
 
+				if (strcmp (msg, ""))
+					return 1;
 			} else if (strcmp (second_token, "parameter") == 0) {
 				if (n != 5)
 					sprintf (msg, "Incorrect number of tokens to define "
@@ -250,7 +250,7 @@ int Parser::parse() {
 	int i = 0;
 	for (std::map<std::string, UmbrellaStep*>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
 		it->second->rand_min = sum;
-		sum += it->second->probability;
+		sum += it->second->probability->get_value();
 		it->second->rand_max = sum;
 		steps[i] = it->second;
 		++i;
