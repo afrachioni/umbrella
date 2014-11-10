@@ -143,7 +143,12 @@ int main(int narg, char **arg)
 		// Parse input script
 		Parser *parser = new Parser (p->script, lmp, global);
 		debugmsg ("Processing input script...\n");
-		parser->parse();
+		if (parser->parse()) {
+			if (me == 0)
+				fprintf (stdout, "Script errors present, exiting...\n");
+			MPI_Finalize ();
+			return 0;
+		}
 
 
 		// Set up per-window logging (log names currently set here)

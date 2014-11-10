@@ -18,7 +18,7 @@ class Parser {
 	public:
 		Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp, Global *global);
 		~Parser();
-		void parse();
+		int parse();
 		void execute_init();
 		void print();
 		int nsteps;

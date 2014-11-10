@@ -43,7 +43,7 @@ Parser::~Parser() {
 		delete (it->second);
 };
 
-void Parser::parse() {
+int Parser::parse() {
 	FILE *in_p = fopen (fname, "r");
 	if (in_p == NULL)
 		fprintf (stderr, "Cannot read from file: %s\n", fname);
@@ -136,23 +136,22 @@ void Parser::parse() {
 				char msg[100];
 				Quantity *param = new Quantity (third_token, lmp, false, false);
 				if (!param->is_valid()) {
-					sprintf (msg, "\"%s\" is not a valid parameter name.", third_token);
-					global->abort (msg);
+					fprintf (stderr, "\"%s\" is not a valid parameter name (line %d).\n", third_token, i);
+					return 1;
 				}
 				Quantity *target = new Quantity (fourth_token, lmp, false, false);
 				if (!target->is_valid()) {
-					sprintf (msg, "\"%s\" is not a valid target quantity.", fourth_token);
-					global->abort (msg);
+					fprintf (stderr, "\"%s\" is not a valid target quantity (line %d).\n", fourth_token, i);
+					return 1;
 				}
 				// repulsive potentials should work, but let's be safe
 				Quantity *spring = new Quantity (fifth_token, lmp, true, false);
 				if (!spring->is_valid()) {
-					sprintf (msg, "\"%s\" is not a valid spring quantity.", fifth_token);
-					global->abort (msg);
+					fprintf (stderr, "\"%s\" is not a valid spring quantity (line %d).\n", fifth_token, i);
+					return 1;
 				}
 
 				UmbrellaParameter *p = new UmbrellaParameter (param, target, spring, lmp);
-				//UmbrellaParameter *p = new UmbrellaParameter ();
 				params.push_back (p);
 
 			} else if (strcmp (second_token, "bias_every") == 0) {
