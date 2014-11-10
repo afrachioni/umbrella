@@ -110,8 +110,8 @@ int Parser::parse() {
 				seventh_token, eighth_token);//move inside?
 		if (strcmp (first_token, "#AF") == 0 && n > 0) {
 			if (n == 1) {
-				fprintf (stderr, "Parse error: empty directive at line %d.\n", i);
-				break;
+				sprintf(msg, "Parse error: empty directive at line %d.\n", ln);
+				return 1;
 			} else if (strcmp (second_token, "temperature") == 0) {
 				Quantity *temp = new Quantity (third_token, lmp, true, false);
 			} else if (strcmp (second_token, "step_type") == 0) {
