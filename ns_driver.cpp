@@ -146,7 +146,7 @@ int main(int narg, char **arg)
 		if (parser->parse()) {
 			if (me == 0)
 				fprintf (stdout, "Script errors present, exiting...\n");
-			MPI_Finalize ();
+			global->finalize();
 			return 0;
 		}
 

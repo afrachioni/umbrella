@@ -23,6 +23,7 @@ class Global {
 		MPI_Comm roots_comm;
 
 		void split();
+		void stop(char *message);
 		void abort(char *message);
 		void warn(char *message);
 		void debug (char *message);

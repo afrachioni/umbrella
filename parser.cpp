@@ -136,19 +136,19 @@ int Parser::parse() {
 				char msg[100];
 				Quantity *param = new Quantity (third_token, lmp, false, false);
 				if (!param->is_valid()) {
-					fprintf (stderr, "\"%s\" is not a valid parameter name (line %d).\n", third_token, i);
-					return 1;
+					sprintf (msg, "\"%s\" is not a valid parameter name (line %d).\n", third_token, i);
+					Global::get_instance()->stop(msg); return 1;
 				}
 				Quantity *target = new Quantity (fourth_token, lmp, false, false);
 				if (!target->is_valid()) {
-					fprintf (stderr, "\"%s\" is not a valid target quantity (line %d).\n", fourth_token, i);
-					return 1;
+					sprintf (msg, "\"%s\" is not a valid target quantity (line %d).\n", fourth_token, i);
+					Global::get_instance()->stop(msg); return 1;
 				}
 				// repulsive potentials should work, but let's be safe
 				Quantity *spring = new Quantity (fifth_token, lmp, true, false);
 				if (!spring->is_valid()) {
-					fprintf (stderr, "\"%s\" is not a valid spring quantity (line %d).\n", fifth_token, i);
-					return 1;
+					sprintf (msg, "\"%s\" is not a valid spring quantity (line %d).\n", fifth_token, i);
+					Global::get_instance()->stop(msg); return 1;
 				}
 
 				UmbrellaParameter *p = new UmbrellaParameter (param, target, spring, lmp);
@@ -262,6 +262,7 @@ int Parser::parse() {
 	param_ptrs = new UmbrellaParameter *[nparams];
 	for (int i = 0; i < nparams; ++i)
 		param_ptrs[i] = params[i];
+	return 0;
 }
 
 double Parser::get_temp() {

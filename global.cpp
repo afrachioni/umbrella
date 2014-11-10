@@ -100,6 +100,12 @@ void Global::split() {
 		MPI_Comm_create (MPI_COMM_WORLD, roots_group, &roots_comm);
 }
 
+// Halt entire job gracefully.  Must be called by all processes.
+void Global::stop(char *message) {
+	if (global_rank == 0)
+		fprintf (stdout, "\033[31merror: %s\033[0m\n", message);
+}
+
 void Global::abort(char *message) {
 	// TODO This causes a segmentation fault on Copper, I think
 	// (May be related to using MPICH rather than OpenMPI?)
