@@ -15,16 +15,6 @@ UmbrellaParameter::UmbrellaParameter (Quantity *param, Quantity *target, \
 	this->lmp = lmp;
 }
 
-/*
-// XXX this might be default behavior anyway
-UmbrellaParameter::UmbrellaParameter (const UmbrellaParameter& up) {
-	//this->param_Q = up.param_Q;
-	//this->target_Q = up.target_Q;
-	//this->spring_Q = up.spring_Q;
-	this->lmp = up.lmp;
-}
-*/
-
 // ALL the physics lives here
 double UmbrellaParameter::compute_boltzmann_factor() {
 	current_value = param_Q->get_value();
@@ -76,5 +66,3 @@ void UmbrellaParameter::notify_rejected_debug(Logger *logger) {
 	sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, last_accepted_value, current_value);
 	logger->comment (line);
 }
-
-UmbrellaParameter::~UmbrellaParameter() {};

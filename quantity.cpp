@@ -15,6 +15,7 @@
 
 Quantity::Quantity(char *q, LAMMPS_NS::LAMMPS *lmp, \
 		bool positive, bool integer) {
+	valid = true;
 	this->lmp = lmp;
 	if (q[0] == 'c' && q[1] == '_')
 		compute = true;
@@ -31,24 +32,14 @@ Quantity::Quantity(char *q, LAMMPS_NS::LAMMPS *lmp, \
 		strcpy (name, q + 2);
 }
 
-/* XXX pretty sure this is default behavior
-Quantity::Quantity(const Quantity &q) {
-	lmp = q.lmp;
-	strcpy (name, q.name);
-	compute = q.compute;
-	variable = q.variable;
-	valid = q.valid;
-	positive = q.positive;
-	constant = q.constant;
-}
-*/
-
 double Quantity::get_value() {
 	char line[1000];
-	if (!valid)
-		Global::get_instance()->abort("Attempt to get value from invalid "
-				"quantity!  This is an internal error which should never "
-				"happen.");
+	if (!valid) {
+		sprintf (line, "Attempt to get value from invalid "
+				"quantity: %s.  This is an internal error which should never "
+				"happen.", name);
+		Global::get_instance()->abort(line);
+	}
 	if (compute) {
 		  int icompute = lmp->modify->find_compute(name);
 		  if (icompute < 0) {

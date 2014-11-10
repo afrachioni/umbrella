@@ -12,7 +12,6 @@ class UmbrellaParameter {
 	public:
 		UmbrellaParameter (Quantity *param, Quantity *target, \
 				Quantity *spring, LAMMPS_NS::LAMMPS *lmp);
-		~UmbrellaParameter ();
 
 		double compute_boltzmann_factor();
 		void notify_accepted();

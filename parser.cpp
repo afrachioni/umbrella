@@ -143,9 +143,12 @@ void Parser::parse() {
 					global->abort (msg);
 				}
 				Quantity *param = new Quantity (third_token, lmp, false, false);
+				if (!param->is_valid()) fprintf (stderr, "%s is not valid!\n", third_token);
 				Quantity *target = new Quantity (fourth_token, lmp, false, false);
+				if (!target->is_valid()) fprintf (stderr, "%s is not valid!\n", fourth_token);
 				// repulsive potentials should work, but let's be safe
 				Quantity *spring = new Quantity (fifth_token, lmp, true, false);
+				if (!spring->is_valid()) fprintf (stderr, "%s is not valid!\n", fifth_token);
 
 				UmbrellaParameter *p = new UmbrellaParameter (param, target, spring, lmp);
 				//UmbrellaParameter *p = new UmbrellaParameter ();
