@@ -1,6 +1,7 @@
 #include "global.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <cstring>
 
 #define printmsg(...) if (global_rank == 0) fprintf(stdout, __VA_ARGS__);
@@ -104,6 +105,8 @@ void Global::split() {
 void Global::stop(char *message) {
 	if (global_rank == 0)
 		fprintf (stdout, "\033[31merror: %s\033[0m\n", message);
+	finalize();
+	exit(1);
 }
 
 void Global::abort(char *message) {
