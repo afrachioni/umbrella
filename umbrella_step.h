@@ -6,6 +6,7 @@
 #include <string>
 #include<vector>
 
+#include "quantity.h"
 #include "global.h"
 #include "logger.h"
 
@@ -15,7 +16,7 @@ class UmbrellaStep {
 	public:
 		int is_barostat;
 
-		UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, float probability, char *name, Global *global);
+		UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, Quantity *probability, char *name, Global *global);
 		UmbrellaStep();
 		~UmbrellaStep();
 		std::vector<std::string>* get_step_init_block();
@@ -28,7 +29,7 @@ class UmbrellaStep {
 		void execute_accept();
 		void execute_reject();
 
-		float probability;
+		Quantity *probability;
 		float rand_min;
 		float rand_max;
 

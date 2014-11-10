@@ -5,6 +5,7 @@
 #include <input.h>
 #include <atom.h>
 #include <library.h>
+#include "quantity.h"
 #include "umbrella_step.h"
 
 double *UmbrellaStep::positions_buffer = NULL;
@@ -17,10 +18,10 @@ char UmbrellaStep::line[100];
 // The zeroeth step is always accepted
 int UmbrellaStep::force_accept = 1;
 
-UmbrellaStep::UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, float probability, char* name, Global *global) {
+UmbrellaStep::UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, Quantity *probability, char* name, Global *global) {
 	is_barostat = 0;
 	this->lmp = lmp;
-	this->probability = probability;
+	this->probability = new Quantity (*probability);
 	strcpy (this->name, name);
 	rand_min = 1;
 	rand_max = 0;
