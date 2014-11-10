@@ -15,7 +15,7 @@
 
 Quantity::Quantity(char *q, LAMMPS_NS::LAMMPS *lmp, \
 		bool positive, bool integer) {
-	valid = true;
+	compute = false; variable = false; valid = true;
 	this->lmp = lmp;
 	if (q[0] == 'c' && q[1] == '_')
 		compute = true;
