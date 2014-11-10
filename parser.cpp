@@ -142,8 +142,13 @@ void Parser::parse() {
 							"\"v_\" nor \"c_\".", third_token);
 					global->abort (msg);
 				}
+				Quantity *param = new Quantity (third_token, lmp, false, false);
+				Quantity *target = new Quantity (fourth_token, lmp, false, false);
+				// repulsive potentials should work, but let's be safe
+				Quantity *spring = new Quantity (fifth_token, lmp, true, false);
 
-				UmbrellaParameter *p = new UmbrellaParameter (third_token + 2, fourth_token, fifth_token, lmp, is_compute);
+				UmbrellaParameter *p = new UmbrellaParameter (param, target, spring, lmp);
+				//UmbrellaParameter *p = new UmbrellaParameter ();
 				params.push_back (p);
 
 			} else if (strcmp (second_token, "bias_every") == 0) {

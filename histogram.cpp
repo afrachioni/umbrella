@@ -103,8 +103,8 @@ double Histogram::get_standard_deviation() {
 void Histogram::write (FILE *f) {
 	fprintf (f, "# Histogram for window of index %d\n", \
 			Global::get_instance()->get_window_index());
-	fprintf (f, "# Target:     \t%f\n", p->extract_target());
-	fprintf (f, "# Spring:     \t%f\n", p->extract_spring());
+	fprintf (f, "# Target:     \t%f\n", p->get_target());
+	fprintf (f, "# Spring:     \t%f\n", p->get_spring());
 	fprintf (f, "# KT:         \t%d\n", 1); //XXX
 	fprintf (f, "# Samples:    \t%d\n", num_samples);
 	fprintf (f, "# Mean:       \t%f\n", get_mean());
@@ -125,8 +125,8 @@ void Histogram::write (FILE *f) {
 }
 
 void Histogram::write_stats (FILE *f) {
-		fprintf (f, "Target:\t%f\n", p->extract_target());
-		fprintf (f, "Spring:\t%f\n", p->extract_spring());
+		fprintf (f, "Target:\t%f\n", p->get_target());
+		fprintf (f, "Spring:\t%f\n", p->get_spring());
 		fprintf (f, "KT:         \t%d\n", 1); //XXX
 		fprintf (f, "Samples:    \t%d\n", num_samples);
 		fprintf (f, "Mean:       \t%f\n", get_mean());

@@ -31,6 +31,9 @@ Quantity::Quantity(char *q, LAMMPS_NS::LAMMPS *lmp, \
 		strcpy (name, q + 2);
 }
 
+Quantity::Quantity(const Quantity &q) {
+}
+
 double Quantity::get_value() {
 	char line[1000];
 	if (!valid)
