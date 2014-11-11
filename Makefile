@@ -1,6 +1,10 @@
+.PHONY: help clean clean-all clean-%
 EXE = driver_$@
 SRC = $(wildcard *.cpp)
 OBJ = $(SRC:.cpp=.o)
+ifeq (,$(findstring gitversion.cpp,$(SRC)))
+	SRC += gitversion.cpp
+endif
 
 help:
 	@echo ''
@@ -23,7 +27,6 @@ help:
 		"OBJ = $(OBJ)" "SRC = $(SRC)" "TARGET = $@" -C Obj_$@
 
 gitversion.cpp: .git/HEAD .git/index
-	@if [ ! -e gitversion.cpp ]; then :$(eval SRC = $(SRC) gitversion.cpp); fi
 	echo "// This file is generated automatically by the make process," > $@
 	echo "// to provide information about the most recent Git commit." >> $@
 	echo "// Editing or deleting it could confuse the build system." >> $@
@@ -34,7 +37,7 @@ gitversion.cpp: .git/HEAD .git/index
 %.d: ../%.cpp
 	$(CXX) -M $(CPPFLAGS) $(LAMMPS_INC) $< -MF $@
 
-%.o : ../%.cpp 
+%.o : ../%.cpp
 	$(CXX) $(CPPFLAGS) $(LAMMPS_INC) -c $< -o $@
 -include $(SRC:%.cpp=%.d)
 
