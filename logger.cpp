@@ -31,10 +31,10 @@ void Logger::init() {
 		for (int i = 0; i < nparams; ++i) {
 			if (i < 1) {  // TODO should be if spring or something
 				char last_accepted_name[100];
-				sprintf (last_accepted_name, "Last_%s", params[i]->param_vname);
+				sprintf (last_accepted_name, "Last_%s", params[i]->get_name());
 				fprintf (fp, "%-19s", last_accepted_name);
 			}
-			fprintf (fp, "%-19s", params[i]->param_vname);
+			fprintf (fp, "%-19s", params[i]->get_name());
 		}
 		fprintf (fp, "Accept  Walltime\n");
 	}

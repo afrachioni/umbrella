@@ -205,7 +205,7 @@ int Parser::parse() {
 				UmbrellaParameter *p = NULL;
 				for (std::vector<UmbrellaParameter *>::iterator it = \
 						params.begin(); it != params.end(); ++it)
-					if (strcmp (third_token, (*it)->param_vname) == 0)
+					if (strcmp (third_token, (*it)->get_name()) == 0)
 						p = *it;
 				if (p == NULL) {
 					sprintf (msg, "Unable to locate parameter named \'%s\' "
@@ -403,5 +403,5 @@ void Parser::print() {
 	}
 	fprintf (stdout, "Defined parameters:\n");
 	for (unsigned j = 0; j < params.size(); ++j)
-		fprintf (stdout, "\t%s\n", params[j]->param_vname);
+		fprintf (stdout, "\t%s\n", params[j]->get_name());
 }

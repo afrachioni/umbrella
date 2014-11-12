@@ -53,16 +53,20 @@ double UmbrellaParameter::get_target() {
 	return target_Q->get_value();
 }
 
+char *UmbrellaParameter::get_name() {
+	return param_Q->get_name();
+}
+
 void UmbrellaParameter::notify_accepted_debug(Logger *logger) {
 	notify_accepted();
 
 	char line[100];
-	sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, last_accepted_value, current_value);
+	sprintf (line, "%-15s| old: %f\tnew: %f", get_name(), last_accepted_value, current_value);
 	logger->comment (line);
 }
 
 void UmbrellaParameter::notify_rejected_debug(Logger *logger) {
 	char line[100];
-	sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, last_accepted_value, current_value);
+	sprintf (line, "%-15s| old: %f\tnew: %f", get_name(), last_accepted_value, current_value);
 	logger->comment (line);
 }

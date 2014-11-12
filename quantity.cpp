@@ -72,6 +72,10 @@ double Quantity::get_value() {
 		return constant;
 }
 
+char *Quantity::get_name() {
+	return name;
+}
+
 bool Quantity::is_constant() {
 	return !(compute || variable) && valid;
 }
