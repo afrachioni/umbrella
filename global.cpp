@@ -24,7 +24,7 @@ Global::Global (MPI_Comm world, int num_windows) {
 	this->world = world;
 	this->num_windows = num_windows;
 	MPI_Win_create (&abort_called, sizeof(int), sizeof(int), \
-				MPI_INFO_NULL, MPI_COMM_WORLD, &window);
+				MPI_INFO_NULL, world, &window);
 	abort_called = 0;
 }
 
@@ -50,8 +50,8 @@ int Global::get_window_index() {
 }
 
 void Global::split() {
-	MPI_Comm_rank(MPI_COMM_WORLD,&global_rank);
-	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
+	MPI_Comm_rank(world, &global_rank);
+	MPI_Comm_size(world, &nprocs);
 	char line[200];
 	if (nprocs < num_windows) {
 		sprintf (line, "More windows have been defined (%d) than "
@@ -81,7 +81,7 @@ void Global::split() {
 		num_active_windows = num_windows;
 
 	// Split COMM_WORLD into communicators for each window
-	MPI_Comm_split(MPI_COMM_WORLD, global_rank % num_active_windows, global_rank, &local_comm);
+	MPI_Comm_split(world, global_rank % num_active_windows, global_rank, &local_comm);
 	MPI_Comm_rank (local_comm, &local_rank);
 	window_index = global_rank % num_active_windows;
 	int local_roots_send[num_active_windows];
@@ -91,14 +91,14 @@ void Global::split() {
 	if (local_rank == 0)
 		local_roots_send[window_index] = global_rank;
 	MPI_Allreduce (local_roots_send, local_roots, num_active_windows, \
-			MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+			MPI_INT, MPI_SUM, world);
 
 	// Create roots_comm, a communicator for window roots
 	MPI_Group world_group, roots_group;
 	MPI_Comm_group (world, &world_group);
 	MPI_Group_incl (world_group, num_active_windows, local_roots, \
 			&roots_group);
-	MPI_Comm_create (MPI_COMM_WORLD, roots_group, &roots_comm);
+	MPI_Comm_create (world, roots_group, &roots_comm);
 }
 
 // Halt entire job gracefully.  Must be called by all processes.
@@ -121,7 +121,7 @@ void Global::abort(char *message) {
 		}
 		MPI_Win_unlock (0, window);
 	}
-	if (abort_called) MPI_Barrier (MPI_COMM_WORLD); // all going to die.
+	if (abort_called) MPI_Barrier (world); // all going to die.
 	else {
 		fprintf (stderr, "\033[31m\n");
 		// TODO N be safe
@@ -135,7 +135,7 @@ void Global::abort(char *message) {
 		fputs (line, stderr);
 		fprintf (stderr, "\033[0m\n");
 		fprintf (stderr, "\nKilling %d processes...\n\n", nprocs);
-		MPI_Abort (MPI_COMM_WORLD, 1);
+		MPI_Abort (world, 1);
 	}
 }
 
