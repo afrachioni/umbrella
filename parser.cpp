@@ -199,7 +199,7 @@ int Parser::parse() {
 				PeriodicTask *pt = new PeriodicTask (lmp, p);
 				current_block = pt->get_task_block();
 				tasks.push_back(pt);
-				delete pt;
+				//delete pt; TODO kill this somewhere
 				// Special tasks which get intercepted before LAMMPS
 			} else if (strcmp (second_token, "histogram") == 0) {
 				UmbrellaParameter *p = NULL;
@@ -224,7 +224,7 @@ int Parser::parse() {
 				Histogram *h = new Histogram (num, min, max, period, p);
 				h->set_filename(eighth_token); //TODO make sure this exists
 				histograms.push_back(h);
-				delete h;
+				//delete h; TODO kill this somewhere
 
 
 			} else if (strcmp (second_token, "get_positions") == 0) {
