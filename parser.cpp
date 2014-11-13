@@ -29,10 +29,9 @@ int main (int nargs, char **args) {
 }
 */
 
-Parser::Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp, Global *global) {
+Parser::Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp) {
 	strcpy (this->fname, fname);
 	this->lmp = lmp;
-	this->global = global;
 	msg[0] = '\0';
 	bias_every = 1;
 };
@@ -126,9 +125,9 @@ int Parser::parse() {
 					if (!press->is_valid())
 						sprintf (msg, "%s\"%s\" is not a valid pressure "
 								"(line %d)", msg, sixth_token, ln);
-					s = new BarostatStep (lmp, d, third_token, global, press);
+					s = new BarostatStep (lmp, d, third_token, press);
 				} else
-					s = new UmbrellaStep (lmp, d, third_token, global);
+					s = new UmbrellaStep (lmp, d, third_token);
 				steps_map[third_token] = s;
 
 				if (strcmp (msg, ""))
@@ -197,7 +196,7 @@ int Parser::parse() {
 					fprintf (stderr, "Not an integer! (line %d)\n", ln);
 					return 1;
 				}
-				PeriodicTask *pt = new PeriodicTask (lmp, p, global); //TODO die
+				PeriodicTask *pt = new PeriodicTask (lmp, p); //TODO die
 				current_block = pt->get_task_block();
 				tasks.push_back(pt);
 				// Special tasks which get intercepted before LAMMPS
@@ -263,8 +262,8 @@ int Parser::parse() {
 	}
 	// Might want to abort here
 	if (sum != 1)
-		global->warn((char*)"Sum of probabilities is not one.  "
-				"The last step type(s) will make up the difference.\n");
+		Global::get_instance()->warn((char*)"Sum of probabilities is not one."
+				"  The last step type(s) will make up the difference.\n");
 
 	nparams = params.size();
 	param_ptrs = new UmbrellaParameter *[nparams];
@@ -285,13 +284,13 @@ void Parser::process_brackets(char *line) {
 	//TODO pass line number for error messages?
 	char msg[500];
 	char file_line[MAX_LINE_LENGTH];
-	char file_data[MAX_LINE_LENGTH * global->get_num_windows()];
+	char file_data[MAX_LINE_LENGTH*Global::get_instance()->get_num_windows()];
 	int n = strlen (line);
 	char *left = 0;
 	char *right = 0;
 	int i, j;
 	char window_str[100];  //TODO I suppose it could be overrun
-	sprintf (window_str, "%d", global->get_window_index());
+	sprintf (window_str, "%d", Global::get_instance()->get_window_index());
 	int window_len = strlen (window_str);
 	// TODO maybe do this after brackets
 	for (i = 0; i < n; ++i)
@@ -316,10 +315,10 @@ void Parser::process_brackets(char *line) {
 				right = &line[i];
 				break;
 			}
-		if (!right) global->abort ((char*)"No closing brackets detected!");
+		if (!right) Global::get_instance()->abort ((char*)"No closing brackets detected!");
 	} else
 		return;
-	if (right == left) global->abort ((char*)"Empty brackets encountered in script.");
+	if (right == left) Global::get_instance()->abort ((char*)"Empty brackets encountered in script.");
 	char result[100];
 	strncpy (result, left, right - left);
 	result [right - left] = '\0';
@@ -327,10 +326,10 @@ void Parser::process_brackets(char *line) {
 	FILE *fp = fopen (result, "r");
 	if (fp == NULL) {
 		sprintf (msg, "Error opening bracketed file: %s", result);
-		global->abort (msg);
+		Global::get_instance()->abort (msg);
 	}
 
-	if (global->get_global_rank() == 0) {
+	if (Global::get_instance()->get_global_rank() == 0) {
 		int i = 0;
 		while (!feof (fp)) {
 			fgets (file_line, MAX_LINE_LENGTH, fp);
@@ -341,27 +340,27 @@ void Parser::process_brackets(char *line) {
 					file_line[j] = '\0';
 			strcpy (file_data + i * MAX_LINE_LENGTH, file_line);
 			++i;
-			if (i > global->get_num_windows()) {
+			if (i > Global::get_instance()->get_num_windows()) {
 				sprintf (msg, "Number of lines in bracketed file \"%s\""
 						" is greater than the number of defined windows (%d).  "
 						"The first %d lines will be distributed to windows.", \
-						result, global->get_num_windows(), \
-						global->get_num_windows());
-				global->warn(msg);
+						result, Global::get_instance()->get_num_windows(), \
+						Global::get_instance()->get_num_windows());
+				Global::get_instance()->warn(msg);
 				break;
 			}
 		}
-		if (i < global->get_num_windows()) {
+		if (i < Global::get_instance()->get_num_windows()) {
 			sprintf (msg, "Number of lines in bracketed file \"%s\""
 					" is less than the number of defined windows (%d)", \
-					result, global->get_num_windows());
-			global->abort (msg);
+					result, Global::get_instance()->get_num_windows());
+			Global::get_instance()->abort (msg);
 		}
 	}
-	if (global->get_local_rank() == 0)
+	if (Global::get_instance()->get_local_rank() == 0)
 		MPI_Scatter (file_data, MAX_LINE_LENGTH, MPI_CHAR, \
-				file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, global->roots_comm);
-	MPI_Bcast (file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, global->local_comm);
+				file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, Global::get_instance()->roots_comm);
+	MPI_Bcast (file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, Global::get_instance()->local_comm);
 	char buf[MAX_LINE_LENGTH];
 	strncpy (buf, line, left - line - 2);
 	buf[left - line - 2] = '\0';
@@ -371,7 +370,7 @@ void Parser::process_brackets(char *line) {
 }
 
 void Parser::execute_init() {
-	UmbrellaStep::execute_block(lmp, init_block, global);
+	UmbrellaStep::execute_block(lmp, init_block);
 }
 
 void Parser::print() {

@@ -18,14 +18,13 @@ char UmbrellaStep::line[100];
 // The zeroeth step is always accepted
 int UmbrellaStep::force_accept = 1;
 
-UmbrellaStep::UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, Quantity *probability, char* name, Global *global) {
+UmbrellaStep::UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, Quantity *probability, char* name) {
 	is_barostat = 0;
 	this->lmp = lmp;
 	this->probability = new Quantity (*probability);
 	strcpy (this->name, name);
 	rand_min = 1;
 	rand_max = 0;
-	this->global = global;
 
 	this->logger = NULL;
 };
@@ -34,22 +33,22 @@ UmbrellaStep::UmbrellaStep() {}
 UmbrellaStep::~UmbrellaStep(){};
 
 void UmbrellaStep::execute_init() {
-	execute_block (lmp, step_init_block, global);
+	execute_block (lmp, step_init_block);
 }
 void UmbrellaStep::execute_step() {
-	execute_block (lmp, take_step_block, global);
+	execute_block (lmp, take_step_block);
 }
 
 void UmbrellaStep::execute_accept() {
-	execute_block (lmp, if_accept_block, global);
+	execute_block (lmp, if_accept_block);
 }
 
 void UmbrellaStep::execute_reject() {
-	execute_block (lmp, if_reject_block, global);
+	execute_block (lmp, if_reject_block);
 }
 
 // static
-void UmbrellaStep::execute_block (LAMMPS_NS::LAMMPS *lmp, std::vector<std::string> block, Global *global) {
+void UmbrellaStep::execute_block (LAMMPS_NS::LAMMPS *lmp, std::vector<std::string> block) {
 	for (unsigned i = 0; i < block.size(); ++i) {
 		if (strcmp (block[i].c_str(), "GET_ATOMS") == 0) {
 			if (!get_atoms_called) {
@@ -80,7 +79,7 @@ void UmbrellaStep::execute_block (LAMMPS_NS::LAMMPS *lmp, std::vector<std::strin
 
 		} else if (strcmp (block[i].c_str(), "PUT_ATOMS") == 0) {
 			if (!get_atoms_called)
-				global->abort((char*) "put_positons was called "
+				Global::get_instance()->abort((char*)"put_positons was called "
 						"before any call to get_positons.");
 			lmp->input->one ("# Scattering buffered positions...");
 
@@ -115,7 +114,7 @@ void UmbrellaStep::execute_block (LAMMPS_NS::LAMMPS *lmp, std::vector<std::strin
 			lammps_gather_atoms(lmp, (char*)"type", 0, 1, types_buffer);
 		} else if (strcmp (block[i].c_str(), "PUT_TYPES") == 0) {
 			if (!get_types_called)
-				global->abort((char*) "put_types was called "
+				Global::get_instance()->abort((char*) "put_types was called "
 						"before any call to get_positions.");
 			lmp->input->one("# Scatternig buffered types...");;
 			lammps_scatter_atoms(lmp, (char*)"type", 0, 1, types_buffer);

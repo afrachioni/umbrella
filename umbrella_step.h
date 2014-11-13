@@ -16,7 +16,7 @@ class UmbrellaStep {
 	public:
 		int is_barostat;
 
-		UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, Quantity *probability, char *name, Global *global);
+		UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, Quantity *probability, char *name);
 		UmbrellaStep();
 		~UmbrellaStep();
 		std::vector<std::string>* get_step_init_block();
@@ -37,7 +37,7 @@ class UmbrellaStep {
 		static int get_atoms_called;
 		static int get_types_called;
 		static int force_accept;
-		static void execute_block(LAMMPS_NS::LAMMPS *lmp, std::vector<std::string> block, Global *global);
+		static void execute_block(LAMMPS_NS::LAMMPS *lmp, std::vector<std::string> block);
 //ex-private (needed for derived BarostatStep
 		LAMMPS_NS::LAMMPS *lmp;
 
@@ -46,7 +46,6 @@ class UmbrellaStep {
 		static double xlo, xhi, ylo, yhi, zlo, zhi;
 		static char line[];
 
-		Global *global;
 		std::vector<std::string> step_init_block;
 		std::vector<std::string> take_step_block;
 		std::vector<std::string> if_accept_block;

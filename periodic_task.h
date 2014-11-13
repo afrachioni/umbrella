@@ -4,11 +4,9 @@
 #include <mpi.h>
 #include <lammps.h>
 
-#include "global.h"
-
 class PeriodicTask {
 	public:
-		PeriodicTask(LAMMPS_NS::LAMMPS *lmp, int period, Global *global);
+		PeriodicTask(LAMMPS_NS::LAMMPS *lmp, int period);
 
 		std::vector<std::string>* get_task_block();
 
@@ -17,7 +15,6 @@ class PeriodicTask {
 
 	private:
 		LAMMPS_NS::LAMMPS *lmp;
-		Global *global;
 		std::vector<std::string> task_block;
 };
 #endif

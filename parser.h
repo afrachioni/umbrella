@@ -7,7 +7,6 @@
 //#include <lammps.h>
 #include <input.h>
 
-#include "global.h"
 #include "quantity.h"
 #include "umbrella_step.h"
 #include "umbrella_parameter.h"
@@ -16,7 +15,7 @@
 
 class Parser {
 	public:
-		Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp, Global *global);
+		Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp);
 		~Parser();
 		int parse();
 		void execute_init();
@@ -41,7 +40,6 @@ class Parser {
 		char fname [100];
 		Quantity *temp;
 		LAMMPS_NS::LAMMPS *lmp;
-		Global *global;
 		std::vector<std::string> init_block;
 };
 #endif

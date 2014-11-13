@@ -15,8 +15,8 @@ int BarostatStep::accepted_count = 0;
 int BarostatStep::count = 0;
 
 BarostatStep::BarostatStep(LAMMPS_NS::LAMMPS *lmp, Quantity *probability, \
-		char* name, Global *global, Quantity *pressure) :\
-		UmbrellaStep::UmbrellaStep ( lmp, probability, name, global) {
+		char* name, Quantity *pressure) :\
+		UmbrellaStep::UmbrellaStep (lmp, probability, name) {
 	this->pressure = new Quantity(*pressure);
 	is_barostat = 1;
 }
@@ -35,7 +35,7 @@ void BarostatStep::execute_step() {
 	Uold = *((double *) lammps_extract_compute (lmp,(char*)"thermo_pe", 0, 0));
 	Vold=*((double*)lammps_extract_variable(lmp,(char*)"lu_vol",(char*)"all"));
 
-	execute_block (lmp, take_step_block, global);
+	execute_block (lmp, take_step_block);
 
 	U = *((double *) lammps_extract_compute (lmp,(char*)"thermo_pe", 0, 0));
 	V = *((double *)lammps_extract_variable(lmp,(char*)"lu_vol",(char*)"all"));
@@ -51,7 +51,7 @@ void BarostatStep::execute_step() {
 	double exp = -(U-Uold + (P - density_factor)*(V-Vold)/eV - N*kb*T*log(V/Vold))/(kb*T);
 	double accept_rand = (double) rand() / RAND_MAX;
 	int accept = log (accept_rand) < exp;
-	MPI_Bcast (&accept, 1, MPI_INT, 0, global->local_comm);
+	MPI_Bcast (&accept, 1, MPI_INT, 0, Global::get_instance()->local_comm);
 
 	if (accept) {
 		if (logger != NULL) logger->comment ((char*)"accept box change");

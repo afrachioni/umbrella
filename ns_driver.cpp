@@ -141,7 +141,7 @@ int main(int narg, char **arg)
 
 		*/
 		// Parse input script
-		Parser *parser = new Parser (p->script, lmp, global);
+		Parser *parser = new Parser (p->script, lmp);
 		debugmsg ("Processing input script...\n");
 		if (parser->parse()) {
 			if (me == 0)
