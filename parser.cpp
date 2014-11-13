@@ -196,9 +196,10 @@ int Parser::parse() {
 					fprintf (stderr, "Not an integer! (line %d)\n", ln);
 					return 1;
 				}
-				PeriodicTask *pt = new PeriodicTask (lmp, p); //TODO die
+				PeriodicTask *pt = new PeriodicTask (lmp, p);
 				current_block = pt->get_task_block();
 				tasks.push_back(pt);
+				delete pt;
 				// Special tasks which get intercepted before LAMMPS
 			} else if (strcmp (second_token, "histogram") == 0) {
 				UmbrellaParameter *p = NULL;
@@ -220,9 +221,10 @@ int Parser::parse() {
 							"(line %d)", ln);
 					return 1;
 				}
-				Histogram *h = new Histogram (num, min, max, period, p); //TODO die
+				Histogram *h = new Histogram (num, min, max, period, p);
 				h->set_filename(eighth_token); //TODO make sure this exists
 				histograms.push_back(h);
+				delete h;
 
 
 			} else if (strcmp (second_token, "get_positions") == 0) {
