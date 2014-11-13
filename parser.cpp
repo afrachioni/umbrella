@@ -166,7 +166,7 @@ int Parser::parse() {
 			} else if (strcmp (second_token, "take_step") == 0) {
 				if (steps_map.find(third_token) == steps_map.end()) {
 					sprintf (msg, "Parse error: take_step before %s defined "
-						   "(line %d).\n", third_token, ln);
+							"(line %d).\n", third_token, ln);
 					return 1;
 				}
 				current_block = steps_map[third_token]->get_take_step_block();
@@ -224,7 +224,7 @@ int Parser::parse() {
 				Histogram *h = new Histogram (num, min, max, period, p); //TODO die
 				h->set_filename(eighth_token); //TODO make sure this exists
 				histograms.push_back(h);
-				
+
 
 			} else if (strcmp (second_token, "get_positions") == 0) {
 				strcpy (line, "GET_ATOMS");
@@ -236,11 +236,11 @@ int Parser::parse() {
 				strcpy (line, "PUT_TYPES");
 			} else if (strcmp (second_token, "force_accept") == 0) {
 				strcpy (line, "FORCE_ACCEPT");
-			//} else if (strcmp (second_token, "do_step") == 0) {
+				//} else if (strcmp (second_token, "do_step") == 0) {
 				//sprintf (line, "DO_STEP %s", third_token);  // TODO check third null
-			} else {
-				fprintf (stderr, "Directive not recognized: %s\n", line);
-			}
+		} else {
+			fprintf (stderr, "Directive not recognized: %s\n", line);
+		}
 		}
 		if (line[0] == '#' || line[0] == '\0') continue; //perhaps pass to LAMMPS so they show up on logs
 		current_block->push_back (line);
@@ -252,7 +252,8 @@ int Parser::parse() {
 	steps = new UmbrellaStep *[nsteps];
 	float sum = 0;
 	int i = 0;
-	for (std::map<std::string, UmbrellaStep*>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
+	for (std::map<std::string, UmbrellaStep*>::iterator \
+			it = steps_map.begin(); it != steps_map.end(); ++it) {
 		it->second->rand_min = sum;
 		sum += it->second->probability->get_value();
 		it->second->rand_max = sum;
@@ -302,8 +303,8 @@ void Parser::process_brackets(char *line) {
 			for (j = 0; j < window_len; ++j)
 				line[i + j] = window_str[j];
 		}
-				
-	
+
+
 	for (i = 0; i < n - 1; ++i)
 		if (line[i] == '<' && line[i + 1] == '<') {
 			left = &line[i + 2];
@@ -342,10 +343,10 @@ void Parser::process_brackets(char *line) {
 			++i;
 			if (i > global->get_num_windows()) {
 				sprintf (msg, "Number of lines in bracketed file \"%s\""
-					" is greater than the number of defined windows (%d).  "
-					"The first %d lines will be distributed to windows.", \
-					result, global->get_num_windows(), \
-					global->get_num_windows());
+						" is greater than the number of defined windows (%d).  "
+						"The first %d lines will be distributed to windows.", \
+						result, global->get_num_windows(), \
+						global->get_num_windows());
 				global->warn(msg);
 				break;
 			}
@@ -379,7 +380,8 @@ void Parser::print() {
 		fprintf (stdout, "\t%s\n", init_block[i].c_str());
 	fprintf (stdout, "Defined steps:\n");
 	std::vector<std::string> *v;
-	for (std::map<std::string, UmbrellaStep*>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
+	for (std::map<std::string, UmbrellaStep*>::iterator \
+			it = steps_map.begin(); it != steps_map.end(); ++it) {
 		fprintf ( stdout, "\tStep type: %s\n", it->first.c_str());
 		v = it->second->get_take_step_block();
 		fprintf (stdout, "\t\tTake step:\n");

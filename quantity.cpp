@@ -25,8 +25,8 @@ Quantity::Quantity(char *q, LAMMPS_NS::LAMMPS *lmp, \
 		char *e;
 		constant = strtod (q, &e);
 		if (*e != 0) valid = false;
-		if (positive && constant < 0) valid = false;
-		if (integer && (long long) constant != constant) valid = false;
+		else if (positive && constant < 0) valid = false;
+		else if (integer && (long long) constant != constant) valid = false;
 	}
 	if (compute || variable)
 		strcpy (name, q + 2);

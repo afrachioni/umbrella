@@ -27,7 +27,8 @@ double UmbrellaParameter::compute_boltzmann_factor() {
 	double target = target_Q->get_value();
 	double spring = spring_Q->get_value();
 	double current_potential = (current_value-target)*(current_value-target);
-	double previous_potential = (last_accepted_value-target)*(last_accepted_value-target);
+	double previous_potential = (last_accepted_value - target) * \
+								(last_accepted_value - target);
 	double rval = -0.5 * spring / temperature * \
 				  (current_potential - previous_potential);
 	return rval;

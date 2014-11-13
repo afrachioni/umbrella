@@ -27,5 +27,4 @@ class UmbrellaParameter {
 		double last_accepted_value;
 		LAMMPS_NS::LAMMPS *lmp;
 };
-
 #endif
