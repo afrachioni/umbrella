@@ -27,7 +27,8 @@ double UmbrellaParameter::compute_boltzmann_factor() {
 	double target = target_Q->get_value();
 	double spring = spring_Q->get_value();
 	double current_potential = (current_value-target)*(current_value-target);
-	double previous_potential = (last_accepted_value-target)*(last_accepted_value-target);
+	double previous_potential = (last_accepted_value - target) * \
+								(last_accepted_value - target);
 	double rval = -0.5 * spring / temperature * \
 				  (current_potential - previous_potential);
 	return rval;
@@ -53,16 +54,20 @@ double UmbrellaParameter::get_target() {
 	return target_Q->get_value();
 }
 
+char *UmbrellaParameter::get_name() {
+	return param_Q->get_name();
+}
+
 void UmbrellaParameter::notify_accepted_debug(Logger *logger) {
 	notify_accepted();
 
 	char line[100];
-	sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, last_accepted_value, current_value);
+	sprintf (line, "%-15s| old: %f\tnew: %f", get_name(), last_accepted_value, current_value);
 	logger->comment (line);
 }
 
 void UmbrellaParameter::notify_rejected_debug(Logger *logger) {
 	char line[100];
-	sprintf (line, "%-15s| old: %f\tnew: %f", param_vname, last_accepted_value, current_value);
+	sprintf (line, "%-15s| old: %f\tnew: %f", get_name(), last_accepted_value, current_value);
 	logger->comment (line);
 }

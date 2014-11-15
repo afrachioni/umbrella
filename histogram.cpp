@@ -105,7 +105,7 @@ void Histogram::write (FILE *f) {
 			Global::get_instance()->get_window_index());
 	fprintf (f, "# Target:     \t%f\n", p->get_target());
 	fprintf (f, "# Spring:     \t%f\n", p->get_spring());
-	fprintf (f, "# KT:         \t%d\n", 1); //XXX
+	fprintf (f, "# KT:         \t%d\n", 1); //XXX TODO this is bad
 	fprintf (f, "# Samples:    \t%d\n", num_samples);
 	fprintf (f, "# Mean:       \t%f\n", get_mean());
 	fprintf (f, "# SD:         \t%f\n", get_standard_deviation());

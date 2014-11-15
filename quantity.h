@@ -7,6 +7,7 @@ class Quantity {
 	public:
 		Quantity(char *q, LAMMPS_NS::LAMMPS *lmp, bool positive, bool integer);
 		double get_value();
+		char *get_name();
 		bool is_constant();
 		bool is_valid();
 

@@ -29,10 +29,9 @@ int main (int nargs, char **args) {
 }
 */
 
-Parser::Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp, Global *global) {
+Parser::Parser(const char *fname, LAMMPS_NS::LAMMPS *lmp) {
 	strcpy (this->fname, fname);
 	this->lmp = lmp;
-	this->global = global;
 	msg[0] = '\0';
 	bias_every = 1;
 };
@@ -126,9 +125,9 @@ int Parser::parse() {
 					if (!press->is_valid())
 						sprintf (msg, "%s\"%s\" is not a valid pressure "
 								"(line %d)", msg, sixth_token, ln);
-					s = new BarostatStep (lmp, d, third_token, global, press);
+					s = new BarostatStep (lmp, d, third_token, press);
 				} else
-					s = new UmbrellaStep (lmp, d, third_token, global);
+					s = new UmbrellaStep (lmp, d, third_token);
 				steps_map[third_token] = s;
 
 				if (strcmp (msg, ""))
@@ -166,7 +165,7 @@ int Parser::parse() {
 			} else if (strcmp (second_token, "take_step") == 0) {
 				if (steps_map.find(third_token) == steps_map.end()) {
 					sprintf (msg, "Parse error: take_step before %s defined "
-						   "(line %d).\n", third_token, ln);
+							"(line %d).\n", third_token, ln);
 					return 1;
 				}
 				current_block = steps_map[third_token]->get_take_step_block();
@@ -197,15 +196,16 @@ int Parser::parse() {
 					fprintf (stderr, "Not an integer! (line %d)\n", ln);
 					return 1;
 				}
-				PeriodicTask *pt = new PeriodicTask (lmp, p, global); //TODO die
+				PeriodicTask *pt = new PeriodicTask (lmp, p);
 				current_block = pt->get_task_block();
 				tasks.push_back(pt);
+				//delete pt; TODO kill this somewhere
 				// Special tasks which get intercepted before LAMMPS
 			} else if (strcmp (second_token, "histogram") == 0) {
 				UmbrellaParameter *p = NULL;
 				for (std::vector<UmbrellaParameter *>::iterator it = \
 						params.begin(); it != params.end(); ++it)
-					if (strcmp (third_token, (*it)->param_vname) == 0)
+					if (strcmp (third_token, (*it)->get_name()) == 0)
 						p = *it;
 				if (p == NULL) {
 					sprintf (msg, "Unable to locate parameter named \'%s\' "
@@ -221,10 +221,11 @@ int Parser::parse() {
 							"(line %d)", ln);
 					return 1;
 				}
-				Histogram *h = new Histogram (num, min, max, period, p); //TODO die
+				Histogram *h = new Histogram (num, min, max, period, p);
 				h->set_filename(eighth_token); //TODO make sure this exists
 				histograms.push_back(h);
-				
+				//delete h; TODO kill this somewhere
+
 
 			} else if (strcmp (second_token, "get_positions") == 0) {
 				strcpy (line, "GET_ATOMS");
@@ -236,11 +237,11 @@ int Parser::parse() {
 				strcpy (line, "PUT_TYPES");
 			} else if (strcmp (second_token, "force_accept") == 0) {
 				strcpy (line, "FORCE_ACCEPT");
-			//} else if (strcmp (second_token, "do_step") == 0) {
+				//} else if (strcmp (second_token, "do_step") == 0) {
 				//sprintf (line, "DO_STEP %s", third_token);  // TODO check third null
-			} else {
-				fprintf (stderr, "Directive not recognized: %s\n", line);
-			}
+		} else {
+			fprintf (stderr, "Directive not recognized: %s\n", line);
+		}
 		}
 		if (line[0] == '#' || line[0] == '\0') continue; //perhaps pass to LAMMPS so they show up on logs
 		current_block->push_back (line);
@@ -252,7 +253,8 @@ int Parser::parse() {
 	steps = new UmbrellaStep *[nsteps];
 	float sum = 0;
 	int i = 0;
-	for (std::map<std::string, UmbrellaStep*>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
+	for (std::map<std::string, UmbrellaStep*>::iterator \
+			it = steps_map.begin(); it != steps_map.end(); ++it) {
 		it->second->rand_min = sum;
 		sum += it->second->probability->get_value();
 		it->second->rand_max = sum;
@@ -262,8 +264,8 @@ int Parser::parse() {
 	}
 	// Might want to abort here
 	if (sum != 1)
-		global->warn((char*)"Sum of probabilities is not one.  "
-				"The last step type(s) will make up the difference.\n");
+		Global::get_instance()->warn((char*)"Sum of probabilities is not one."
+				"  The last step type(s) will make up the difference.\n");
 
 	nparams = params.size();
 	param_ptrs = new UmbrellaParameter *[nparams];
@@ -284,13 +286,13 @@ void Parser::process_brackets(char *line) {
 	//TODO pass line number for error messages?
 	char msg[500];
 	char file_line[MAX_LINE_LENGTH];
-	char file_data[MAX_LINE_LENGTH * global->get_num_windows()];
+	char file_data[MAX_LINE_LENGTH*Global::get_instance()->get_num_windows()];
 	int n = strlen (line);
 	char *left = 0;
 	char *right = 0;
 	int i, j;
 	char window_str[100];  //TODO I suppose it could be overrun
-	sprintf (window_str, "%d", global->get_window_index());
+	sprintf (window_str, "%d", Global::get_instance()->get_window_index());
 	int window_len = strlen (window_str);
 	// TODO maybe do this after brackets
 	for (i = 0; i < n; ++i)
@@ -302,8 +304,8 @@ void Parser::process_brackets(char *line) {
 			for (j = 0; j < window_len; ++j)
 				line[i + j] = window_str[j];
 		}
-				
-	
+
+
 	for (i = 0; i < n - 1; ++i)
 		if (line[i] == '<' && line[i + 1] == '<') {
 			left = &line[i + 2];
@@ -315,10 +317,10 @@ void Parser::process_brackets(char *line) {
 				right = &line[i];
 				break;
 			}
-		if (!right) global->abort ((char*)"No closing brackets detected!");
+		if (!right) Global::get_instance()->abort ((char*)"No closing brackets detected!");
 	} else
 		return;
-	if (right == left) global->abort ((char*)"Empty brackets encountered in script.");
+	if (right == left) Global::get_instance()->abort ((char*)"Empty brackets encountered in script.");
 	char result[100];
 	strncpy (result, left, right - left);
 	result [right - left] = '\0';
@@ -326,10 +328,10 @@ void Parser::process_brackets(char *line) {
 	FILE *fp = fopen (result, "r");
 	if (fp == NULL) {
 		sprintf (msg, "Error opening bracketed file: %s", result);
-		global->abort (msg);
+		Global::get_instance()->abort (msg);
 	}
 
-	if (global->get_global_rank() == 0) {
+	if (Global::get_instance()->get_global_rank() == 0) {
 		int i = 0;
 		while (!feof (fp)) {
 			fgets (file_line, MAX_LINE_LENGTH, fp);
@@ -340,27 +342,27 @@ void Parser::process_brackets(char *line) {
 					file_line[j] = '\0';
 			strcpy (file_data + i * MAX_LINE_LENGTH, file_line);
 			++i;
-			if (i > global->get_num_windows()) {
+			if (i > Global::get_instance()->get_num_windows()) {
 				sprintf (msg, "Number of lines in bracketed file \"%s\""
-					" is greater than the number of defined windows (%d).  "
-					"The first %d lines will be distributed to windows.", \
-					result, global->get_num_windows(), \
-					global->get_num_windows());
-				global->warn(msg);
+						" is greater than the number of defined windows (%d).  "
+						"The first %d lines will be distributed to windows.", \
+						result, Global::get_instance()->get_num_windows(), \
+						Global::get_instance()->get_num_windows());
+				Global::get_instance()->warn(msg);
 				break;
 			}
 		}
-		if (i < global->get_num_windows()) {
+		if (i < Global::get_instance()->get_num_windows()) {
 			sprintf (msg, "Number of lines in bracketed file \"%s\""
 					" is less than the number of defined windows (%d)", \
-					result, global->get_num_windows());
-			global->abort (msg);
+					result, Global::get_instance()->get_num_windows());
+			Global::get_instance()->abort (msg);
 		}
 	}
-	if (global->get_local_rank() == 0)
+	if (Global::get_instance()->get_local_rank() == 0)
 		MPI_Scatter (file_data, MAX_LINE_LENGTH, MPI_CHAR, \
-				file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, global->roots_comm);
-	MPI_Bcast (file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, global->local_comm);
+				file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, Global::get_instance()->roots_comm);
+	MPI_Bcast (file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, Global::get_instance()->local_comm);
 	char buf[MAX_LINE_LENGTH];
 	strncpy (buf, line, left - line - 2);
 	buf[left - line - 2] = '\0';
@@ -370,7 +372,7 @@ void Parser::process_brackets(char *line) {
 }
 
 void Parser::execute_init() {
-	UmbrellaStep::execute_block(lmp, init_block, global);
+	UmbrellaStep::execute_block(lmp, init_block);
 }
 
 void Parser::print() {
@@ -379,7 +381,8 @@ void Parser::print() {
 		fprintf (stdout, "\t%s\n", init_block[i].c_str());
 	fprintf (stdout, "Defined steps:\n");
 	std::vector<std::string> *v;
-	for (std::map<std::string, UmbrellaStep*>::iterator it = steps_map.begin(); it != steps_map.end(); ++it) {
+	for (std::map<std::string, UmbrellaStep*>::iterator \
+			it = steps_map.begin(); it != steps_map.end(); ++it) {
 		fprintf ( stdout, "\tStep type: %s\n", it->first.c_str());
 		v = it->second->get_take_step_block();
 		fprintf (stdout, "\t\tTake step:\n");
@@ -403,5 +406,5 @@ void Parser::print() {
 	}
 	fprintf (stdout, "Defined parameters:\n");
 	for (unsigned j = 0; j < params.size(); ++j)
-		fprintf (stdout, "\t%s\n", params[j]->param_vname);
+		fprintf (stdout, "\t%s\n", params[j]->get_name());
 }
