@@ -262,10 +262,10 @@ int Parser::parse() {
 		++i;
 
 	}
-	// Might want to abort here
-	if (sum != 1)
-		Global::get_instance()->warn((char*)"Sum of probabilities is not one."
-				"  The last step type(s) will make up the difference.\n");
+	if (sum != 1) {
+		sprintf (msg, "Sum of step probabilities is not one.");
+		return 1;
+	}
 
 	nparams = params.size();
 	param_ptrs = new UmbrellaParameter *[nparams];
