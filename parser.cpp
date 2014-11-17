@@ -317,10 +317,12 @@ void Parser::process_brackets(char *line) {
 				right = &line[i];
 				break;
 			}
-		if (!right) Global::get_instance()->abort ((char*)"No closing brackets detected!");
+		if (!right) Global::get_instance()->abort ((char*) \
+				"No closing brackets detected!");
 	} else
 		return;
-	if (right == left) Global::get_instance()->abort ((char*)"Empty brackets encountered in script.");
+	if (right == left) Global::get_instance()->abort ((char*) \
+			"Empty brackets encountered in script.");
 	char result[100];
 	strncpy (result, left, right - left);
 	result [right - left] = '\0';
@@ -344,8 +346,8 @@ void Parser::process_brackets(char *line) {
 			++i;
 			if (i > Global::get_instance()->get_num_windows()) {
 				sprintf (msg, "Number of lines in bracketed file \"%s\""
-						" is greater than the number of defined windows (%d).  "
-						"The first %d lines will be distributed to windows.", \
+						" is greater than the number of defined windows (%d). "
+						" The first %d lines will be distributed to windows.",\
 						result, Global::get_instance()->get_num_windows(), \
 						Global::get_instance()->get_num_windows());
 				Global::get_instance()->warn(msg);
@@ -361,8 +363,10 @@ void Parser::process_brackets(char *line) {
 	}
 	if (Global::get_instance()->get_local_rank() == 0)
 		MPI_Scatter (file_data, MAX_LINE_LENGTH, MPI_CHAR, \
-				file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, Global::get_instance()->roots_comm);
-	MPI_Bcast (file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, Global::get_instance()->local_comm);
+				file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, \
+				Global::get_instance()->roots_comm);
+	MPI_Bcast (file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, \
+			Global::get_instance()->local_comm);
 	char buf[MAX_LINE_LENGTH];
 	strncpy (buf, line, left - line - 2);
 	buf[left - line - 2] = '\0';
