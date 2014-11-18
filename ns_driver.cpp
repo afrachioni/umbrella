@@ -256,17 +256,17 @@ int main(int narg, char **arg)
 		int64_t start_time = Logger::get_time();
 		int64_t step_start_time = Logger::get_time();
 		for (int i = 0; i < p->count + 1; ++i) {
-			if (i % 10 == 0 && global->get_global_rank() == 0) {
+			if (i % 1 == 0 && global->get_global_rank() == 0) {
 				int64_t now = Logger::get_time();
 				int64_t split = now - step_start_time;
 				step_start_time = now;
 				double rate = local_count?(double)local_accept_count/local_count:-1;
 				double barostat_rate = BarostatStep::get_rate();
 				BarostatStep::zero_rate();
-				fprintf (stdout, "Step: %d\tRate: %f\tBarostat rate: %f\tSplit: %" PRId64 "\n", i, rate, barostat_rate, split);
+				fprintf (stdout, "Step: %d\tRate: %f\tBarostat rate: %f\t"
+						"Split: %" PRId64 "\n", i, rate, barostat_rate, split);
 				local_accept_count = 0;
 				local_count = 0;
-				//global->debug (line);
 			}
 			//--------------------------------------------------------
 			//
