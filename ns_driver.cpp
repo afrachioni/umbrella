@@ -53,6 +53,7 @@
 #include <input.h>
 #include <atom.h>
 #include <library.h>
+#include <version.h>
 //#include "management.cpp"
 
 // system include files
@@ -87,6 +88,8 @@ int main(int narg, char **arg)
 					"|              afrachioni@gmail.com             |\n");
 			fprintf (stdout, "                       "
 					"|                                               |\n");
+			fprintf (stdout, "                       "
+					"| LAMMPS version: %-29s |\n", LAMMPS_VERSION);
 			fprintf (stdout, "                       "
 					"| Latest commit: %-30s |\n", gitmessage);
 			fprintf (stdout, "                       "
@@ -263,10 +266,10 @@ int main(int narg, char **arg)
 				double rate = local_count?(double)local_accept_count/local_count:-1;
 				double barostat_rate = BarostatStep::get_rate();
 				BarostatStep::zero_rate();
-				fprintf (stdout, "Step: %d\tRate: %f\tBarostat rate: %f\t"
-						"Split: %" PRId64 "\n", i, rate, barostat_rate, split);
+				fprintf (stdout, "Step: %d\tRate: %f\tBarostat rate: %f\tSplit: %" PRId64 "\n", i, rate, barostat_rate, split);
 				local_accept_count = 0;
 				local_count = 0;
+				//global->debug (line);
 			}
 			//--------------------------------------------------------
 			//
