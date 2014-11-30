@@ -48,6 +48,7 @@ void BarostatStep::execute_step() {
 	double density_factor = 0;
 
 	P = pressure->get_value();
+	T = 10;//XXX
 	double exp = -(U-Uold + (P + density_factor)*(V-Vold)/eV - N*kb*T*log(V/Vold))/(kb*T);
 	double accept_rand = (double) rand() / RAND_MAX;
 	int accept = log (accept_rand) < exp;
