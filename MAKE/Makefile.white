@@ -1,8 +1,8 @@
 # white:      Professor White's Mac Pro, GNU + OpenMPI
 #
 include ../Makefile
-CXX = mpic++
+CXX = /usr/local/bin/mpic++
 CXXFLAGS =
-LAMMPS_INC = -I ~/myLAMMPS/src -I ~/myLAMMPS/lib/meam
-LAMMPS_LIB = -L ~/myLAMMPS/src -L ~/myLAMMPS/lib/meam
-LIBS = -llammps_wmp -lmeam -lgfortran -lfftw
+LAMMPS_INC = -I ~/LAMMPS/src
+LAMMPS_LIB = -L ~/LAMMPS/src 
+LIBS = -llammps_mpi  -lgfortran -lfftw
