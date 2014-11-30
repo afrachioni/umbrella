@@ -19,8 +19,8 @@ UmbrellaParameter::UmbrellaParameter (Quantity *param, Quantity *target, \
 double UmbrellaParameter::compute_boltzmann_factor() {
 	current_value = param_Q->get_value();
 
-	double temperature = *((double *) lammps_extract_compute(lmp,(char*)"thermo_temp", 0, 0));
-	//temperature = 1; //XXX
+	//double temperature = *((double *) lammps_extract_compute(lmp,(char*)"thermo_temp", 0, 0));
+	double temperature = 10; //XXX
 	//temperature = 1/8.617e-5; //XXX
 	if (temperature == 0) return -INFINITY; // Avoid nan
 

@@ -115,7 +115,7 @@ int main(int narg, char **arg)
 		srand(me);
 
 		// Warn about hardcoded integrate accept/reject as global
-		//global->warn("Temperature hardcoded to 10K");
+		global->warn("Temperature hardcoded to 10K");
 		global->warn((char*)"Step named \"integrate\" hardcoded to provide global"
 				" accept/reject blocks for now");
 		//global->warn("Using Lennard-Jones reduced units!  (Compiled in.)");
@@ -259,7 +259,7 @@ int main(int narg, char **arg)
 		int64_t start_time = Logger::get_time();
 		int64_t step_start_time = Logger::get_time();
 		for (int i = 0; i < p->count + 1; ++i) {
-			if (i % 1 == 0 && global->get_global_rank() == 0) {
+			if (i % 1000 == 0 && global->get_global_rank() == 0) {
 				int64_t now = Logger::get_time();
 				int64_t split = now - step_start_time;
 				step_start_time = now;
