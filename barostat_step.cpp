@@ -50,9 +50,26 @@ void BarostatStep::execute_step() {
 	P = pressure->get_value();
 	T = 10;//XXX
 	double exp = -(U-Uold + (P + density_factor)*(V-Vold)/eV - N*kb*T*log(V/Vold))/(kb*T);
+	//fprintf (stderr, "exp:   \t%f\n", exp);
+	//fprintf (stderr, "quot:  \t%f\n", -(U-Uold)/(kb*T));
+	//fprintf (stderr, "U:     \t%f\n", U);
+	//fprintf (stderr, "Uold:  \t%f\n", Uold);
+	//if (exp != -(U - Uold)/(kb*T))
+		//fprintf (stderr, "This is very bad!\n");
+	//fprintf (stderr, "#######################################\n");
 	double accept_rand = (double) rand() / RAND_MAX;
 	int accept = log (accept_rand) < exp;
 	MPI_Bcast (&accept, 1, MPI_INT, 0, Global::get_instance()->local_comm);
+
+#if 0
+	if (Global::get_instance()->get_global_rank() == 0) {
+		fprintf (stderr, "Old U: \t%15.15f\n", Uold);
+		fprintf (stderr, "New U: \t%15.15f\n", U);
+		fprintf (stderr, "rand:  \t%15.15f\n", accept_rand);
+		fprintf (stderr, "Accept:\t%d\n", accept);
+		fprintf (stderr, "||||||||||||||||||||||||||||||||||\n");
+	}
+#endif
 
 	if (accept) {
 		if (logger != NULL) logger->comment ((char*)"accept box change");
