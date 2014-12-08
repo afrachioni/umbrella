@@ -25,17 +25,17 @@ while (re.match ("^#", line)):
 
 old_sample = line.split()[column]
 for line in f:
-#for i in range(1000000):
-	#line = f.readline()
 	if (re.match ("^#", line)): # the carat may be unnecessary
 		continue
 	try:
-		lineval = line.split()[column]
+		vals = line.split()
+		lineval = vals[column]
+		index = int(vals[0])
 	except:
 		print "Parse error! Line: " + str(i)
 		print line
 		exit()
-	if (i % 1 == 0):
+	if (index % 1 == 0):
 		sample = lineval
 		zeroes.append(sample)
 		minus.append(old_sample)
