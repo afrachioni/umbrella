@@ -118,6 +118,7 @@ int main(int narg, char **arg)
 		global->warn("Temperature hardcoded to 10K");
 		global->warn((char*)"Step named \"integrate\" hardcoded to provide global"
 				" accept/reject blocks for now");
+		global->warn("Only write things down every ten steps");
 		//global->warn("Using Lennard-Jones reduced units!  (Compiled in.)");
 		//global->warn("Hardcoded to never bias. (Ever.)  (Really.)");
 
@@ -360,12 +361,13 @@ int main(int narg, char **arg)
 			}
 
 			// Write things down
-			logger->step_taken (i, steptype, accept || UmbrellaStep::force_accept);
-
-			for (std::vector<Histogram *>::iterator it = parser->histograms.begin();
-					it != parser->histograms.end(); ++it) {
-				(*it)->update();
-				(*it)->write(i); //TODO make this better
+			if (i % 10 == 0) {
+				logger->step_taken (i, steptype, accept || UmbrellaStep::force_accept);
+				for (std::vector<Histogram *>::iterator it = parser->histograms.begin();
+						it != parser->histograms.end(); ++it) {
+					(*it)->update();
+					(*it)->write(i); //TODO make this better
+				}
 			}
 
 			if (UmbrellaStep::force_accept)
