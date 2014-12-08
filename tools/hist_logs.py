@@ -48,7 +48,8 @@ else:
 	filenames = [single_filename]
 
 for filename in filenames:
-	if re.search(".lammps", filename):
+# TODO read hist files
+	if re.search(".lammps", filename) or re.search(".hist", filename):
 		continue
 	infile = open (dirname + filename, "r")
 	line = ""
