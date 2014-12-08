@@ -32,6 +32,8 @@ else:
 	filenames = [single_filename]
 
 for filename in filenames:
+	if re.search(".lammps", filename):
+		continue
 	infile = open (dirname + filename, "r")
 	line = ""
 	while not re.search("#Step", line):
@@ -68,4 +70,4 @@ for filename in filenames:
 		plt.clf()
 
 if not perfile:
-	pylab.savefig("plot.png")
+	pylab.savefig("ag_hist.png")
