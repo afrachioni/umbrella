@@ -22,8 +22,8 @@ def flatten(arr):
 #############################
 
 kt = 8.617e-4
-f = lambda x : 1 * kt * numpy.log(4 * numpy.pi * x**2)
-#f = lambda x : 0
+#f = lambda x : 1 * kt * numpy.log(4 * numpy.pi * x**2)
+f = lambda x : 0
 
 sigma = 1
 epsilon = 10 * kt
