@@ -67,6 +67,12 @@ double Quantity::get_value() {
 					name);
 			Global::get_instance()->abort(line);
 		}
+		if (Global::get_instance()->get_global_rank() == 0) {
+			char buf[200];
+			sprintf (buf, "# Returning from Quantity::get_value for variable: %s\tGot: %f\n", name, lmp->input->variable->compute_equal(ivar));
+			lmp->input->one(buf);
+		}
+		//XXX is this only ok for equal-style variables?  Maybe it only needs be.
 		return lmp->input->variable->compute_equal(ivar);
 	} else
 		return constant;
