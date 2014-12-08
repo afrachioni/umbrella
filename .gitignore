@@ -6,5 +6,9 @@ driver_*
 # Also platform specific dependency files
 *.d
 Obj_*
+# And plots and data files
+*.png
+*.pdf
+*.txt
 # And header file containing recent commit data
 gitversion.cpp
