@@ -10,5 +10,7 @@ Obj_*
 *.png
 *.pdf
 *.txt
+*.hist
+*.lammps
 # And header file containing recent commit data
 gitversion.cpp
