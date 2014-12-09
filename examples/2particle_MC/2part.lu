@@ -1,0 +1,50 @@
+units metal
+dimension 3
+newton on on
+boundary p p p 
+atom_style atomic
+atom_modify map array
+
+lattice fcc 5.306
+region box block -100 100 -100 100 -100 100 units box
+create_box 1 box
+mass 1 39.943
+
+variable target equal 1+0.05*@
+variable spring equal 10/0.00831
+
+create_atoms 1 single 0 0 ${target} units box
+create_atoms 1 single 0 0 0 units box
+
+pair_style lj/cut 9.0
+pair_coeff * * .0008617 1.0
+
+variable sep equal sqrt((x[1]-x[2])^2+(y[1]-y[2])^2+(z[1]-z[2])^2)
+
+variable x1 equal x[1]
+variable x2 equal x[2]
+variable y1 equal y[1]
+variable y2 equal y[2]
+variable z1 equal z[1]
+variable z2 equal z[2]
+
+thermo 1000
+thermo_style custom step temp v_sep v_x1 v_y1 v_z1 v_x2 v_y2 v_z2
+fix 1 all nvt temp 10 10 0.1
+run 0
+
+variable seed equal floor(random(1,10000,75))
+
+#AF step_type integrate 1
+#AF parameter v_sep v_target v_spring
+#AF parameter v_target 0 0
+
+#AF take_step integrate 
+variable my_seed equal v_seed
+velocity all create 10 ${my_seed} dist gaussian mom yes rot yes
+run 1000 post no
+
+#AF if_accept integrate
+#AF get_positions
+#AF if_reject integrate
+#AF put_positions

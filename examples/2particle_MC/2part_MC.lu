@@ -1,0 +1,86 @@
+units metal
+dimension 3
+newton on on
+boundary p p p 
+atom_style atomic
+atom_modify map array
+
+lattice fcc 5.306
+region box block -100 100 -100 100 -100 100 units box
+create_box 1 box
+mass 1 39.943
+
+variable target equal 1+0.05*@
+variable spring equal 1/8.617e-5
+
+create_atoms 1 single 0 0 0 units box
+create_atoms 1 single 0 0 ${target} units box
+
+pair_style lj/cut 9.0
+pair_coeff * * 8.617e-3 1.0 # kT = 8.617e-4
+
+variable sep equal sqrt((x[1]-x[2])^2+(y[1]-y[2])^2+(z[1]-z[2])^2)
+
+variable x1 equal x[1]
+variable x2 equal x[2]
+variable y1 equal y[1]
+variable y2 equal y[2]
+variable z1 equal z[1]
+variable z2 equal z[2]
+
+
+variable delta equal random(-0.11547,0.11547,37)
+
+thermo 1000
+thermo_style custom step temp v_sep v_x1 v_y1 v_z1 v_x2 v_y2 v_z2 pe
+variable pe equal pe
+run 0 post no
+
+variable seed equal floor(random(1,10000,@))
+
+#AF step_type integrate 0
+#AF parameter v_sep v_target v_spring
+#AF parameter v_target 0 0
+
+#AF histogram sep 1.05 2.95 2000 100000 logs/log_@.hist
+###AF bias_every 10
+
+#AF take_step integrate 
+foo de bar zap bag
+
+#AF if_accept integrate
+ # ACCEPTED against bias, gathering atoms
+#AF get_positions
+#AF if_reject integrate
+ # REJECTED against bias, scattering atoms
+#AF put_positions
+#run 0 post no # this is not needed.
+
+
+#AF step_type move 1 barostat 0
+#AF step_init move
+variable x_buf equal 0
+variable y_buf equal 0
+variable z_buf equal ${target}
+
+#AF take_step move
+print "U before: ${pe}"
+#variable new_x equal x[2]+${delta}
+#variable new_y equal y[2]+${delta}
+#variable new_z equal z[2]+${delta}
+variable new_x equal x[2]
+variable new_y equal y[2]
+variable new_z equal z[2]+${delta}
+set atom 2 x ${new_x} y ${new_y} z ${new_z}
+run 0 post no
+print "U after: ${pe}"
+
+#AF if_accept move
+ # accepted position move, setting buffers
+variable x_buf equal ${x2}
+variable y_buf equal ${y2}
+variable z_buf equal ${z2}
+
+#AF if_reject move
+ # rejected position move, replacing atom
+set atom 2 x ${x_buf} y ${y_buf} z ${z_buf}
