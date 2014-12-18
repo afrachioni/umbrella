@@ -115,10 +115,11 @@ int main(int narg, char **arg)
 		srand(me);
 
 		// Warn about hardcoded integrate accept/reject as global
-		global->warn("Temperature hardcoded to 10K");
+		//global->warn("Temperature hardcoded to 10K");
+		global->warn("Temperature hardcoded to 0.741");
 		global->warn((char*)"Step named \"integrate\" hardcoded to provide global"
 				" accept/reject blocks for now");
-		global->warn("Only write things down every ten steps");
+		//global->warn("Only write things down every ten steps");
 		//global->warn("Using Lennard-Jones reduced units!  (Compiled in.)");
 		//global->warn("Hardcoded to never bias. (Ever.)  (Really.)");
 
@@ -157,7 +158,7 @@ int main(int narg, char **arg)
 		// Set up per-window logging (log names currently set here)
 		char line[100];
 		mkdir ("logs", S_IRWXU);
-		sprintf (line, "logs/log_%d.txt", global->get_window_index());
+		sprintf (line, "logs/log_%d.txt", global->get_window_index() + 0); //XXX
 		Logger *logger = new Logger(line, parser->nparams, (int)global->get_window_index(), \
 				global->get_local_rank(), parser->param_ptrs, \
 				parser->nsteps, parser->steps);
@@ -260,7 +261,7 @@ int main(int narg, char **arg)
 		int64_t start_time = Logger::get_time();
 		int64_t step_start_time = Logger::get_time();
 		for (int i = 0; i < p->count + 1; ++i) {
-			if (i % 1000 == 0 && global->get_global_rank() == 0) {
+			if (i % 1 == 0 && global->get_global_rank() == 0) {
 				int64_t now = Logger::get_time();
 				int64_t split = now - step_start_time;
 				step_start_time = now;
@@ -361,7 +362,7 @@ int main(int narg, char **arg)
 			}
 
 			// Write things down
-			if (i % 10 == 0) {
+			if (i % 1 == 0) {
 				logger->step_taken (i, steptype, accept || UmbrellaStep::force_accept);
 				for (std::vector<Histogram *>::iterator it = parser->histograms.begin();
 						it != parser->histograms.end(); ++it) {
