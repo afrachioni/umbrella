@@ -48,7 +48,8 @@ void BarostatStep::execute_step() {
 	double density_factor = 0;
 
 	P = pressure->get_value();
-	T = 10;//XXX
+	//T = 10;//XXX
+	T = 0.741;//XXX
 	double exp = -(U-Uold + (P + density_factor)*(V-Vold)/eV - N*kb*T*log(V/Vold))/(kb*T);
 	//fprintf (stderr, "exp:   \t%f\n", exp);
 	//fprintf (stderr, "quot:  \t%f\n", -(U-Uold)/(kb*T));

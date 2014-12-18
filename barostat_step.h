@@ -19,11 +19,11 @@ class BarostatStep : public UmbrellaStep {
 		static int accepted_count, count;
 
 		// Metal units
-		static const double kb = 8.61733238e-5; // eV / K
-		static const double eV = 1.6021766e6; // bar A^3
+		//static const double kb = 8.61733238e-5; // eV / K
+		//static const double eV = 1.6021766e6; // bar A^3
 
 		// Reduced LJ units
-		//static const double kb = 1;
-		//static const double eV = 1;
+		static const double kb = 1;
+		static const double eV = 1;
 };
 #endif
