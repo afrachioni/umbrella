@@ -50,8 +50,6 @@ void BarostatStep::execute_step() {
 	double density_factor = 0;
 
 	P = pressure->get_value();
-	//T = 10;//XXX
-	T = 0.741;//XXX
 	double e2pv = lmp->force->nktv2p, kb = lmp->force->boltz;
 	double exp = -(U-Uold + (P + density_factor)*(V-Vold)/e2pv - \
 			N*kb*T*log(V/Vold))/(kb*T);
