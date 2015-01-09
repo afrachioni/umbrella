@@ -22,7 +22,6 @@ class Parser {
 		void print();
 		int nsteps;
 		UmbrellaStep **steps;
-		double get_temp();
 		char *error_message();
 
 		int nparams;

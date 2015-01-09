@@ -8,10 +8,11 @@
 
 
 UmbrellaParameter::UmbrellaParameter (Quantity *param, Quantity *target, \
-		Quantity *spring, LAMMPS_NS::LAMMPS *lmp) {
+		Quantity *spring, Quantity *temp, LAMMPS_NS::LAMMPS *lmp) {
 	this->param_Q = new Quantity(*param);
 	this->target_Q = new Quantity(*target);
 	this->spring_Q = new Quantity(*spring);
+	this->temp_Q = new Quantity(*temp);
 	this->lmp = lmp;
 }
 
@@ -21,12 +22,14 @@ double UmbrellaParameter::compute_boltzmann_factor() {
 
 	//double temperature = *((double *) lammps_extract_compute(lmp,(char*)"thermo_temp", 0, 0));
 	//double temperature = 10; //XXX
-	double temperature = 0.741; //XXX
+	//double temperature = 0.741; //XXX
 	//temperature = 1/8.617e-5; //XXX
-	if (temperature == 0) return -INFINITY; // Avoid nan
+
 
 	double target = target_Q->get_value();
 	double spring = spring_Q->get_value();
+	double temperature = temp_Q->get_value();
+	if (temperature == 0) return -INFINITY; // Avoid nan
 	double current_potential = (current_value-target)*(current_value-target);
 	double previous_potential = (last_accepted_value - target) * \
 								(last_accepted_value - target);

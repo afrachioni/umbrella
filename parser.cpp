@@ -99,6 +99,7 @@ int Parser::parse() {
 	// no exceptions yet for too few tokens or things not specified
 	// Loop over lines in file buffer, populate appropriate structures
 	char *e; // error for string to number conversion
+	Quantity *temp = new Quantity("c_thermo_temp", lmp, true, false);
 	for (int i = 0; i < num_lines; ++i) {
 		int ln = i + 1;
 		line = file_data + i * max_line_length;
@@ -112,7 +113,11 @@ int Parser::parse() {
 				sprintf(msg, "Parse error: empty directive at line %d.\n", ln);
 				return 1;
 			} else if (strcmp (second_token, "temperature") == 0) {
-				Quantity *temp = new Quantity (third_token, lmp, true, false);
+				if (params.size() > 0) {
+					fprintf (stdout, "Parse warning: non-default temperature "
+							"used for some, but not all, parameters");
+				}
+				temp = new Quantity (third_token, lmp, true, false);
 			} else if (strcmp (second_token, "step_type") == 0) {
 				// TODO complain about number of tokens if necessary
 				Quantity *d = new Quantity (fourth_token, lmp, true, false);
@@ -125,7 +130,7 @@ int Parser::parse() {
 					if (!press->is_valid())
 						sprintf (msg, "%s\"%s\" is not a valid pressure "
 								"(line %d)", msg, sixth_token, ln);
-					s = new BarostatStep (lmp, d, third_token, press);
+					s = new BarostatStep (lmp, d, temp, third_token, press);
 				} else
 					s = new UmbrellaStep (lmp, d, third_token);
 				steps_map[third_token] = s;
@@ -153,7 +158,8 @@ int Parser::parse() {
 				if (strcmp(msg, ""))
 					return 1;
 
-				UmbrellaParameter *p = new UmbrellaParameter (param, target, spring, lmp);
+				UmbrellaParameter *p = new UmbrellaParameter \
+									   (param, target, spring, temp, lmp);
 				params.push_back (p);
 
 			} else if (strcmp (second_token, "bias_every") == 0) {
@@ -272,10 +278,6 @@ int Parser::parse() {
 	for (int i = 0; i < nparams; ++i)
 		param_ptrs[i] = params[i];
 	return 0;
-}
-
-double Parser::get_temp() {
-	return temp->get_value();
 }
 
 char *Parser::error_message() {

@@ -115,12 +115,9 @@ int main(int narg, char **arg)
 		srand(me);
 
 		// Warn about hardcoded integrate accept/reject as global
-		//global->warn("Temperature hardcoded to 10K");
-		global->warn("Temperature hardcoded to 0.741");
 		global->warn((char*)"Step named \"integrate\" hardcoded to provide global"
 				" accept/reject blocks for now");
 		//global->warn("Only write things down every ten steps");
-		//global->warn("Using Lennard-Jones reduced units!  (Compiled in.)");
 		//global->warn("Hardcoded to never bias. (Ever.)  (Really.)");
 
 		// Setup LAMMPS instance with initial conditions and settings

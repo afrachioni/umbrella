@@ -16,8 +16,9 @@ int BarostatStep::accepted_count = 0;
 int BarostatStep::count = 0;
 
 BarostatStep::BarostatStep(LAMMPS_NS::LAMMPS *lmp, Quantity *probability, \
-		char* name, Quantity *pressure) :\
+		Quantity *temperature, char* name, Quantity *pressure) :\
 		UmbrellaStep::UmbrellaStep (lmp, probability, name) {
+	this->temperature = new Quantity(*temperature);
 	this->pressure = new Quantity(*pressure);
 	is_barostat = 1;
 }
@@ -32,7 +33,7 @@ void BarostatStep::execute_init() {  // XXX sets Uold, Vold once per instance
 void BarostatStep::execute_step() {
 	// TODO might be able to store pointer, dereference when I need it, rather
 	// than calling extract each step (not sure whether this matters)
-	T = *((double *) lammps_extract_compute (lmp, (char*)"thermo_temp", 0, 0));
+	T = temperature->get_value();
 	Uold = *((double *) lammps_extract_compute (lmp,(char*)"thermo_pe", 0, 0));
 	Vold=*((double*)lammps_extract_variable(lmp,(char*)"lu_vol",(char*)"all"));
 
