@@ -12,7 +12,7 @@ class BarostatStep : public UmbrellaStep {
 		static double get_rate();
 		static void zero_rate();
 	private:
-		int N;
+		int N; // XXX shouldn't this be an lmptype or something?
 		Quantity *pressure;
 		double T, U, P, V;
 		static double Uold, Vold;
