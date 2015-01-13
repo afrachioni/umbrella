@@ -35,10 +35,10 @@ gitversion.cpp: .git/HEAD .git/index
 	echo "const char *gitbranch = \"$(shell git rev-parse --abbrev-ref HEAD)\";" >> $@
 
 %.d: ../%.cpp
-	$(CXX) -M $(CPPFLAGS) $(LAMMPS_INC) $< -MF $@
+	$(CXX) -M $(CXXFLAGS) $(LAMMPS_INC) $< -MF $@
 
 %.o : ../%.cpp
-	$(CXX) $(CPPFLAGS) $(LAMMPS_INC) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(LAMMPS_INC) -c $< -o $@
 -include $(SRC:%.cpp=%.d)
 
 ../driver_$(TARGET): $(OBJ)
