@@ -18,10 +18,9 @@ char UmbrellaStep::line[100];
 // The zeroeth step is always accepted
 int UmbrellaStep::force_accept = 1;
 
-UmbrellaStep::UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, Quantity *probability, char* name) {
+UmbrellaStep::UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, Quantity *probability, \
+		char* name) : lmp(lmp), probability(new Quantity (*probability)) {
 	is_barostat = 0;
-	this->lmp = lmp;
-	this->probability = new Quantity (*probability);
 	strcpy (this->name, name);
 	rand_min = 1;
 	rand_max = 0;
