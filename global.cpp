@@ -104,7 +104,7 @@ void Global::split() {
 // Halt entire job gracefully.  Must be called by all processes.
 void Global::stop(char *message) {
 	if (global_rank == 0)
-		fprintf (stdout, "\033[31merror: %s\033[0m\n", message);
+		fprintf (stdout, "\033[31m%s\033[0m\n", message);
 	finalize();
 	exit(1);
 }

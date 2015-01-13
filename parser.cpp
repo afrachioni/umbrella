@@ -118,6 +118,10 @@ int Parser::parse() {
 							"used for some, but not all, parameters");
 				}
 				temp = new Quantity (third_token, lmp, true, false);
+				// TODO format all parse errors like this
+				if (!temp->is_valid())
+					sprintf(msg, "%s\nerror: \"%s\" is not a valid temperature"
+							" (line %d).", msg, third_token, ln);
 			} else if (strcmp (second_token, "step_type") == 0) {
 				// TODO complain about number of tokens if necessary
 				Quantity *d = new Quantity (fourth_token, lmp, true, false);
