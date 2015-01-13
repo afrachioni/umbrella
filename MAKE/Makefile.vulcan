@@ -2,7 +2,7 @@
 #
 include ../Makefile
 CXX = mpic++
-CXXFLAGS = -O3 -w3
+CXXFLAGS = -O3 -w2
 LAMMPS_INC = -I ~/LAMMPS/src -I ~/LAMMPS/lib/meam
 LAMMPS_LIB = -L ~/LAMMPS/src -L ~/LAMMPS/lib/meam
 LIBS = -llammps_vulcan -lmeam -lifcore -lsvml -limf
