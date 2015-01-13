@@ -21,7 +21,6 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ------------------------------------------------------------------------- */
 
-#define VERSION "13.12.11.0"
 #define DEBUG 1
 
 // Command line options parser
@@ -127,21 +126,7 @@ int main(int narg, char **arg)
 		char *args[] = {(char*)"foo", (char*)"-screen", (char*)"none", \
 			(char*)"-log", (char*)"none"};
 		LAMMPS *lmp = new LAMMPS(5,args,global->local_comm);
-
 		
-		/*
-		 * sterilize this just in case
-		// Also seems to work
-		//char *args[] = {(char*)"foo", (char*)"-echo", (char*)"none", \
-			(char*)"-log", (char*)"none"};
-		//LAMMPS *lmp = new LAMMPS(5,args,global->local_comm);
-
-		// Seems to work
-		//char *args[] = {(char*)"foo", \
-			(char*)"-log", (char*)"none"};
-		//LAMMPS *lmp = new LAMMPS(3,args,global->local_comm);
-
-		*/
 		// Parse input script
 		Parser *parser = new Parser (p->script, lmp);
 		debugmsg ("Processing input script...\n");
