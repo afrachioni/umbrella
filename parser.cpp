@@ -99,7 +99,7 @@ int Parser::parse() {
 	// no exceptions yet for too few tokens or things not specified
 	// Loop over lines in file buffer, populate appropriate structures
 	char *e; // error for string to number conversion
-	Quantity *temp = new Quantity("c_thermo_temp", lmp, true, false);
+	Quantity *temp = new Quantity((char*)"c_thermo_temp", lmp, true, false);
 	for (int i = 0; i < num_lines; ++i) {
 		int ln = i + 1;
 		line = file_data + i * max_line_length;

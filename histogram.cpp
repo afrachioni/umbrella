@@ -86,7 +86,7 @@ int Histogram::update (double val) {
 
 int Histogram::update() {
 	if (p == NULL)
-		Global::get_instance()->abort("Histogram::update() called without "
+		Global::get_instance()->abort((char*)"Histogram::update() called without "
 				"parameter set (should not happen)");
 	return update (p->get_last_accepted_value());
 }
