@@ -27,10 +27,10 @@ UmbrellaStep::UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, Quantity *probability, char* 
 	rand_max = 0;
 
 	this->logger = NULL;
-};
+}
 UmbrellaStep::UmbrellaStep() {}
 
-UmbrellaStep::~UmbrellaStep(){};
+UmbrellaStep::~UmbrellaStep(){}
 
 void UmbrellaStep::execute_init() {
 	execute_block (lmp, step_init_block);
@@ -90,7 +90,6 @@ void UmbrellaStep::execute_block (LAMMPS_NS::LAMMPS *lmp, std::vector<std::strin
 			sprintf (line, "change_box all z final %f %f units box", zlo, zhi);
 			lmp->input->one (line);
 
-			int64_t time = Logger::get_time();
 			lammps_scatter_atoms(lmp, (char*)"x", 1, 3, positions_buffer);
 
 			sprintf (line, "# Positions scattered. 1: %f\t%f\t%f",
