@@ -111,7 +111,7 @@ int main(int narg, char **arg)
 		// Split MPI_COMM_WORLD into windows
 		Global::init (MPI_COMM_WORLD, p->windows);
 		Global *global = Global::get_instance();
-		srand(me);
+		srand(global->get_window_index());
 
 		// Warn about hardcoded integrate accept/reject as global
 		global->warn((char*)"Step named \"integrate\" hardcoded to provide global"
