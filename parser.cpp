@@ -126,14 +126,14 @@ int Parser::parse() {
 				// TODO complain about number of tokens if necessary
 				Quantity *d = new Quantity (fourth_token, lmp, true, false);
 				if (!d->is_valid() || !d->is_constant())
-					sprintf (msg, "Step probability must be a positive "
-							"constant (line %d).\n", ln);
+					sprintf (msg, "%s\nerror: Step probability must be a "
+							"positive constant (line %d).", msg, ln);
 				UmbrellaStep *s;
 				if (strcmp (fifth_token, "barostat") == 0) {
 					Quantity *press = new Quantity (sixth_token, lmp, false, false);
 					if (!press->is_valid())
-						sprintf (msg, "%s\"%s\" is not a valid pressure "
-								"(line %d)", msg, sixth_token, ln);
+						sprintf (msg, "%s\nerror: \"%s\" is not a valid "
+								"pressure (line %d).", msg, sixth_token, ln);
 					s = new BarostatStep (lmp, d, temp, third_token, press);
 				} else
 					s = new UmbrellaStep (lmp, d, third_token);
