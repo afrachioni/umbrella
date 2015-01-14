@@ -41,18 +41,11 @@ void BarostatStep::execute_step() {
 
 	U = *((double *) lammps_extract_compute (lmp,(char*)"thermo_pe", 0, 0));
 	V = *((double *)lammps_extract_variable(lmp,(char*)"lu_vol",(char*)"all"));
-
-
-	// XXX This is the long range correction to the pressure, see Verlet
-	//double density = *((double *) lammps_extract_variable(lmp,(char*)"density",(char*)"all"));
-	//double density_factor = density*density * 1.0694;
-	//double density_factor = density * 0.929915;
-	double density_factor = 0;
-
 	P = pressure->get_value();
 	double e2pv = lmp->force->nktv2p, kb = lmp->force->boltz;
-	double exp = -(U-Uold + (P + density_factor)*(V-Vold)/e2pv - \
-			N*kb*T*log(V/Vold))/(kb*T);
+
+	double exp = -(U-Uold + P*(V-Vold)/e2pv - N*kb*T*log(V/Vold))/(kb*T);
+
 	double accept_rand = (double) rand() / RAND_MAX;
 	int accept = log (accept_rand) < exp;
 	MPI_Bcast (&accept, 1, MPI_INT, 0, Global::get_instance()->local_comm);
