@@ -12,9 +12,7 @@ import os
 min = 0
 max = -1
 
-#dirname = "logs/" # must end in path separator
-#dirname = "log_sub/" # must end in path separator
-dirname = "logs_distilled/" # must end in path separator
+dirname = "logs/" # must end in path separator
 filenames = os.listdir(dirname)
 filenames.sort(key=lambda x:int(re.search("\d+", x).group(0)))
 
