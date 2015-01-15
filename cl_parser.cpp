@@ -43,7 +43,7 @@ CLParser::CLParser (int narg, char **arg)
 	int missing = 0;
 	for (int i = 0; i < HELP; i++) {
 		option::Option opt = options[i];
-		if (!opt && i != LOG_LAMMPS) { //XXX a cleaner way probably exists
+		if (!opt && i != LOG_LAMMPS && i != WINDOWS) { //XXX a cleaner way probably exists
 			//sprintf ("--%s is a required option!\n", usage[i].longopt);
 			//strcat (err_str, line);
 			if (verbose) fprintf (stderr, "--%s is a required option!\n", usage[i].longopt);
@@ -61,7 +61,10 @@ CLParser::CLParser (int narg, char **arg)
 	if (verbose) fprintf (stdout, "\tNumber of umbrella steps:              %d\n", count);
 
 	const char *windows_arg = options[WINDOWS].last()->arg;
-	windows = atoi (windows_arg);
+	if (options[WINDOWS])
+		windows = atoi (windows_arg);
+	else
+		windows = 1;
 	if (verbose) fprintf (stdout, "\tNumber of parallel windows:            %d\n", windows);
 
 	strcpy (script, options[SCRIPT].last()->arg);
