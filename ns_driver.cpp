@@ -118,7 +118,7 @@ int main(int narg, char **arg)
 				" accept/reject blocks for now");
 		//global->warn("Only write things down every ten steps");
 		//global->warn("Hardcoded to never bias. (Ever.)  (Really.)");
-		global->warn("Will not print last_ parameters");
+		//global->warn("Will not print last_ parameters");
 
 		// Setup LAMMPS instance with initial conditions and settings
 		debugmsg ("Creating LAMMPSes...\n");
