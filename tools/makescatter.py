@@ -21,7 +21,7 @@ if not os.path.exists("plots"):
 
 
 for filename in filenames:
-	if re.search(".lammps", filename) or re.search(".hist", filename):
+	if re.search(".lammps", filename) or re.search(".hist", filename) or filename.startswith("."):
 		continue
 	print "Working on log: " + filename
 	data_file = open (dirname + filename, "r")
