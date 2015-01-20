@@ -1,0 +1,152 @@
+echo log
+variable window_index equal @+0
+variable radius equal 1
+variable temp equal 0.741
+variable pressure equal 0.01202
+
+
+#AF temperature v_temp
+variable twice_temp equal 2*${temp}
+
+# Init ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+echo none
+atom_modify map hash # maybe this should be automated
+units lj
+atom_style atomic
+# Nearest neighbor distance: 2^(-1/2) = 0.7071
+# Lattice constant = 2^(2/3)
+#
+lattice fcc 1
+region box block 0 6 0 6 0 6
+variable natoms equal 864
+create_box 1 box
+create_atoms 1 box
+mass 1 1
+
+timestep 0.02
+
+variable density equal 0.1
+variable L equal (${natoms}/${density})^(1/3)
+change_box all x final 0 ${L} remap
+change_box all y final 0 ${L} remap
+change_box all z final 0 ${L} remap
+
+read_dump <<index.txt>> x y z add yes
+
+pair_style lj/cut 2.5
+pair_coeff 1 1 1 1
+pair_modify shift yes
+
+variable seed equal floor(random(1,10000,75))
+
+compute msd all msd
+variable rmsd equal sqrt(c_msd[1]+c_msd[2]+c_msd[3])
+
+# TODO set range to some fraction of initial volume
+variable delta equal 20 # maximum volume change, in sigma^3
+variable rand equal random(-${delta},${delta},7)
+
+velocity all create ${twice_temp} 7531
+
+compute Q6 all boop 6 1.5
+compute pe all pe
+
+compute in_cut all ncut/atom 1.5
+variable is_liquidy atom c_in_cut>4
+group liquidy dynamic all var is_liquidy
+variable num_liquidy equal count(liquidy)
+
+compute mycluster liquidy cluster/atom 1.5
+compute lc liquidy largest_cluster mycluster
+
+thermo_style custom step temp c_Q6 ke vol pe press v_rmsd c_lc
+thermo 100
+
+shell mkdir dump
+
+# Steps |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+#AF step_type integrate 0.7
+#AF step_type x_box 0.1 barostat v_pressure
+#AF step_type y_box 0.1 barostat v_pressure
+#AF step_type z_box 0.1 barostat v_pressure
+
+# Parameters ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+variable spring equal 0.03*${temp} # that is, k_s = 0.1 kT
+variable target equal 10*${window_index}
+#AF parameter c_lc v_target v_spring
+#AF parameter v_num_liquidy 0 0
+#AF parameter c_Q6 0 0
+#AF parameter v_lu_vol 0 0
+#AF parameter c_pe 0 0
+
+#AF do_every 10000
+write_dump all atom dump/${window_index}_${lu_step}.atom
+write_dump all xyz  dump/${window_index}_${lu_step}.xyz 
+#write_dump all atom dump/window_${window_index}/*.atom
+#write_dump all custom dump/*.txt id type x y z c_mycluster
+
+#dump 1 all custom 1 dump/*.txt id type x y z c_mycluster
+#run 0
+#undump 1
+
+# Step bodies |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+# Integration step ------------------------------------------------------------
+#AF step_init integrate
+fix 1 all nvt temp ${temp} ${temp} 1
+#AF get_positions
+
+#AF take_step integrate
+ # Integrate
+run 25 post no
+
+#AF if_accept integrate
+# ACCEPT
+#AF get_positions
+
+#AF if_reject integrate
+ # REJECT
+#AF put_positions
+variable my_seed equal v_seed
+velocity all create ${temp} ${my_seed}
+run 0 post no
+
+
+# Volume move in x ------------------------------------------------------------
+#AF step_init x_box
+variable r_d_x equal 1/v_d_x
+
+#AF take_step x_box
+variable d_x equal (${lu_vol}+${rand})/${lu_vol}
+change_box all x scale ${d_x} remap units box
+run 0 post no
+
+#AF if_reject x_box
+change_box all x scale ${r_d_x} remap units box
+run 0 post no
+
+# Volume move in y ------------------------------------------------------------
+#AF step_init y_box
+variable r_d_y equal 1/v_d_y
+
+#AF take_step y_box
+variable d_y equal (${lu_vol}+${rand})/${lu_vol}
+change_box all y scale ${d_y} remap units box
+run 0 post no
+
+#AF if_reject y_box
+change_box all y scale ${r_d_y} remap units box
+run 0 post no
+
+# Volume move in z ------------------------------------------------------------
+#AF step_init z_box
+variable r_d_z equal 1/v_d_z
+
+#AF take_step z_box
+variable d_z equal (${lu_vol}+${rand})/${lu_vol}
+change_box all z scale ${d_z} remap units box
+run 0 post no
+
+#AF if_reject z_box
+change_box all z scale ${r_d_z} remap units box
+run 0 post no
