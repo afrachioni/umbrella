@@ -250,7 +250,8 @@ int Parser::parse() {
 				//} else if (strcmp (second_token, "do_step") == 0) {
 				//sprintf (line, "DO_STEP %s", third_token);  // TODO check third null
 		} else {
-			fprintf (stderr, "Directive not recognized: %s\n", line);
+			sprintf (msg, "Directive not recognized: %s\n", line);
+			return 1;
 		}
 		}
 		if (line[0] == '#' || line[0] == '\0') continue; //perhaps pass to LAMMPS so they show up on logs
