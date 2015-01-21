@@ -231,14 +231,6 @@ int main(int narg, char **arg)
 		int local_count = 0;
 		int local_accept_count = 0;
 
-
-		mkdir ("hist_data", S_IRWXU);
-		sprintf (line, "hist_data/window_%d", global->get_window_index());
-		mkdir (line, S_IRWXU);
-		mkdir ("window_stats", S_IRWXU);
-		sprintf (line, "window_stats/window_%d", global->get_window_index());
-		mkdir (line, S_IRWXU);
-
 		printmsg ("Samples away!\n\n");
 		//Q6_old is most recently accepted Q6
 		int64_t start_time = Logger::get_time();
