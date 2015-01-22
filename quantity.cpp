@@ -86,3 +86,11 @@ bool Quantity::is_constant() {
 bool Quantity::is_valid() {
 	return valid;
 }
+
+double Quantity::operator+(Quantity &rhs) {
+	return get_value() + rhs.get_value();
+}
+
+double Quantity::operator-(Quantity &rhs) {
+	return get_value() - rhs.get_value();
+}

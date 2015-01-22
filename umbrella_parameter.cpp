@@ -19,14 +19,12 @@ UmbrellaParameter::UmbrellaParameter (Quantity *param, Quantity *target, \
 // ALL the physics lives here
 double UmbrellaParameter::compute_boltzmann_factor() {
 	current_value = param_Q->get_value();
-	double target = target_Q->get_value();
-	double spring = spring_Q->get_value();
 	double temperature = temp_Q->get_value();
 	if (temperature == 0) return -INFINITY; // Avoid nan
-	double current_potential = (current_value-target)*(current_value-target);
-	double previous_potential = (last_accepted_value - target) * \
-								(last_accepted_value - target);
-	double rval = -0.5 * spring / temperature * \
+	double current_potential = (current_value-*target_Q)*(current_value-*target_Q);
+	double previous_potential = (last_accepted_value - *target_Q) * \
+								(last_accepted_value - *target_Q);
+	double rval = -0.5 * *spring_Q / temperature * \
 				  (current_potential - previous_potential);
 	return rval;
 }

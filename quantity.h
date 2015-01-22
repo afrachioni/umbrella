@@ -10,6 +10,9 @@ class Quantity {
 		char *get_name();
 		bool is_constant();
 		bool is_valid();
+		double operator+(Quantity &rhs);
+		double operator-(Quantity &rhs);
+		operator double() {return get_value();}
 
 	private:
 		LAMMPS_NS::LAMMPS *lmp;
