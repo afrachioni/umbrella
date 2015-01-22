@@ -6,7 +6,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pylab
 import re
-import numpy
 import os
 
 min = 0
@@ -28,12 +27,19 @@ for filename in filenames:
 	for line in data_file:
 		if re.match ("#Step", line):
 			break
-	data_file.close()
 	headers = line.split()
-	data = numpy.loadtxt(dirname + filename)
+	header_indices = range(len(headers))
+	data = [[] for i in header_indices]
 
-	for col in range(len(data[0])):
-		plt.plot(data[min:max, 0], data[min:max,col])
+	for line in data_file:
+		tokens = line.split()
+		if int(tokens[0]) % 1000:
+			continue
+		for i in header_indices:
+			data[i].append(float(tokens[i]))
+
+	for col in range(len(headers)):
+		plt.plot(data[0], data[col])
 
 		plt.grid(True)
 		plt.xlabel("Step index")
