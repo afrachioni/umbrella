@@ -134,9 +134,9 @@ int Parser::parse() {
 					if (!press->is_valid())
 						sprintf (msg, "%s\nerror: \"%s\" is not a valid "
 								"pressure (line %d).", msg, sixth_token, ln);
-					s = new BarostatStep (lmp, d, temp, third_token, press);
+					s = new BarostatStep (lmp, *d, temp, third_token, press);
 				} else
-					s = new UmbrellaStep (lmp, d, third_token);
+					s = new UmbrellaStep (lmp, *d, third_token);
 				steps_map[third_token] = s;
 
 				if (strcmp (msg, ""))
@@ -267,7 +267,7 @@ int Parser::parse() {
 	for (std::map<std::string, UmbrellaStep*>::iterator \
 			it = steps_map.begin(); it != steps_map.end(); ++it) {
 		it->second->rand_min = sum;
-		sum += it->second->probability->get_value();
+		sum += it->second->probability;
 		it->second->rand_max = sum;
 		steps[i] = it->second;
 		++i;

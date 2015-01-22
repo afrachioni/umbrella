@@ -26,7 +26,7 @@ void Logger::init() {
 		fprintf (fp, "# Step label   Name           Probabilitiy\n");
 		for (int i = 0; i < nsteps; ++i)
 			fprintf (fp, "#     %-2d       %-18s%f\n", \
-					i, steps[i]->name, steps[i]->probability->get_value());
+					i, steps[i]->name, steps[i]->probability);
 		fprintf (fp, "#\n");
 		fprintf (fp, "#Step    ");
 		for (int i = 0; i < nparams; ++i) {

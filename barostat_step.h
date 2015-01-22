@@ -6,7 +6,7 @@
 
 class BarostatStep : public UmbrellaStep {
 	public:
-		BarostatStep(LAMMPS_NS::LAMMPS *lmp, Quantity *probability, \
+		BarostatStep(LAMMPS_NS::LAMMPS *lmp, double probability, \
 			   Quantity *temperature, char* name, Quantity *pressure);
 		void execute_init();
 		void execute_step();

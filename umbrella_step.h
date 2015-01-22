@@ -16,7 +16,7 @@ class UmbrellaStep {
 	public:
 		int is_barostat;
 
-		UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, Quantity *probability, char *name);
+		UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, double probability, char *name);
 		UmbrellaStep();
 		~UmbrellaStep();
 		std::vector<std::string>* get_step_init_block();
@@ -29,7 +29,7 @@ class UmbrellaStep {
 		void execute_accept();
 		void execute_reject();
 
-		Quantity *probability;
+		double probability;
 		float rand_min;
 		float rand_max;
 

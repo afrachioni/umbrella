@@ -15,7 +15,7 @@ double BarostatStep::Vold = 0;
 int BarostatStep::accepted_count = 0;
 int BarostatStep::count = 0;
 
-BarostatStep::BarostatStep(LAMMPS_NS::LAMMPS *lmp, Quantity *probability, \
+BarostatStep::BarostatStep(LAMMPS_NS::LAMMPS *lmp, double probability, \
 		Quantity *temperature, char* name, Quantity *pressure) :\
 		UmbrellaStep::UmbrellaStep (lmp, probability, name) {
 	this->temperature = new Quantity(*temperature);
