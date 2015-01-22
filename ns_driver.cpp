@@ -165,7 +165,7 @@ int main(int narg, char **arg)
 
 		// Execute per-step initialization blocks
 		for (int i = 0; i < parser->nsteps; ++i)
-			if ((parser->steps)[i]->probability)
+			if ((parser->steps)[i]->probability > 0)
 				(parser->steps)[i]->execute_init();
 
 		//Umbrella definitions
