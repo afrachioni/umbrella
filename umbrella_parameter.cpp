@@ -8,23 +8,18 @@
 
 
 UmbrellaParameter::UmbrellaParameter (Quantity *param, Quantity *target, \
-		Quantity *spring, Quantity *temp, LAMMPS_NS::LAMMPS *lmp) {
-	this->param_Q = new Quantity(*param);
-	this->target_Q = new Quantity(*target);
-	this->spring_Q = new Quantity(*spring);
-	this->temp_Q = new Quantity(*temp);
-	this->lmp = lmp;
-}
+		Quantity *spring, Quantity *temp, LAMMPS_NS::LAMMPS *lmp) 
+: param(*param), target(*target), spring(*spring), temp(*temp), lmp(lmp) {}
 
 // ALL the physics lives here
 double UmbrellaParameter::compute_boltzmann_factor() {
-	current_value = param_Q->get_value();
-	double temperature = temp_Q->get_value();
+	current_value = param.get_value();
+	double temperature = temp.get_value();
 	if (temperature == 0) return -INFINITY; // Avoid nan
-	double current_potential = (current_value-*target_Q)*(current_value-*target_Q);
-	double previous_potential = (last_accepted_value - *target_Q) * \
-								(last_accepted_value - *target_Q);
-	double rval = -0.5 * *spring_Q / temperature * \
+	double current_potential = (current_value-target)*(current_value-target);
+	double previous_potential = (last_accepted_value - target) * \
+								(last_accepted_value - target);
+	double rval = -0.5 * spring / temperature * \
 				  (current_potential - previous_potential);
 	return rval;
 }
@@ -42,15 +37,15 @@ double UmbrellaParameter::get_last_accepted_value() {
 }
 
 double UmbrellaParameter::get_spring() {
-	return spring_Q->get_value();
+	return spring.get_value();
 }
 
 double UmbrellaParameter::get_target() {
-	return target_Q->get_value();
+	return target.get_value();
 }
 
 char *UmbrellaParameter::get_name() {
-	return param_Q->get_name();
+	return param.get_name();
 }
 
 void UmbrellaParameter::notify_accepted_debug(Logger *logger) {

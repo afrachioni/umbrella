@@ -22,7 +22,7 @@ class UmbrellaParameter {
 		void notify_accepted_debug(Logger *logger);
 		void notify_rejected_debug(Logger *logger);
 	private:
-		Quantity *param_Q, *target_Q, *spring_Q, *temp_Q;
+		Quantity param, target, spring, temp;
 		double current_value;
 		double last_accepted_value;
 		LAMMPS_NS::LAMMPS *lmp;
