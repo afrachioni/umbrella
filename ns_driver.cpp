@@ -116,9 +116,6 @@ int main(int narg, char **arg)
 		// Warn about hardcoded integrate accept/reject as global
 		global->warn((char*)"Step named \"integrate\" hardcoded to provide global"
 				" accept/reject blocks for now");
-		//global->warn("Only write things down every ten steps");
-		//global->warn("Hardcoded to never bias. (Ever.)  (Really.)");
-		//global->warn("Will not print last_ parameters");
 
 		// Setup LAMMPS instance with initial conditions and settings
 		debugmsg ("Creating LAMMPSes...\n");
@@ -232,7 +229,6 @@ int main(int narg, char **arg)
 		int local_accept_count = 0;
 
 		printmsg ("Samples away!\n\n");
-		//Q6_old is most recently accepted Q6
 		int64_t start_time = Logger::get_time();
 		int64_t step_start_time = Logger::get_time();
 		for (int i = 0; i < p->count + 1; ++i) {
@@ -246,7 +242,6 @@ int main(int narg, char **arg)
 				fprintf (stdout, "Step: %d\tRate: %f\tBarostat rate: %f\tSplit: %" PRId64 "\n", i, rate, barostat_rate, split);
 				local_accept_count = 0;
 				local_count = 0;
-				//global->debug (line);
 			}
 			//--------------------------------------------------------
 			//
