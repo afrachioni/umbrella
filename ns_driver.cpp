@@ -89,8 +89,12 @@ int main(int narg, char **arg)
 					"|                                               |\n");
 			fprintf (stdout, "                       "
 					"| LAMMPS version: %-29s |\n", LAMMPS_VERSION);
+			const unsigned message_length = 30;
+			char boxmessage[message_length + 1];
+			strncpy(boxmessage, gitmessage, message_length);
+			boxmessage[message_length] = '\0';
 			fprintf (stdout, "                       "
-					"| Latest commit: %-30s |\n", gitmessage);
+					"| Latest commit: %-30s |\n", boxmessage);
 			fprintf (stdout, "                       "
 					"| On branch: %-34s |\n", gitbranch);
 			fprintf (stdout, "                       "
