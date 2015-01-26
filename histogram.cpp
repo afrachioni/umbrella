@@ -88,7 +88,7 @@ int Histogram::update() {
 	if (p == NULL)
 		Global::get_instance()->abort((char*)"Histogram::update() called without "
 				"parameter set (should not happen)");
-	return update (p->get_last_accepted_value());
+	return update (p->get_proposed_value());
 }
 
 double Histogram::get_mean() {

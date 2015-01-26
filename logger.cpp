@@ -31,9 +31,9 @@ void Logger::init() {
 		fprintf (fp, "#Step    ");
 		for (int i = 0; i < nparams; ++i) {
 			if (i < 1) {  // TODO should be if spring or something
-				char last_accepted_name[100];
-				sprintf (last_accepted_name, "Last_%s", params[i]->get_name());
-				fprintf (fp, "%-19s", last_accepted_name);
+				char proposed_name[100];
+				sprintf (proposed_name, "proposed_%s", params[i]->get_name());
+				fprintf (fp, "%-19s", proposed_name);
 			}
 			fprintf (fp, "%-19s", params[i]->get_name());
 		}
@@ -46,7 +46,7 @@ void Logger::step_taken (int step_index, int step_type, int accept) {
 		fprintf (fp, "%-9d", step_index);
 		for (int i = 0; i < nparams; ++i) {
 			if (i < 1)  // XXX Debug!
-				fprintf(fp, "%-19.12f", params[i]->get_last_accepted_value());
+				fprintf(fp, "%-19.12f", params[i]->get_proposed_value());
 			fprintf (fp, "%-19.12f", params[i]->get_current_value());
 		}
 		//fprintf (fp, "%-6d", step_type);

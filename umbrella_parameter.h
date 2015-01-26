@@ -16,7 +16,7 @@ class UmbrellaParameter {
 		double compute_boltzmann_factor();
 		void notify_accepted();
 		double get_current_value();
-		double get_last_accepted_value();
+		double get_proposed_value();
 		double get_spring(), get_target();
 		char *get_name();
 		void notify_accepted_debug(Logger *logger);
@@ -24,7 +24,7 @@ class UmbrellaParameter {
 	private:
 		Quantity param, target, spring, temp;
 		double current_value;
-		double last_accepted_value;
+		double proposed_value;
 		LAMMPS_NS::LAMMPS *lmp;
 };
 #endif
