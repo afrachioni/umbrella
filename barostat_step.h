@@ -14,8 +14,8 @@ class BarostatStep : public UmbrellaStep {
 		static void zero_rate();
 	private:
 		int N; // XXX shouldn't this be an lmptype or something?
-		Quantity *temperature, *pressure;
-		double T, U, P, V;
+		Quantity T, P;
+		double U, V;
 		static double Uold, Vold;
 		static int accepted_count, count;
 };

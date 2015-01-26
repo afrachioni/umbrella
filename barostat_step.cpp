@@ -17,9 +17,8 @@ int BarostatStep::count = 0;
 
 BarostatStep::BarostatStep(LAMMPS_NS::LAMMPS *lmp, double probability, \
 		Quantity *temperature, char* name, Quantity *pressure) :\
-		UmbrellaStep::UmbrellaStep (lmp, probability, name) {
-	this->temperature = new Quantity(*temperature);
-	this->pressure = new Quantity(*pressure);
+		UmbrellaStep::UmbrellaStep (lmp, probability, name), \
+		T(*temperature), P(*pressure) {
 	is_barostat = 1;
 }
 
@@ -33,7 +32,6 @@ void BarostatStep::execute_init() {  // XXX sets Uold, Vold once per instance
 void BarostatStep::execute_step() {
 	// TODO might be able to store pointer, dereference when I need it, rather
 	// than calling extract each step (not sure whether this matters)
-	T = temperature->get_value();
 	Uold = *((double *) lammps_extract_compute (lmp,(char*)"thermo_pe", 0, 0));
 	Vold=*((double*)lammps_extract_variable(lmp,(char*)"lu_vol",(char*)"all"));
 
@@ -41,7 +39,6 @@ void BarostatStep::execute_step() {
 
 	U = *((double *) lammps_extract_compute (lmp,(char*)"thermo_pe", 0, 0));
 	V = *((double *)lammps_extract_variable(lmp,(char*)"lu_vol",(char*)"all"));
-	P = pressure->get_value();
 	double e2pv = lmp->force->nktv2p, kb = lmp->force->boltz;
 
 	double exp = -(U-Uold + P*(V-Vold)/e2pv - N*kb*T*log(V/Vold))/(kb*T);
