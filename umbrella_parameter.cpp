@@ -13,8 +13,8 @@ UmbrellaParameter::UmbrellaParameter (Quantity *param, Quantity *target, \
 
 // ALL the physics lives here
 double UmbrellaParameter::compute_boltzmann_factor() {
-	current_value = param.get_value();
-	double temperature = temp.get_value();
+	current_value = param;
+	double temperature = temp;
 	if (temperature == 0) return -INFINITY; // Avoid nan
 	double current_potential = (current_value-target)*(current_value-target);
 	double previous_potential = (last_accepted_value - target) * \
@@ -37,11 +37,11 @@ double UmbrellaParameter::get_last_accepted_value() {
 }
 
 double UmbrellaParameter::get_spring() {
-	return spring.get_value();
+	return spring;
 }
 
 double UmbrellaParameter::get_target() {
-	return target.get_value();
+	return target;
 }
 
 char *UmbrellaParameter::get_name() {
