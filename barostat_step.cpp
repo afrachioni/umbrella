@@ -24,7 +24,7 @@ BarostatStep::BarostatStep(LAMMPS_NS::LAMMPS *lmp, double probability, \
 
 void BarostatStep::execute_init() {  // XXX sets Uold, Vold once per instance
 	UmbrellaStep::execute_init();
-	N = static_cast<int> (lmp->atom->natoms);
+	N = lmp->atom->natoms;
 	Uold = *((double *) lammps_extract_compute (lmp,(char*)"thermo_pe", 0, 0));
 	Vold=*((double*)lammps_extract_variable(lmp,(char*)"lu_vol",(char*)"all"));
 }
