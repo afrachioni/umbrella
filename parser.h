@@ -4,7 +4,7 @@
 #include <map>
 #include <vector>
 #include <mpi.h>
-//#include <lammps.h>
+#include <lammps.h>
 #include <input.h>
 
 #include "quantity.h"

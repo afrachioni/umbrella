@@ -23,37 +23,6 @@
 
 #define DEBUG 1
 
-// Command line options parser
-#include "cl_parser.h"
-
-// Script parser
-#include "parser.h"
-
-
-// Sampling logger
-#include "logger.h"
-
-
-// MPI window splitter
-#include "global.h"
-
-// For final report
-#include "barostat_step.h"
-
-// Histogram
-#include "histogram.h"
-
-// LAMMPS include files
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <mpi.h>
-#include <lammps.h>
-#include <input.h>
-#include <atom.h>
-#include <library.h>
-#include <version.h>
-//#include "management.cpp"
 
 // system include files
 #include <math.h>
@@ -61,6 +30,25 @@
 #include <sys/time.h>
 #include <sys/stat.h> //mkdir needs this
 #include <sys/types.h> //and this too
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// LAMMPS include files
+#include <mpi.h>
+#include <lammps.h>
+#include <input.h>
+#include <atom.h>
+#include <library.h>
+#include <version.h>
+
+#include "cl_parser.h"
+#include "parser.h"
+#include "logger.h"
+#include "global.h"
+#include "barostat_step.h"
+#include "histogram.h"
+//#include "management.cpp"
 
 #define printmsg(...) if (global->get_global_rank() == 0) fprintf(stdout, __VA_ARGS__);
 #define debugmsg(...) if (DEBUG && global->get_global_rank() == 0) fprintf(stdout, __VA_ARGS__);

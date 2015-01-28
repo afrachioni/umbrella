@@ -1,5 +1,5 @@
 #include <stdio.h>
-//#include <stdlib.h> //strtod
+#include <stdlib.h> //strtod
 #include <cstdlib>
 #include <string.h>
 #include <vector>
