@@ -9,6 +9,7 @@
 #include "parser.h"
 #include "quantity.h"
 #include "barostat_step.h"
+#include "global.h"
 
 
 #define MAX_LINE_LENGTH 1000

@@ -5,7 +5,8 @@
 #include <input.h>
 #include <atom.h>
 #include <library.h>
-#include "quantity.h"
+
+#include "global.h"
 #include "umbrella_step.h"
 
 double *UmbrellaStep::positions_buffer = NULL;

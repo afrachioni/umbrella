@@ -3,10 +3,12 @@
 
 #include <mpi.h>
 #include <lammps.h>
+
 #include "quantity.h"
 #include "logger.h"
 
 class Logger;
+class Quantity;
 
 class UmbrellaParameter {
 	public:

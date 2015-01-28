@@ -1,7 +1,8 @@
 #ifndef QUANTITY_H
 #define QUANTITY_H
 
-#include "lammps.h"
+#include <mpi.h>
+#include <lammps.h>
 
 class Quantity {
 	public:

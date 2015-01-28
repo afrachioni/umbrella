@@ -2,8 +2,6 @@
 #define LOGGER_H
 
 #include <inttypes.h>
-#include <stdio.h>
-#include <vector>
 
 #include "umbrella_parameter.h"
 #include "umbrella_step.h"

@@ -1,8 +1,5 @@
-#include <mpi.h>
-#include <lammps.h>
-#include <library.h>
 #include <math.h> // infinity
-#include <string.h>
+
 #include "quantity.h"
 #include "umbrella_parameter.h"
 

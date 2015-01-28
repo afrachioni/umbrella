@@ -9,6 +9,7 @@
 
 #include "quantity.h"
 #include "barostat_step.h"
+#include "global.h"
 
 double BarostatStep::Uold = 0;
 double BarostatStep::Vold = 0;

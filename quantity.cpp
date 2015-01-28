@@ -1,8 +1,6 @@
 #include <stdlib.h> // strtod
 #include <cstring>
 
-#include <mpi.h>
-#include <lammps.h>
 #include <compute.h>
 #include <modify.h>
 #include <update.h>

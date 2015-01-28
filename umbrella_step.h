@@ -4,10 +4,8 @@
 #include <mpi.h>
 #include <lammps.h>
 #include <string>
-#include<vector>
+#include <vector>
 
-#include "quantity.h"
-#include "global.h"
 #include "logger.h"
 
 class Logger;
