@@ -274,7 +274,7 @@ int Parser::parse() {
 		++i;
 
 	}
-	if (sum != 1) {
+	if (nsteps && sum != 1) {
 		sprintf (msg, "Sum of step probabilities is not one.");
 		return 1;
 	}

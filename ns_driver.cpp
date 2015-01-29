@@ -145,6 +145,12 @@ int main(int narg, char **arg)
 		lmp->input->one (line);
 		lmp->input->one ("variable lu_vol equal vol");
 
+		if (parser->nsteps == 0) {
+			global->debug ("No steps are defined, UE will exit now.");
+			global->finalize();
+			return 0;
+		}
+
 		// Execute per-step initialization blocks
 		for (int i = 0; i < parser->nsteps; ++i)
 			if ((parser->steps)[i]->probability > 0)
