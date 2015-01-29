@@ -21,9 +21,6 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ------------------------------------------------------------------------- */
 
-#define DEBUG 1
-
-
 // system include files
 #include <math.h>
 #include <pthread.h>
@@ -49,9 +46,6 @@
 #include "barostat_step.h"
 #include "histogram.h"
 //#include "management.cpp"
-
-#define printmsg(...) if (global->get_global_rank() == 0) fprintf(stdout, __VA_ARGS__);
-#define debugmsg(...) if (DEBUG && global->get_global_rank() == 0) fprintf(stdout, __VA_ARGS__);
 
 using namespace LAMMPS_NS;
 
@@ -110,7 +104,7 @@ int main(int narg, char **arg)
 				" accept/reject blocks for now");
 
 		// Setup LAMMPS instance with initial conditions and settings
-		debugmsg ("Creating LAMMPSes...\n");
+		global->debug ("Creating LAMMPSes...\n");
 
 		// Original -- wierd numbers in logs
 		char *args[] = {(char*)"foo", (char*)"-screen", (char*)"none", \
@@ -119,7 +113,7 @@ int main(int narg, char **arg)
 		
 		// Parse input script
 		Parser *parser = new Parser (p->script, lmp);
-		debugmsg ("Processing input script...\n");
+		global->debug ("Processing input script...\n");
 		if (parser->parse()) {
 			if (me == 0)
 				fprintf (stdout, "\nScript errors present:\n");
@@ -144,10 +138,9 @@ int main(int narg, char **arg)
 		// Execute global window init
 		parser->execute_init();
 
-		int natoms = static_cast<int> (lmp->atom->natoms); // Just for fun
-		debugmsg ("Number of atoms on root window: %d\n", natoms);
 
 		// TODO maybe this belongs somewhere else
+		int natoms = static_cast<int> (lmp->atom->natoms);
 		sprintf (line, "variable lu_natoms equal %d", natoms);
 		lmp->input->one (line);
 		lmp->input->one ("variable lu_vol equal vol");
@@ -220,7 +213,7 @@ int main(int narg, char **arg)
 		int local_count = 0;
 		int local_accept_count = 0;
 
-		printmsg ("Samples away!\n\n");
+		global->debug ("Samples away!\n\n");
 		int64_t start_time = Logger::get_time();
 		int64_t step_start_time = Logger::get_time();
 		for (int i = 0; i < p->count + 1; ++i) {
