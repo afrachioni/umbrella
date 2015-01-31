@@ -107,9 +107,11 @@ int main(int narg, char **arg)
 		global->debug ("Creating LAMMPSes...\n");
 
 		// Original -- wierd numbers in logs
-		char *args[] = {(char*)"foo", (char*)"-screen", (char*)"none", \
+		//char *args[] = {(char*)"foo", (char*)"-screen", (char*)"none", \
 			(char*)"-log", (char*)"none"};
-		LAMMPS *lmp = new LAMMPS(5,args,global->local_comm);
+		//LAMMPS *lmp = new LAMMPS(5,args,global->local_comm);
+		char *args[] = {(char*)"foo", (char*)"-log", (char*)"none"};
+		LAMMPS *lmp = new LAMMPS(3,args,global->local_comm);
 		
 		// Parse input script
 		Parser *parser = new Parser (p->script, lmp);
