@@ -107,11 +107,13 @@ int main(int narg, char **arg)
 		global->debug ("Creating LAMMPSes...\n");
 
 		// Original -- wierd numbers in logs
-		//char *args[] = {(char*)"foo", (char*)"-screen", (char*)"none", \
+		char *args[] = {(char*)"foo", (char*)"-screen", (char*)"none", \
 			(char*)"-log", (char*)"none"};
-		//LAMMPS *lmp = new LAMMPS(5,args,global->local_comm);
-		char *args[] = {(char*)"foo", (char*)"-log", (char*)"none"};
-		LAMMPS *lmp = new LAMMPS(3,args,global->local_comm);
+		LAMMPS *lmp = new LAMMPS(5,args,global->local_comm);
+
+
+		//char *args[] = {(char*)"foo", (char*)"-log", (char*)"none"};
+		//LAMMPS *lmp = new LAMMPS(3,args,global->local_comm);
 		
 		// Parse input script
 		Parser *parser = new Parser (p->script, lmp);
@@ -225,7 +227,7 @@ int main(int narg, char **arg)
 		int64_t start_time = Logger::get_time();
 		int64_t step_start_time = Logger::get_time();
 		for (int i = 0; i < p->count + 1; ++i) {
-			if (i % 1000 == 0 && global->get_global_rank() == 0) {
+			if (i % 1 == 0 && global->get_global_rank() == 0) {
 				int64_t now = Logger::get_time();
 				int64_t split = now - step_start_time;
 				step_start_time = now;
