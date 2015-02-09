@@ -11,6 +11,7 @@ import os
 min = 0
 max = -1
 
+#dirname = "ag_logs_interval/" # must end in path separator
 dirname = "logs/" # must end in path separator
 filenames = os.listdir(dirname)
 filenames.sort(key=lambda x:int(re.search("\d+", x).group(0)))
@@ -20,7 +21,7 @@ if not os.path.exists("plots"):
 
 
 for filename in filenames:
-	if re.search(".lammps", filename) or re.search(".hist", filename) or filename.startswith("."):
+	if re.search(".lammps", filename) or re.search(".hist", filename) or filename.endswith(".png") or filename.startswith("."):
 		continue
 	print "Working on log: " + filename
 	data_file = open (dirname + filename, "r")
@@ -33,8 +34,8 @@ for filename in filenames:
 
 	for line in data_file:
 		tokens = line.split()
-		if int(tokens[0]) % 1000:
-			continue
+		#if int(tokens[0]) % 1000:
+			#continue
 		for i in header_indices:
 			data[i].append(float(tokens[i]))
 
