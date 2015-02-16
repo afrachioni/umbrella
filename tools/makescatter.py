@@ -40,7 +40,12 @@ for filename in filenames:
 			data[i].append(float(tokens[i]))
 
 	for col in range(len(headers)):
-		plt.plot(data[0], data[col])
+		if headers[col].startswith("proposed_"):
+			continue
+		
+		plt.plot(data[0], data[col], color='red', marker='x', linestyle='')
+		if "proposed_" + headers[col] in headers:
+			plt.plot(data[0], data[headers.index("proposed_" + headers[col])], color='blue', marker='x', linestyle='')
 
 		plt.grid(True)
 		plt.xlabel("Step index")
