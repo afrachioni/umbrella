@@ -94,7 +94,7 @@ for filename in filenames:
 	#plt.title(filename)
 	#plt.axis([1, 3, 0, 10000])
 	#max_pop = 3000*5/2 # XXX
-	max_pop = 100000
+	#max_pop = 100000
 	plt.axis([min_Q, max_Q, 0, max_pop])
 	plt.grid(True)
 
