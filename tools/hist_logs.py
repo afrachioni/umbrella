@@ -16,13 +16,11 @@ import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 
 
-#all_bins = np.arange(0, 15, 0.01)
 all_bins = np.arange(0, 500, 1)
 perfile = False
 column = 1
 dirmode = 1
 dirname = "logs/" # must end in path separator
-#dirname = "log_sub/" # must end in path separator
 single_filename = "qdotq.txt"
 
 colors = [ 'red', 'blue', 'green' ]
@@ -40,11 +38,8 @@ max_pop = -float("inf")
 min_Q = float("inf")
 max_Q = -float("inf")
 
-# I'm tired of not being able to easily sort a bunch of plots by timestep
 if dirmode:
-	filenames = []
-	for filename in os.listdir(dirname):
-		filenames.append(filename)
+	filenames = os.listdir(dirname)
 	filenames.sort(key=lambda x:int(re.search("\d+", x).group(0)))
 else:
 	dirname = ""
@@ -88,13 +83,8 @@ for filename in filenames:
 
 	del data[:]
 
-	#plt.xlabel(header)
-	plt.xlabel('n')
+	plt.xlabel(header)
 	plt.ylabel('Frequency')
-	#plt.title(filename)
-	#plt.axis([1, 3, 0, 10000])
-	#max_pop = 3000*5/2 # XXX
-	#max_pop = 100000
 	plt.axis([min_Q, max_Q, 0, max_pop])
 	plt.grid(True)
 
