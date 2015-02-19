@@ -12,7 +12,6 @@ import re
 import matplotlib
 matplotlib.use('Agg')
 import pylab
-import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 
 
