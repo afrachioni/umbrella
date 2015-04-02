@@ -6,13 +6,14 @@ import os
 import pickle
 
 kb = 1
-log_dir = 'ag_logs_interval_target/'
+log_dir = 'ag_logs_target/'
 
 kt = 0.741
-all_springs = 0.03*kt
-min_Q = 0
-max_Q = 390
-num = max_Q
+#min_Q = 0
+#max_Q = 390
+min_Q = 100
+max_Q = 200
+num = max_Q - min_Q + 1
 
 # WindowStats class to hold window data and do some math
 class WindowStats:
@@ -51,21 +52,29 @@ else:
 		for line in log_file:
 			if (re.match (".*Target", line)):
 				window_center = float(line.split()[-1])
+			if (re.match (".*Spring", line)):
+				spring = float(line.split()[-1])
 			if (re.match ("^#", line)): # the carat may be unnecessary
 				continue
 
 			tokens = line.split()
 			try:
-				list.append(float(tokens[1]))
+				list.append(float(tokens[1])) # XXX hardcoded column here
 			except:
 				print "Error with line: " + line
 
+		#if window_center < 80:
+			#continue
+		#if window_center < 15:
+			#continue
+		if not 100 < window_center < 200:
+			continue
 		print (log_fname + "\t" + str(len(list)) + "\t" + \
 			str(window_center) + "\t" + str(numpy.mean(list)) + "\t" + \
 			str(numpy.std(list)))
 		
 		window_data.append(WindowStats( \
-			len(list), window_center, all_springs, \
+			len(list), window_center, spring, \
 			numpy.mean(list), numpy.std(list)))
 
 	window_data_file = open (window_data_fname, "w")
