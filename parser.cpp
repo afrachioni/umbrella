@@ -302,6 +302,8 @@ void Parser::process_brackets(char *line) {
 	char window_str[100];  //TODO I suppose it could be overrun
 	sprintf (window_str, "%d", Global::get_instance()->get_window_index());
 	int window_len = strlen (window_str);
+	//
+	// Substitute @ for rank
 	// TODO maybe do this after brackets
 	for (i = 0; i < n; ++i)
 		if (line[i] == '@') {
@@ -314,11 +316,13 @@ void Parser::process_brackets(char *line) {
 		}
 
 
+	// Search for <<
 	for (i = 0; i < n - 1; ++i)
 		if (line[i] == '<' && line[i + 1] == '<') {
 			left = &line[i + 2];
 			break;
 		}
+	// Search for >>
 	if (left) {
 		for (; i < n - 1; ++i)
 			if (line[i] == '>' && line[i + 1] == '>') {
@@ -335,6 +339,7 @@ void Parser::process_brackets(char *line) {
 	strncpy (result, left, right - left);
 	result [right - left] = '\0';
 
+	//TODO move this inside rank zero block
 	FILE *fp = fopen (result, "r");
 	if (fp == NULL) {
 		sprintf (msg, "Error opening bracketed file: %s", result);
