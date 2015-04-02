@@ -19,7 +19,10 @@ all_bins = np.arange(0, 500, 1)
 perfile = False
 column = 1
 dirmode = 1
-dirname = "logs/" # must end in path separator
+#dirname = "logs/" # must end in path separator
+#dirname = "ag_logs_interval/" # must end in path separator
+#dirname = "ag_logs_2/" # must end in path separator
+dirname = "ag_logs_target/"
 single_filename = "qdotq.txt"
 
 colors = [ 'red', 'blue', 'green' ]
@@ -52,9 +55,14 @@ for filename in filenames:
 
 #TODO switch based on header presence
 	line = ""
+	window_center = 500
 	while not re.search("#Step", line):
 		line = infile.readline()
+		if (re.match (".*Target", line)):
+			window_center = float(line.split()[-1])
 	#line = infile.readline()
+	if window_center < 160:
+		continue
 
 	header = line.split()[ column ]
 	print "Working on histogram of " + header + " for " + filename
