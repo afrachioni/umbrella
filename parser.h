@@ -34,7 +34,7 @@ class Parser {
 		std::map<std::string, UmbrellaStep*> steps_map;
 	private:
 		char msg[100];
-		void process_brackets(char *line);
+		std::string process_brackets(char *line);
 		std::vector<UmbrellaParameter *> params;
 		char fname [100];
 		Quantity *temp;

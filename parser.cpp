@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <stdio.h>
 #include <stdlib.h> //strtod
 #include <cstdlib>
@@ -104,7 +106,10 @@ int Parser::parse() {
 	for (int i = 0; i < num_lines; ++i) {
 		int ln = i + 1;
 		line = file_data + i * max_line_length;
-		Parser::process_brackets (line);
+
+		std::string sx = Parser::process_brackets (line);
+		line = (char*) sx.c_str();
+
 		length = strlen (line);//move inside?
 		n = sscanf (line, "%s %s %s %s %s %s %s %s", first_token, second_token, \
 				third_token, fourth_token, fifth_token, sixth_token, \
@@ -290,7 +295,7 @@ char *Parser::error_message() {
 	return msg;
 }
 
-void Parser::process_brackets(char *line) {
+std::string Parser::process_brackets(char *line) {
 	//TODO pass line number for error messages?
 	char msg[500];
 	char file_line[MAX_LINE_LENGTH];
@@ -302,6 +307,8 @@ void Parser::process_brackets(char *line) {
 	char window_str[100];  //TODO I suppose it could be overrun
 	sprintf (window_str, "%d", Global::get_instance()->get_window_index());
 	int window_len = strlen (window_str);
+	//
+	// Substitute @ for rank
 	// TODO maybe do this after brackets
 	for (i = 0; i < n; ++i)
 		if (line[i] == '@') {
@@ -313,12 +320,13 @@ void Parser::process_brackets(char *line) {
 				line[i + j] = window_str[j];
 		}
 
-
+	// Search for <<
 	for (i = 0; i < n - 1; ++i)
 		if (line[i] == '<' && line[i + 1] == '<') {
 			left = &line[i + 2];
 			break;
 		}
+	// Search for >>
 	if (left) {
 		for (; i < n - 1; ++i)
 			if (line[i] == '>' && line[i + 1] == '>') {
@@ -327,21 +335,18 @@ void Parser::process_brackets(char *line) {
 			}
 		if (!right) Global::get_instance()->abort ((char*) \
 				"No closing brackets detected!");
+		*(left - 2) = *right = '\0';
 	} else
-		return;
+		return std::string(line);
 	if (right == left) Global::get_instance()->abort ((char*) \
 			"Empty brackets encountered in script.");
-	char result[100];
-	strncpy (result, left, right - left);
-	result [right - left] = '\0';
-
-	FILE *fp = fopen (result, "r");
-	if (fp == NULL) {
-		sprintf (msg, "Error opening bracketed file: %s", result);
-		Global::get_instance()->abort (msg);
-	}
 
 	if (Global::get_instance()->get_global_rank() == 0) {
+		FILE *fp = fopen (left, "r");
+		if (fp == NULL) {
+			sprintf (msg, "Error opening bracketed file: %s", left);
+			Global::get_instance()->abort (msg);
+		}
 		int i = 0;
 		while (!feof (fp)) {
 			fgets (file_line, MAX_LINE_LENGTH, fp);
@@ -356,16 +361,17 @@ void Parser::process_brackets(char *line) {
 				sprintf (msg, "Number of lines in bracketed file \"%s\""
 						" is greater than the number of defined windows (%d). "
 						" The first %d lines will be distributed to windows.",\
-						result, Global::get_instance()->get_num_windows(), \
+						left, Global::get_instance()->get_num_windows(), \
 						Global::get_instance()->get_num_windows());
 				Global::get_instance()->warn(msg);
 				break;
 			}
 		}
+		fclose(fp);
 		if (i < Global::get_instance()->get_num_windows()) {
 			sprintf (msg, "Number of lines in bracketed file \"%s\""
 					" is less than the number of defined windows (%d)", \
-					result, Global::get_instance()->get_num_windows());
+					left, Global::get_instance()->get_num_windows());
 			Global::get_instance()->abort (msg);
 		}
 	}
@@ -375,12 +381,7 @@ void Parser::process_brackets(char *line) {
 				Global::get_instance()->roots_comm);
 	MPI_Bcast (file_line, MAX_LINE_LENGTH, MPI_CHAR, 0, \
 			Global::get_instance()->local_comm);
-	char buf[MAX_LINE_LENGTH];
-	strncpy (buf, line, left - line - 2);
-	buf[left - line - 2] = '\0';
-	strcat (buf, file_line);
-	strcat (buf, right + 2);
-	strcpy (line, buf);
+	return std::string(line) + std::string(file_line) + std::string(right + 2);
 }
 
 void Parser::execute_init() {
