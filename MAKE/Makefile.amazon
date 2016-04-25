@@ -5,4 +5,4 @@ CXX = mpic++
 CXXFLAGS =
 LAMMPS_INC = -I ~/LAMMPS/src #-I ~/LAMMPS/lib/meam
 LAMMPS_LIB = -L ~/LAMMPS/src #-L ~/LAMMPS/lib/meam
-LIBS = -llammps_mpi
+LIBS = -llammps_amazon
