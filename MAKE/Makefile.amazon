@@ -1,7 +1,7 @@
 # amazon:     Amazon Linux, GNU + OpenMPI
 #
 include ../Makefile
-CXX = mpic++
+CXX = /usr/lib64/openmpi/bin/mpic++
 CXXFLAGS =
 LAMMPS_INC = -I ~/LAMMPS/src #-I ~/LAMMPS/lib/meam
 LAMMPS_LIB = -L ~/LAMMPS/src #-L ~/LAMMPS/lib/meam
