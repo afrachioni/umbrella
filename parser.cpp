@@ -111,6 +111,8 @@ int Parser::parse() {
 		line = (char*) sx.c_str();
 
 		length = strlen (line);//move inside?
+		first_token[0] = second_token[0] = third_token[0] = fourth_token[0] = \
+			fifth_token[0] = sixth_token[0] = seventh_token[0] = eighth_token[0] = '\0';
 		n = sscanf (line, "%s %s %s %s %s %s %s %s", first_token, second_token, \
 				third_token, fourth_token, fifth_token, sixth_token, \
 				seventh_token, eighth_token);//move inside?
