@@ -4,8 +4,8 @@
    Uses custom "compute boop" to calculate order parameter in situ
    Built to examine nucleation in tin
 
-   Copyright 2013 Anthony Frachioni - All Rights Reserved
-                          afrachioni@gmail.com
+   Copyright 2013-2016 Anthony Frachioni - All Rights Reserved
+                          frachioni@gmail.com
 -------------------------------------------------------------------------
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ int main(int narg, char **arg)
 			fprintf (stdout, "                       "
 					"|           Anthony Frachioni, 1-2013           |\n");
 			fprintf (stdout, "                       "
-					"|              afrachioni@gmail.com             |\n");
+					"|              frachioni@gmail.com              |\n");
 			fprintf (stdout, "                       "
 					"|                                               |\n");
 			fprintf (stdout, "                       "
