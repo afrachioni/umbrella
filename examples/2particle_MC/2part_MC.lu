@@ -1,3 +1,4 @@
+#AF temperature 1
 units metal
 dimension 3
 newton on on
@@ -18,6 +19,7 @@ create_atoms 1 single 0 0 ${target} units box
 
 pair_style lj/cut 9.0
 pair_coeff * * 8.617e-3 1.0 # kT = 8.617e-4
+#pair_coeff * * 0 1.0 # kT = 8.617e-4
 
 variable sep equal sqrt((x[1]-x[2])^2+(y[1]-y[2])^2+(z[1]-z[2])^2)
 
@@ -42,7 +44,7 @@ variable seed equal floor(random(1,10000,@))
 #AF parameter v_sep v_target v_spring
 #AF parameter v_target 0 0
 
-#AF histogram sep 1.05 2.95 2000 100000 logs/log_@.hist
+#AF histogram sep 0.95 3.05 200 10000 logs/log_@.hist
 ###AF bias_every 10
 
 #AF take_step integrate 
@@ -54,10 +56,9 @@ foo de bar zap bag
 #AF if_reject integrate
  # REJECTED against bias, scattering atoms
 #AF put_positions
-#run 0 post no # this is not needed.
 
-
-#AF step_type move 1 barostat 0
+####AF step_type move 1 barostat 0
+#AF step_type move 1
 #AF step_init move
 variable x_buf equal 0
 variable y_buf equal 0
