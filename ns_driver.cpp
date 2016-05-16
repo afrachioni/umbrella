@@ -104,7 +104,7 @@ int main(int narg, char **arg)
 				" accept/reject blocks for now");
 
 		// Setup LAMMPS instance with initial conditions and settings
-		global->debug ("Creating LAMMPSes...\n");
+		global->debug ((char *)"Creating LAMMPSes...\n");
 
 		// Original -- wierd numbers in logs
 		char *args[] = {(char*)"foo", (char*)"-screen", (char*)"none", \
@@ -117,7 +117,7 @@ int main(int narg, char **arg)
 		
 		// Parse input script
 		Parser *parser = new Parser (p->script, lmp);
-		global->debug ("Processing input script...\n");
+		global->debug ((char *)"Processing input script...\n");
 		if (parser->parse()) {
 			if (me == 0)
 				fprintf (stdout, "\nScript errors present:\n");
@@ -150,7 +150,7 @@ int main(int narg, char **arg)
 		lmp->input->one ("variable lu_vol equal vol");
 
 		if (parser->nsteps == 0) {
-			global->debug ("No steps are defined, UE will exit now.");
+			global->debug ((char *)"No steps are defined, UE will exit now.");
 			global->finalize();
 			return 0;
 		}
@@ -223,7 +223,7 @@ int main(int narg, char **arg)
 		int local_count = 0;
 		int local_accept_count = 0;
 
-		global->debug ("Samples away!\n\n");
+		global->debug ((char *)"Samples away!\n\n");
 		int64_t start_time = Logger::get_time();
 		int64_t step_start_time = Logger::get_time();
 		for (int i = 0; i < p->count + 1; ++i) {
