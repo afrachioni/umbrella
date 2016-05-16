@@ -11,6 +11,12 @@ Global *Global::instance = NULL;
 
 // static
 Global* Global::get_instance() {
+	if (instance == NULL)
+		fprintf (stderr,
+		"############################################################"
+		"\nget_instance called on Global without first creating one."
+		"\nThis is an internal error which should never happen.\n"
+		"############################################################\n");
 	return instance;
 }
 
