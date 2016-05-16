@@ -16,6 +16,7 @@
 
 #define MAX_LINE_LENGTH 1000
 #define MAX_TOKEN_SIZE 100
+#define MAX_TOKENS 100
 
 
 /*
@@ -47,20 +48,15 @@ Parser::~Parser() {
 
 int Parser::parse() {
 	FILE *in_p = fopen (fname, "r");
-	if (in_p == NULL)
-		fprintf (stderr, "Cannot read from file: %s\n", fname);
+	if (in_p == NULL) {
+		char msg[100];
+		sprintf (msg, "Cannot read from file: %s", fname);
+		Global::get_instance()->abort(msg);
+	}
 	int n;
 	int length;
 	char line_buf[MAX_LINE_LENGTH];
 	char *line;
-	char first_token[MAX_TOKEN_SIZE];
-	char second_token[MAX_TOKEN_SIZE];
-	char third_token[MAX_TOKEN_SIZE];
-	char fourth_token[MAX_TOKEN_SIZE];
-	char fifth_token[MAX_TOKEN_SIZE];
-	char sixth_token[MAX_TOKEN_SIZE];
-	char seventh_token[MAX_TOKEN_SIZE];
-	char eighth_token[MAX_TOKEN_SIZE];
 
 
 	int me;
@@ -111,61 +107,72 @@ int Parser::parse() {
 		line = (char*) sx.c_str();
 
 		length = strlen (line);//move inside?
-		first_token[0] = second_token[0] = third_token[0] = fourth_token[0] = \
-			fifth_token[0] = sixth_token[0] = seventh_token[0] = eighth_token[0] = '\0';
-		n = sscanf (line, "%s %s %s %s %s %s %s %s", first_token, second_token, \
-				third_token, fourth_token, fifth_token, sixth_token, \
-				seventh_token, eighth_token);//move inside?
-		if (strcmp (first_token, "#AF") == 0 && n > 0) {
+
+		char *line_buf = new char[MAX_LINE_LENGTH];
+		strcpy(line_buf, line);
+
+		int n = 0;
+		char **tokens = new char*[MAX_TOKENS];
+		tokens[n] = strtok(line_buf, " ");
+		while (tokens[n] != NULL) {
+				tokens[++n] = strtok(NULL, " ");
+		}
+
+		char *term = new char ('\0');
+		for (int j = 0; j < 100; ++j)
+				if (tokens[j] == NULL)
+						tokens[j] = term;
+
+		if (n > 0 && strcmp (tokens[0], "#AF") == 0) {
 			if (n == 1) {
 				sprintf(msg, "Parse error: empty directive at line %d.\n", ln);
 				return 1;
-			} else if (strcmp (second_token, "temperature") == 0) {
+			} else if (strcmp (tokens[1], "temperature") == 0) {
 				if (params.size() > 0) {
 					fprintf (stdout, "Parse warning: non-default temperature "
 							"used for some, but not all, parameters");
 				}
-				temp = new Quantity (third_token, lmp, true, false);
+				temp = new Quantity (tokens[2], lmp, true, false);
 				// TODO format all parse errors like this
 				if (!temp->is_valid())
 					sprintf(msg, "%s\nerror: \"%s\" is not a valid temperature"
-							" (line %d).", msg, third_token, ln);
-			} else if (strcmp (second_token, "step_type") == 0) {
+							" (line %d).", msg, tokens[2], ln);
+			} else if (strcmp (tokens[1], "step_type") == 0) {
 				// TODO complain about number of tokens if necessary
-				Quantity *d = new Quantity (fourth_token, lmp, true, false);
+				Quantity *d = new Quantity (tokens[3], lmp, true, false);
 				if (!d->is_valid() || !d->is_constant())
 					sprintf (msg, "%s\nerror: Step probability must be a "
 							"positive constant (line %d).", msg, ln);
 				UmbrellaStep *s;
-				if (strcmp (fifth_token, "barostat") == 0) {
-					Quantity *press = new Quantity (sixth_token, lmp, false, false);
+				if (strcmp (tokens[4], "barostat") == 0) {
+					Quantity *press = new Quantity (tokens[5], lmp, false, false);
 					if (!press->is_valid())
 						sprintf (msg, "%s\nerror: \"%s\" is not a valid "
-								"pressure (line %d).", msg, sixth_token, ln);
-					s = new BarostatStep (lmp, *d, temp, third_token, press);
+								"pressure (line %d).", msg, tokens[5], ln);
+					s = new BarostatStep (lmp, *d, temp, tokens[2], press);
 				} else
-					s = new UmbrellaStep (lmp, *d, third_token);
-				steps_map[third_token] = s;
+					s = new UmbrellaStep (lmp, *d, tokens[2]);
+				steps_map[tokens[2]] = s;
 
 				if (strcmp (msg, ""))
 					return 1;
-			} else if (strcmp (second_token, "parameter") == 0) {
+			} else if (strcmp (tokens[1], "parameter") == 0) {
 				if (n != 5)
 					sprintf (msg, "Incorrect number of tokens to define "
 							"parameter (expected five, line %d).\n", ln);
-				Quantity *param = new Quantity (third_token, lmp, false,false);
+				Quantity *param = new Quantity (tokens[2], lmp, false,false);
 				if (!param->is_valid())
 					sprintf (msg, "%s\"%s\" is not a valid parameter name "
-							"(line %d).\n", msg, third_token, ln);
-				Quantity *target = new Quantity (fourth_token,lmp,false,false);
+							"(line %d).\n", msg, tokens[2], ln);
+				Quantity *target = new Quantity (tokens[3],lmp,false,false);
 				if (!target->is_valid())
 					sprintf (msg, "%s\"%s\" is not a valid target quantity "
-							"(line %d).\n", msg, fourth_token, ln);
+							"(line %d).\n", msg, tokens[3], ln);
 				// repulsive potentials should work, but let's be safe
-				Quantity *spring = new Quantity (fifth_token,lmp, true, false);
+				Quantity *spring = new Quantity (tokens[4],lmp, true, false);
 				if (!spring->is_valid())
 					sprintf (msg, "%s\"%s\" is not a valid spring quantity "
-							"(line %d).\n", msg, fifth_token, ln);
+							"(line %d).\n", msg, tokens[4], ln);
 
 				if (strcmp(msg, ""))
 					return 1;
@@ -174,42 +181,42 @@ int Parser::parse() {
 									   (param, target, spring, temp, lmp);
 				params.push_back (p);
 
-			} else if (strcmp (second_token, "bias_every") == 0) {
-				bias_every = (int) std::strtol(third_token, &e, 0);
+			} else if (strcmp (tokens[1], "bias_every") == 0) {
+				bias_every = (int) std::strtol(tokens[2], &e, 0);
 				if (*e != 0) {
 					sprintf (msg, "Not an integer! (line %d)\n", ln);
 					return 1;
 				}
-			} else if (strcmp (second_token, "take_step") == 0) {
-				if (steps_map.find(third_token) == steps_map.end()) {
+			} else if (strcmp (tokens[1], "take_step") == 0) {
+				if (steps_map.find(tokens[2]) == steps_map.end()) {
 					sprintf (msg, "Parse error: take_step before %s defined "
-							"(line %d).\n", third_token, ln);
+							"(line %d).\n", tokens[2], ln);
 					return 1;
 				}
-				current_block = steps_map[third_token]->get_take_step_block();
-			} else if (strcmp (second_token, "if_accept") == 0) {
-				if (steps_map.find(third_token) == steps_map.end()) {
+				current_block = steps_map[tokens[2]]->get_take_step_block();
+			} else if (strcmp (tokens[1], "if_accept") == 0) {
+				if (steps_map.find(tokens[2]) == steps_map.end()) {
 					sprintf (msg, "Parse error: if_accept before %s defined "
-							"(line %d).\n", third_token, ln);
+							"(line %d).\n", tokens[2], ln);
 					return 1;
 				}
-				current_block = steps_map[third_token]->get_if_accept_block();
-			} else if (strcmp (second_token, "if_reject") == 0) {
-				if (steps_map.find(third_token) == steps_map.end()) {
+				current_block = steps_map[tokens[2]]->get_if_accept_block();
+			} else if (strcmp (tokens[1], "if_reject") == 0) {
+				if (steps_map.find(tokens[2]) == steps_map.end()) {
 					sprintf (msg, "Parse error: if_reject before %s defined "
-							"(line %d).\n", third_token, ln);
+							"(line %d).\n", tokens[2], ln);
 					return 1;
 				}
-				current_block = steps_map[third_token]->get_if_reject_block();
-			} else if (strcmp (second_token, "step_init") == 0) {
-				if (steps_map.find(third_token) == steps_map.end()) {
+				current_block = steps_map[tokens[2]]->get_if_reject_block();
+			} else if (strcmp (tokens[1], "step_init") == 0) {
+				if (steps_map.find(tokens[2]) == steps_map.end()) {
 					sprintf (msg, "Parse error: step_init before %s defined "
-							"(line %d).\n", third_token, ln);
+							"(line %d).\n", tokens[2], ln);
 					return 1;
 				}
-				current_block = steps_map[third_token]->get_step_init_block();
-			} else if (strcmp (second_token, "do_every") == 0) {
-				int p = (int) std::strtol(third_token, &e, 0);
+				current_block = steps_map[tokens[2]]->get_step_init_block();
+			} else if (strcmp (tokens[1], "do_every") == 0) {
+				int p = (int) std::strtol(tokens[2], &e, 0);
 				if (*e != 0) {
 					fprintf (stderr, "Not an integer! (line %d)\n", ln);
 					return 1;
@@ -219,44 +226,44 @@ int Parser::parse() {
 				tasks.push_back(pt);
 				//delete pt; TODO kill this somewhere
 				// Special tasks which get intercepted before LAMMPS
-			} else if (strcmp (second_token, "histogram") == 0) {
+			} else if (strcmp (tokens[1], "histogram") == 0) {
 				UmbrellaParameter *p = NULL;
 				for (std::vector<UmbrellaParameter *>::iterator it = \
 						params.begin(); it != params.end(); ++it)
-					if (strcmp (third_token, (*it)->get_name()) == 0)
+					if (strcmp (tokens[2], (*it)->get_name()) == 0)
 						p = *it;
 				if (p == NULL) {
 					sprintf (msg, "Unable to locate parameter named \'%s\' "
-							"for histogram! (line %d)", third_token, ln);
+							"for histogram! (line %d)", tokens[2], ln);
 					return 1;
 				}
-				float min = std::strtod(fourth_token, &e);
-				float max = std::strtod(fifth_token, &e);
-				int num = (int) std::strtoul(sixth_token, &e, 0);
-				int period = (int) std::strtoul(seventh_token, &e, 0);
+				float min = std::strtod(tokens[3], &e);
+				float max = std::strtod(tokens[4], &e);
+				int num = (int) std::strtoul(tokens[5], &e, 0);
+				int period = (int) std::strtoul(tokens[6], &e, 0);
 				if (*e != 0) {
 					sprintf (msg, "Error parsing histogram options! "
 							"(line %d)", ln);
 					return 1;
 				}
 				Histogram *h = new Histogram (num, min, max, period, p);
-				h->set_filename(eighth_token); //TODO make sure this exists
+				h->set_filename(tokens[7]); //TODO make sure this exists
 				histograms.push_back(h);
 				//delete h; TODO kill this somewhere
 
 
-			} else if (strcmp (second_token, "get_positions") == 0) {
+			} else if (strcmp (tokens[1], "get_positions") == 0) {
 				strcpy (line, "GET_ATOMS");
-			} else if (strcmp (second_token, "put_positions") == 0) {
+			} else if (strcmp (tokens[1], "put_positions") == 0) {
 				strcpy (line, "PUT_ATOMS");
-			} else if (strcmp (second_token, "get_types") == 0) {
+			} else if (strcmp (tokens[1], "get_types") == 0) {
 				strcpy (line, "GET_TYPES");
-			} else if (strcmp (second_token, "put_types") == 0) {
+			} else if (strcmp (tokens[1], "put_types") == 0) {
 				strcpy (line, "PUT_TYPES");
-			} else if (strcmp (second_token, "force_accept") == 0) {
+			} else if (strcmp (tokens[1], "force_accept") == 0) {
 				strcpy (line, "FORCE_ACCEPT");
-				//} else if (strcmp (second_token, "do_step") == 0) {
-				//sprintf (line, "DO_STEP %s", third_token);  // TODO check third null
+				//} else if (strcmp (tokens[1], "do_step") == 0) {
+				//sprintf (line, "DO_STEP %s", tokens[2]);  // TODO check third null
 		} else {
 			sprintf (msg, "Directive not recognized: %s\n", line);
 			return 1;
