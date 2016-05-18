@@ -54,18 +54,16 @@ int Parser::parse() {
 		Global::get_instance()->abort(msg);
 	}
 	int n;
-	int length;
 	char line_buf[MAX_LINE_LENGTH];
 	char *line;
 
 
 	int me;
 	MPI_Comm_rank(MPI_COMM_WORLD, &me);
-	char *file_data;
 	int max_line_length = 0;
 	int num_lines;
 
-	// Root reads file, everybody parses (because passing structs is annoying)
+	// Root reads file, everybody parses
 	std::vector<std::string> line_ptrs;
 	if (me == 0) {
 		// Read file into vector<string>, keeping track of longest line
@@ -83,19 +81,21 @@ int Parser::parse() {
 		fclose (in_p);
 		num_lines = line_ptrs.size();
 	}
+
 	// Broadcast to all my friends
 	MPI_Bcast ( &max_line_length, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast ( &num_lines, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	// Copy to contiguous buffer for shipment over the network
 
-	file_data = new char [max_line_length * num_lines];
+	// Copy to contiguous buffer for shipment over the network
+	char *file_data = new char [max_line_length * num_lines];
 	if (me == 0)
 		for (unsigned i = 0; i < line_ptrs.size(); ++i)
 			strcpy (& file_data [i * max_line_length], line_ptrs[i].c_str());
-	MPI_Bcast ( file_data, max_line_length * num_lines, MPI_CHAR, 0, MPI_COMM_WORLD);
+	MPI_Bcast ( file_data, max_line_length * num_lines,
+					MPI_CHAR, 0, MPI_COMM_WORLD);
 
 	std::vector<std::string>* current_block = &init_block;
-	// no exceptions yet for too few tokens or things not specified
+	// TODO no exceptions yet for too few tokens or things not specified
 	// Loop over lines in file buffer, populate appropriate structures
 	char *e; // error for string to number conversion
 	Quantity *temp = new Quantity((char*)"c_thermo_temp", lmp, true, false);
@@ -106,9 +106,6 @@ int Parser::parse() {
 		std::string sx = Parser::process_brackets (line);
 		line = (char*) sx.c_str();
 
-		length = strlen (line);//move inside?
-
-		char *line_buf = new char[MAX_LINE_LENGTH];
 		strcpy(line_buf, line);
 
 		int n = 0;
