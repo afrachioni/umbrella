@@ -132,7 +132,7 @@ void Global::abort(char *message) {
 		fprintf (stderr, "\033[31m\n");
 		// TODO N be safe
 		char line[500];
-		for (int i = 0; i < strlen(message)+13; ++i)
+		for (unsigned i = 0; i < strlen(message)+13; ++i)
 			line[i] = '=';
 		line[strlen(message)+13] = '\n';
 		line[strlen(message)+14] = '\0';

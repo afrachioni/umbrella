@@ -15,7 +15,6 @@
 
 
 #define MAX_LINE_LENGTH 1000
-#define MAX_TOKEN_SIZE 100
 #define MAX_TOKENS 100
 
 
@@ -53,9 +52,7 @@ int Parser::parse() {
 		sprintf (msg, "Cannot read from file: %s", fname);
 		Global::get_instance()->abort(msg);
 	}
-	int n;
 	char line_buf[MAX_LINE_LENGTH];
-	char *line;
 
 
 	int me;
@@ -87,7 +84,7 @@ int Parser::parse() {
 	MPI_Bcast ( &num_lines, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 	// Copy to contiguous buffer for shipment over the network
-	char *file_data = new char [max_line_length * num_lines];
+	char *file_data = new char [max_line_length * num_lines]; //TODO delete
 	if (me == 0)
 		for (unsigned i = 0; i < line_ptrs.size(); ++i)
 			strcpy (& file_data [i * max_line_length], line_ptrs[i].c_str());
@@ -98,6 +95,7 @@ int Parser::parse() {
 	// TODO no exceptions yet for too few tokens or things not specified
 	// Loop over lines in file buffer, populate appropriate structures
 	char *e; // error for string to number conversion
+	char *line;
 	Quantity *temp = new Quantity((char*)"c_thermo_temp", lmp, true, false);
 	for (int i = 0; i < num_lines; ++i) {
 		int ln = i + 1;
@@ -109,7 +107,7 @@ int Parser::parse() {
 		strcpy(line_buf, line);
 
 		int n = 0;
-		char **tokens = new char*[MAX_TOKENS];
+		char **tokens = new char*[MAX_TOKENS];//TODO delete
 		tokens[n] = strtok(line_buf, " ");
 		while (tokens[n] != NULL) {
 				tokens[++n] = strtok(NULL, " ");

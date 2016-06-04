@@ -16,7 +16,7 @@ class UmbrellaStep {
 
 		UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, double probability, char *name);
 		UmbrellaStep();
-		~UmbrellaStep();
+		virtual ~UmbrellaStep();
 		std::vector<std::string>* get_step_init_block();
 		std::vector<std::string>* get_take_step_block();
 		std::vector<std::string>* get_if_accept_block();

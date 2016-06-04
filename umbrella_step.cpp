@@ -20,7 +20,7 @@ char UmbrellaStep::line[100];
 int UmbrellaStep::force_accept = 1;
 
 UmbrellaStep::UmbrellaStep(LAMMPS_NS::LAMMPS *lmp, double probability, \
-		char* name) : lmp(lmp), probability(probability) {
+		char* name) : probability(probability), lmp(lmp) {
 	is_barostat = 0;
 	strcpy (this->name, name);
 	rand_min = 1;
