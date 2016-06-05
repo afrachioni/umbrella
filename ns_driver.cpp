@@ -310,8 +310,6 @@ int main(int narg, char **arg)
 			if (accept || UmbrellaStep::force_accept) {
 				++local_accept_count;
 				//global->debug ("\t\t\t\tACCEPT");
-				if (UmbrellaStep::force_accept)
-					global->debug((char*)"||||||||||||||FORCE||||||||||||||");
 				//chosen_step->execute_accept();  // TODO switch this to a global accept iff bias_every > 1
 
 				// XXX Debug, experimental
