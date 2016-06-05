@@ -24,7 +24,7 @@ class Parser {
 		UmbrellaStep **steps;
 		char *error_message();
 
-		int nparams;
+		unsigned nparams;
 		UmbrellaParameter **param_ptrs;
 		std::vector<PeriodicTask*> tasks; // XXX these can be bare objects, I think
 		std::vector<Histogram*> histograms;

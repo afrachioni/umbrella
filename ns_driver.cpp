@@ -297,7 +297,7 @@ int main(int narg, char **arg)
 
 			// Add up Boltzmann factors
 			log_boltzmann = 0;
-			for (int j = 0; j < parser->nparams; ++j)
+			for (unsigned j = 0; j < parser->nparams; ++j)
 				log_boltzmann += (parser->param_ptrs)[j]->compute_boltzmann_factor();
 
 			// Compute acceptance
@@ -316,7 +316,7 @@ int main(int narg, char **arg)
 
 				// XXX Debug, experimental
 				parser->steps_map["integrate"]->execute_accept();
-				for (int j = 0; j < parser->nparams; ++j) {
+				for (unsigned j = 0; j < parser->nparams; ++j) {
 					(parser->param_ptrs)[j]->notify_accepted();
 				}
 			} else {

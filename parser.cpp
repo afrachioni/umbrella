@@ -84,7 +84,7 @@ int Parser::parse() {
 	MPI_Bcast ( &num_lines, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 	// Copy to contiguous buffer for shipment over the network
-	char *file_data = new char [max_line_length * num_lines]; //TODO delete
+	char *file_data = new char [max_line_length * num_lines];
 	if (me == 0)
 		for (unsigned i = 0; i < line_ptrs.size(); ++i)
 			strcpy (& file_data [i * max_line_length], line_ptrs[i].c_str());
@@ -107,14 +107,14 @@ int Parser::parse() {
 		strcpy(line_buf, line);
 
 		int n = 0;
-		char **tokens = new char*[MAX_TOKENS];//TODO delete
+		char **tokens = new char*[MAX_TOKENS];
 		tokens[n] = strtok(line_buf, " ");
 		while (tokens[n] != NULL) {
 				tokens[++n] = strtok(NULL, " ");
 		}
 
 		char *term = new char ('\0');
-		for (int j = 0; j < 100; ++j)
+		for (unsigned j = 0; j < MAX_TOKENS; ++j)
 				if (tokens[j] == NULL)
 						tokens[j] = term;
 
@@ -216,11 +216,11 @@ int Parser::parse() {
 					fprintf (stderr, "Not an integer! (line %d)\n", ln);
 					return 1;
 				}
-				PeriodicTask *pt = new PeriodicTask (lmp, p);
+				PeriodicTask *pt = new PeriodicTask (lmp, p); //TODO delete
 				current_block = pt->get_task_block();
 				tasks.push_back(pt);
-				//delete pt; TODO kill this somewhere
-				// Special tasks which get intercepted before LAMMPS
+
+		// Special tasks which get intercepted before LAMMPS
 			} else if (strcmp (tokens[1], "histogram") == 0) {
 				UmbrellaParameter *p = NULL;
 				for (std::vector<UmbrellaParameter *>::iterator it = \
@@ -263,6 +263,7 @@ int Parser::parse() {
 			sprintf (msg, "Directive not recognized: %s\n", line);
 			return 1;
 		}
+		delete [] tokens;
 		}
 		if (line[0] == '#' || line[0] == '\0') continue; //perhaps pass to LAMMPS so they show up on logs
 		current_block->push_back (line);
@@ -273,7 +274,7 @@ int Parser::parse() {
 	nsteps = steps_map.size();
 	steps = new UmbrellaStep *[nsteps];
 	float sum = 0;
-	int i = 0;
+	unsigned i = 0;
 	for (std::map<std::string, UmbrellaStep*>::iterator \
 			it = steps_map.begin(); it != steps_map.end(); ++it) {
 		it->second->rand_min = sum;
@@ -290,7 +291,7 @@ int Parser::parse() {
 
 	nparams = params.size();
 	param_ptrs = new UmbrellaParameter *[nparams];
-	for (int i = 0; i < nparams; ++i)
+	for (unsigned i = 0; i < nparams; ++i)
 		param_ptrs[i] = params[i];
 	return 0;
 }
