@@ -128,7 +128,6 @@ int Parser::parse() {
 							"used for some, but not all, parameters");
 				}
 				temp = new Quantity (tokens[2], lmp, true, false);
-				// TODO format all parse errors like this
 				if (!temp->is_valid())
 					sprintf(msg, "%s\nerror: \"%s\" is not a valid temperature"
 							" (line %d).", msg, tokens[2], ln);
@@ -282,7 +281,6 @@ int Parser::parse() {
 		it->second->rand_max = sum;
 		steps[i] = it->second;
 		++i;
-
 	}
 	if (nsteps && sum != 1) {
 		sprintf (msg, "Sum of step probabilities is not one.");
